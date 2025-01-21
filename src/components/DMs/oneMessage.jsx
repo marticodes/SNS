@@ -8,7 +8,7 @@ const SingleMessage = ({ message, isCurrentUser }) => {
           maxWidth: "60%",
           padding: "10px",
           borderRadius: "10px",
-          backgroundColor: isCurrentUser ? "#0078ff" : "#f0f0f0",
+          backgroundColor: isCurrentUser ? "#7CB9E8" : "#f0f0f0",
           color: isCurrentUser ? "#fff" : "#000",
         }}
       >

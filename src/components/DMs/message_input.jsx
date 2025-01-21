@@ -17,9 +17,9 @@ const MessageInput = ({ onSendMessage }) => {
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Type a message"
-        style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "1px solid #ccc", marginRight: "10px", backgroundColor: "#fff" }}
+        style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "1px solid #ccc", color: "#000", marginRight: "10px", backgroundColor: "#fff" }}
       />
-      <button onClick={handleSend} style={{ padding: "10px 20px", borderRadius: "10px", backgroundColor: "#0078ff", color: "#fff", border: "none", cursor: "pointer" }}>
+      <button onClick={handleSend} style={{ padding: "10px 20px", borderRadius: "10px", backgroundColor: "#7CB9E8", color: "#fff", border: "none", cursor: "pointer" }}>
         Send
       </button>
     </div>

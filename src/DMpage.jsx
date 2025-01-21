@@ -54,6 +54,9 @@ const ChatPage = () => {
             "Park Jimin",
             "Kim Taehyung",
             "Jeon Jungkook",
+            "Me",
+            "Someone Else",
+            "Another Person",        //this is the list of users that will be displayed on the left side of the screen
           ]}
           onUserClick={handleUserClick}
         />
