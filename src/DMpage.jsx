@@ -39,7 +39,7 @@ const ChatPage = () => {
       {/* User List */}
       <div
         style={{
-          width: "25%", // UserList takes up 20% of the width
+          width: "25%", // UserList takes up 25% of the width
           height: "100%",
           backgroundColor: "#2c3e50",
           overflowY: "auto",
@@ -71,9 +71,9 @@ const ChatPage = () => {
           flexDirection: "column",
         }}
       >
-        <ChatHeader currentChatUser={currentChatUser} />
-        <MessageList messages={messages} currentUser={currentUser} />
-        <MessageInput onSendMessage={handleSendMessage} />
+        {currentChatUser && <ChatHeader currentChatUser={currentChatUser} />}
+        {currentChatUser && <MessageList messages={messages} currentUser={currentUser} />}
+        {currentChatUser && <MessageInput onSendMessage={handleSendMessage} />}
       </div>
     </div>
   );
