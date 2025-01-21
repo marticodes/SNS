@@ -5,6 +5,19 @@ import MessageInput from '../src/components/DMs/message_input';
 import ChatHeader from '../src/components/DMs/chatheader';
 import NavBar from '../src/components/NavBar/Small.jsx';
 
+const ProfilePics = {
+  "Kim Namjoon": "https://via.placeholder.com/30/FF0000/FFFFFF?text=User",
+  "Kim Seokjin": "https://via.placeholder.com/30?text=KS",
+  "Min Yoongi": "https://via.placeholder.com/30?text=MY",
+  "Jung Hoseok": "https://via.placeholder.com/30?text=JH",
+  "Park Jimin": "https://via.placeholder.com/30?text=PJ",
+  "Kim Taehyung": "https://via.placeholder.com/30?text=KT",
+  "Jeon Jungkook": "https://via.placeholder.com/30?text=JK",
+  "Me": "https://via.placeholder.com/30?text=Me",
+  "Someone Else": "https://via.placeholder.com/30?text=SE",
+  "Another Person": "https://via.placeholder.com/30?text=AP",
+};
+
 const ChatPage = () => {
   const [messages, setMessages] = useState([]);
   const [currentUser, setCurrentUser] = useState("Me");
@@ -59,6 +72,7 @@ const ChatPage = () => {
             "Another Person",        //this is the list of users that will be displayed on the left side of the screen
           ]}
           onUserClick={handleUserClick}
+          ProfilePics={ProfilePics} // Pass the dummy images here
         />
       </div>
 
@@ -71,7 +85,7 @@ const ChatPage = () => {
           flexDirection: "column",
         }}
       >
-        {currentChatUser && <ChatHeader currentChatUser={currentChatUser} />}
+        {currentChatUser && <ChatHeader currentChatUser={currentChatUser} ProfilePics={ProfilePics}/>}
         {currentChatUser && <MessageList messages={messages} currentUser={currentUser} />}
         {currentChatUser && <MessageInput onSendMessage={handleSendMessage} />}
       </div>

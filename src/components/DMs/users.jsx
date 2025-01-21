@@ -1,6 +1,7 @@
 import React from "react";
+import { MdOutlineAddComment } from "react-icons/md";
 
-const UserList = ({ users, onUserClick }) => {
+const UserList = ({ users, onUserClick, ProfilePics }) => {
   return (
     <div
       style={{
@@ -12,7 +13,31 @@ const UserList = ({ users, onUserClick }) => {
         borderRight: "0.1px solid #B0BEC5",
       }}
     >
-      <h2 style={{ margin: 0, color: "#032F50", textAlign: "center", paddingBottom: "10px", borderBottom: "0.1px solid #B0BEC5"}}>Messages</h2>
+      <h2
+        style={{
+          margin: 0,
+          color: "#032F50",
+          textAlign: "center",
+          paddingBottom: "10px",
+          borderBottom: "0.1px solid #B0BEC5",
+          display: "flex",   // Using flex to align items horizontally
+          justifyContent: "center", // Center the content
+          alignItems: "center", // Vertically align items
+        }}
+      >
+        Messages
+        <span
+          style={{
+            marginLeft: "25px", // Space between the text and icon
+            marginTop: "5px", // Center the icon vertically
+            marginBottom: "-5px", // Center the icon vertically
+            cursor: "pointer", // Make it clickable
+          }}
+          onClick={() => alert("change this")} // CHANGE THIS TO SOMETHING 
+        >
+          <MdOutlineAddComment size={20} /> {/* Font Awesome "add" icon from React Icons */}
+        </span>
+      </h2>
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
         {users.map((user, index) => (
           <li
@@ -23,22 +48,23 @@ const UserList = ({ users, onUserClick }) => {
               padding: "10px",
               cursor: "pointer",
               backgroundColor: "#F4FAFF",
-              //borderBottom: "0.1px solid #B0BEC5",
               margin: "5px 0",
               borderRadius: "3px",
               color: "#000000",
             }}
             onClick={() => onUserClick(user)} // Call the function when the user is clicked
           >
-            <span
+            {/* Display user profile picture */}
+            <img
+              src={ProfilePics[user] || "https://via.placeholder.com/30"} // Use the dummy image URL based on user name
+              alt={user}
               style={{
                 width: "30px",
                 height: "30px",
-                backgroundColor: "#032F50",                //this is the profile icon that for now is white circle
                 borderRadius: "50%",
                 marginRight: "10px",
               }}
-            ></span>
+            />
             {user}
           </li>
         ))}
@@ -48,3 +74,4 @@ const UserList = ({ users, onUserClick }) => {
 };
 
 export default UserList;
+
