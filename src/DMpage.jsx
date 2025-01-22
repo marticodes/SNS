@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import UserList from '../src/components/DMs/users';
-import MessageList from '../src/components/DMs/messages';
-import MessageInput from '../src/components/DMs/message_input';
-import ChatHeader from '../src/components/DMs/chatheader';
-import NavBar from '../src/components/NavBar/Small.jsx';
+import React, { useState } from "react";
+import UserList from "../src/components/DMs/users";
+import MessageList from "../src/components/DMs/messages";
+import MessageInput from "../src/components/DMs/message_input";
+import ChatHeader from "../src/components/DMs/chatheader";
+import NavBar from "../src/components/NavBar/Small.jsx";
 
 const ProfilePics = {
   "Kim Namjoon": "https://via.placeholder.com/30/FF0000/FFFFFF?text=User",
@@ -19,7 +19,7 @@ const ProfilePics = {
 };
 
 const ChatPage = () => {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState({}); // Store messages as an object
   const [currentUser, setCurrentUser] = useState("Me");
   const [currentChatUser, setCurrentChatUser] = useState(null); // Track the selected user
 
@@ -29,7 +29,14 @@ const ChatPage = () => {
       sender: currentUser,
       timestamp: new Date().toLocaleTimeString(),
     };
-    setMessages((prev) => [...prev, newMessage]);
+
+    setMessages((prev) => {
+      const userMessages = prev[currentChatUser] || []; // Get the current user's messages
+      return {
+        ...prev,
+        [currentChatUser]: [...userMessages, newMessage], // Update messages for the selected user
+      };
+    });
   };
 
   const handleUserClick = (user) => {
@@ -69,7 +76,7 @@ const ChatPage = () => {
             "Jeon Jungkook",
             "Me",
             "Someone Else",
-            "Another Person",        //this is the list of users that will be displayed on the left side of the screen
+            "Another Person", // this is the list of users that will be displayed on the left side of the screen
           ]}
           onUserClick={handleUserClick}
           ProfilePics={ProfilePics} // Pass the dummy images here
@@ -85,9 +92,16 @@ const ChatPage = () => {
           flexDirection: "column",
         }}
       >
-        {currentChatUser && <ChatHeader currentChatUser={currentChatUser} ProfilePics={ProfilePics}/>}
-        {currentChatUser && <MessageList messages={messages} currentUser={currentUser} />}
-        {currentChatUser && <MessageInput onSendMessage={handleSendMessage} />}
+        {currentChatUser && (
+          <>
+            <ChatHeader currentChatUser={currentChatUser} ProfilePics={ProfilePics} />
+            <MessageList
+              messages={messages[currentChatUser] || []} // Display messages for the selected user
+              currentUser={currentUser}
+            />
+            <MessageInput onSendMessage={handleSendMessage} />
+          </>
+        )}
       </div>
     </div>
   );
