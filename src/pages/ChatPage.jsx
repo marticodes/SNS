@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import UserList from "../src/components/DMs/users";
-import MessageList from "../src/components/DMs/messages";
-import MessageInput from "../src/components/DMs/message_input";
-import ChatHeader from "../src/components/DMs/chatheader";
-import NavBar from "../src/components/NavBar/Small.jsx";
+import UserList from "../components/DMs/users.jsx";
+import MessageList from "../components/DMs/messages.jsx";
+import MessageInput from "../components/DMs/message_input.jsx";
+import ChatHeader from "../components/DMs/chatheader.jsx";
+import NavBar from "../components/NavBar/Small.jsx";
 
 const ProfilePics = {
   "Kim Namjoon": "https://via.placeholder.com/30/FF0000/FFFFFF?text=User",
