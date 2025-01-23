@@ -9,37 +9,50 @@ const NavBar = () => {
         backgroundColor: "#7CB9E8",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        padding: "10px 0",
+        padding: "20px 0",
+        color: "#fff",
+        boxShadow: "2px 0 5px rgba(0, 0, 0, 0.1)", // For visual enhancement
       }}
     >
-
-      {/* Navigation Icons */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        <NavIcon icon={<FaHome />} label="" />
-        <NavIcon icon={<FaEnvelope />} label="" />
-        <NavIcon icon={<FaUser />} label="" />
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: "30px",
+          fontWeight: "bold",
+          fontSize: "20px",
+        }}
+      >
+        i  
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "5px", alignSelf: "center" }}>
+        <NavItem icon={<FaHome />} label="Home" />
+        <NavItem icon={<FaEnvelope />} label="Messages" />
+        <NavItem icon={<FaUser />} label="Profile" />
+        <NavItem icon={<FaCog />} label="Settings" /> 
       </div>
     </div>
   );
 };
 
-const NavIcon = ({ icon, label }) => {
+//DO WE NEED SETTINGS? WILL THERE BE SETTINGS?
+
+const NavItem = ({ icon, label }) => {
   return (
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
+        gap: "15px",
         cursor: "pointer",
-        color: "#fff",
+        padding: "10px 15px",
+        borderRadius: "5px",
+        transition: "background-color 0.3s ease",
       }}
+      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#6BAED8")}
+      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
       title={label} // Tooltip for accessibility
     >
-      <div style={{ fontSize: "20px" }}>{icon}</div>
-      <span style={{ fontSize: "12px", marginTop: "5px", color: "#bdc3c7" }}>
-        {label}
-      </span>
+      <div style={{ fontSize: "24px" }}>{icon}</div>
     </div>
   );
 };
