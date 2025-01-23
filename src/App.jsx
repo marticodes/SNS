@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import ChatPage from "../src/pages/ChatPage";
 import UserPage from "../src/pages/UserPage";
 import MainPage from "../src/pages/MainPage";
+import LogIn from "../src/pages/LogIn";
 
 const App = () => {
   return (
@@ -25,6 +26,9 @@ const App = () => {
                   <Link to="/MainPage" style={navButtonStyle}>
                     Main Page
                   </Link>
+                  <Link to="/LogIn" style={navButtonStyle}>
+                    Log In
+                  </Link>
                 </div>
               </div>
             }
@@ -32,6 +36,7 @@ const App = () => {
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/UserPage" element={<UserPage />} />
           <Route path="/MainPage" element={<MainPage />} />
+          <Route path="/LogIn" element={<LogIn />} />
         </Routes>
       </div>
     </Router>
