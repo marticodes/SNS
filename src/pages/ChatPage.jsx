@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom"; // Import useLocation for accessing navigation state
 import UserList from "../components/DMs/users.jsx";
 import MessageList from "../components/DMs/messages.jsx";
 import MessageInput from "../components/DMs/message_input.jsx";
@@ -19,9 +20,17 @@ const ProfilePics = {
 };
 
 const ChatPage = () => {
-  const [messages, setMessages] = useState({}); // Store messages as an object
+  const location = useLocation(); // Hook to access state from navigation
+  const [messages, setMessages] = useState({});
   const [currentUser, setCurrentUser] = useState("Me");
-  const [currentChatUser, setCurrentChatUser] = useState(null); // Track the selected user
+  const [currentChatUser, setCurrentChatUser] = useState(null);
+
+  // On component mount, check if a chat user was passed in the navigation state
+  useEffect(() => {
+    if (location.state?.chatUser) {
+      setCurrentChatUser(location.state.chatUser);
+    }
+  }, [location.state]);
 
   const handleSendMessage = (text) => {
     const newMessage = {
@@ -31,16 +40,16 @@ const ChatPage = () => {
     };
 
     setMessages((prev) => {
-      const userMessages = prev[currentChatUser] || []; // Get the current user's messages
+      const userMessages = prev[currentChatUser] || [];
       return {
         ...prev,
-        [currentChatUser]: [...userMessages, newMessage], // Update messages for the selected user
+        [currentChatUser]: [...userMessages, newMessage],
       };
     });
   };
 
   const handleUserClick = (user) => {
-    setCurrentChatUser(user); // Update the selected user
+    setCurrentChatUser(user);
   };
 
   return (
@@ -59,7 +68,7 @@ const ChatPage = () => {
       {/* User List */}
       <div
         style={{
-          width: "25%", // UserList takes up 25% of the width
+          width: "25%",
           height: "100%",
           backgroundColor: "#2c3e50",
           overflowY: "auto",
@@ -76,10 +85,10 @@ const ChatPage = () => {
             "Jeon Jungkook",
             "Me",
             "Someone Else",
-            "Another Person", // this is the list of users that will be displayed on the left side of the screen
+            "Another Person",
           ]}
           onUserClick={handleUserClick}
-          ProfilePics={ProfilePics} // Pass the dummy images here
+          ProfilePics={ProfilePics}
         />
       </div>
 
@@ -96,7 +105,7 @@ const ChatPage = () => {
           <>
             <ChatHeader currentChatUser={currentChatUser} ProfilePics={ProfilePics} />
             <MessageList
-              messages={messages[currentChatUser] || []} // Display messages for the selected user
+              messages={messages[currentChatUser] || []}
               currentUser={currentUser}
             />
             <MessageInput onSendMessage={handleSendMessage} />
@@ -108,3 +117,4 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
+
