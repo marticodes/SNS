@@ -4,6 +4,7 @@ import ChatPage from "../src/pages/ChatPage";
 import UserPage from "../src/pages/UserPage";
 import MainPage from "../src/pages/MainPage";
 import LogIn from "../src/pages/LogIn";
+import ChatFeed from "../src/pages/CG-Main";
 
 const App = () => {
   return (
@@ -29,6 +30,9 @@ const App = () => {
                   <Link to="/LogIn" style={navButtonStyle}>
                     Log In
                   </Link>
+                  <Link to="/ChatFeed" style={navButtonStyle}>
+                    ChatFeed
+                  </Link>
                 </div>
               </div>
             }
@@ -37,6 +41,7 @@ const App = () => {
           <Route path="/UserPage" element={<UserPage />} />
           <Route path="/MainPage" element={<MainPage />} />
           <Route path="/LogIn" element={<LogIn />} />
+          <Route path="/ChatFeed" element={<ChatFeed />} />
         </Routes>
       </div>
     </Router>
