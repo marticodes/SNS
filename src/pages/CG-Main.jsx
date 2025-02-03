@@ -36,12 +36,30 @@ const ChatPage = () => {
   const [currentUser, setCurrentUser] = useState("Me");
   const [currentChatUser, setCurrentChatUser] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
+  const [filteredMessages, setFilteredMessages] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (location.state?.chatUser) {
       setCurrentChatUser(location.state.chatUser);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    setFilteredMessages(messages[currentChatUser] || []);
+  }, [currentChatUser, messages]);
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query) {
+      const filtered = (messages[currentChatUser] || []).filter((msg) =>
+        msg.text.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredMessages(filtered);
+    } else {
+      setFilteredMessages(messages[currentChatUser] || []);
+    }
+  };
 
   const handleSendMessage = (text) => {
     const newMessage = {
@@ -113,9 +131,13 @@ const ChatPage = () => {
       >
         {currentChatUser && (
           <>
-            <ChatHeader currentChatUser={currentChatUser} ProfilePics={ProfilePics} />
+            <ChatHeader
+              currentChatUser={currentChatUser}
+              ProfilePics={ProfilePics}
+              onSearch={handleSearch} // Pass onSearch function
+            />
             <MessageList
-              messages={messages[currentChatUser] || []}
+              messages={filteredMessages} // Use filteredMessages to display only relevant ones
               currentUser={currentUser}
               onMessageClick={handleMessageClick} // Handle message click to reply
             />
@@ -132,3 +154,4 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
+
