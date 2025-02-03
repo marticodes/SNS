@@ -21,22 +21,32 @@ const SingleMessage = ({ message, isCurrentUser, onMessageClick }) => {
       }}
     >
       {/* Avatar */}
-      <div
+    <div
+      style={{
+        width: "40px",
+        height: "40px",
+        borderRadius: "50%",
+        backgroundColor: "#E4E6EB", // Neutral background color as fallback
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        color: "#000", // Text color
+        fontWeight: "bold",
+        fontSize: "14px",
+        overflow: "hidden", // To ensure the image is contained within the circle
+      }}
+    >
+      <img
+        src={`https://i.pravatar.cc/40?u=${message.sender}`} // CHANGE THIS WITH ACTUAL PIC
+        alt="User Avatar"
         style={{
-          width: "40px",
-          height: "40px",
-          borderRadius: "50%",
-          backgroundColor: isCurrentUser ? "#7CB9E8" : "#E4E6EB",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          color: isCurrentUser ? "#fff" : "#000",
-          fontWeight: "bold",
-          fontSize: "14px",
+          width: "100%",
+          height: "100%",
+          objectFit: "cover", // Ensures the image covers the area without stretching
         }}
-      >
-        {message.sender[0].toUpperCase()}
-      </div>
+      />
+    </div>
+
 
       {/* Message Content */}
       <div style={{ maxWidth: "75%" }}>
@@ -45,7 +55,7 @@ const SingleMessage = ({ message, isCurrentUser, onMessageClick }) => {
           style={{
             fontSize: "14px",
             fontWeight: "bold",
-            color: isCurrentUser ? "#7CB9E8" : "#555",
+            color: "#555",
             marginBottom: "3px",
           }}
         >
@@ -59,9 +69,8 @@ const SingleMessage = ({ message, isCurrentUser, onMessageClick }) => {
         <div
           onClick={onMessageClick}
           style={{
-            padding: "10px",
-            backgroundColor: isCurrentUser ? "#D1E7FF" : "#F2F3F5",
-            color: isCurrentUser ? "#000" : "#000",
+            padding: "1px",
+            color: "#000",
             borderRadius: "8px",
             cursor: "pointer",
             fontSize: "16px",
