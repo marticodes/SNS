@@ -15,45 +15,75 @@ const SingleMessage = ({ message, isCurrentUser, onMessageClick }) => {
     <div
       style={{
         display: "flex",
-        justifyContent: isCurrentUser ? "flex-end" : "flex-start",
+        alignItems: "flex-start",
         margin: "10px 0",
+        gap: "10px",
       }}
     >
+      {/* Avatar */}
       <div
-        onClick={onMessageClick} // Trigger reply action when clicked
         style={{
-          maxWidth: "70%", // Limit width to make it look more like a chat bubble
-          padding: "10px",
+          width: "40px",
+          height: "40px",
+          borderRadius: "50%",
           backgroundColor: isCurrentUser ? "#7CB9E8" : "#E4E6EB",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
           color: isCurrentUser ? "#fff" : "#000",
-          borderRadius: "15px",
-          borderTopLeftRadius: isCurrentUser ? "15px" : "0px",
-          borderTopRightRadius: isCurrentUser ? "0px" : "15px",
-          cursor: "pointer",
+          fontWeight: "bold",
+          fontSize: "14px",
         }}
       >
-        {message.replyTo && (
-          <div
-            style={{
-              fontStyle: "italic",
-              color: isCurrentUser ? "#fff" : "#333",  // Change text color based on background color
-              marginBottom: "5px",
-              fontSize: "14px",
-            }}
-          >
-            Reply to {message.replyTo.sender}: {message.replyTo.text}
-          </div>
-        )}
-        <div style={{ fontSize: "16px", lineHeight: "1.5" }}>{message.text}</div>
+        {message.sender[0].toUpperCase()}
+      </div>
+
+      {/* Message Content */}
+      <div style={{ maxWidth: "75%" }}>
+        {/* Sender Name */}
         <div
           style={{
-            fontSize: "12px",
-            marginTop: "5px",
-            textAlign: "right",
-            color: isCurrentUser ? "#B0C4DE" : "#555",
+            fontSize: "14px",
+            fontWeight: "bold",
+            color: isCurrentUser ? "#7CB9E8" : "#555",
+            marginBottom: "3px",
           }}
         >
-          {(message.timestamp)}
+          {message.sender}{" "}
+          <span style={{ fontSize: "12px", color: "#999", marginLeft: "5px" }}>
+            {formatTimestamp(message.timestamp)}
+          </span>
+        </div>
+
+        {/* Message Bubble */}
+        <div
+          onClick={onMessageClick}
+          style={{
+            padding: "10px",
+            backgroundColor: isCurrentUser ? "#D1E7FF" : "#F2F3F5",
+            color: isCurrentUser ? "#000" : "#000",
+            borderRadius: "8px",
+            cursor: "pointer",
+            fontSize: "16px",
+            lineHeight: "1.4",
+            position: "relative",
+          }}
+        >
+          {message.replyTo && (
+            <div
+              style={{
+                fontStyle: "italic",
+                color: "#555",
+                marginBottom: "5px",
+                fontSize: "14px",
+                borderLeft: "2px solid #7CB9E8",
+                paddingLeft: "8px",
+              }}
+            >
+              Reply to {message.replyTo.sender}: {message.replyTo.text}
+            </div>
+          )}
+          {message.text}
         </div>
       </div>
     </div>
@@ -61,4 +91,5 @@ const SingleMessage = ({ message, isCurrentUser, onMessageClick }) => {
 };
 
 export default SingleMessage;
+
 
