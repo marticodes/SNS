@@ -2,7 +2,7 @@ import React from 'react';
 
 const ChatMessage = ({ username, avatar, message, time }) => {
   return (
-    <div style={{ display: 'flex', marginBottom: '20px', alignItems: 'flex-start' }}>
+    <div style={{ display: 'flex', marginBottom: '20px' }}>
       <img
         src={avatar}
         alt={`${username}'s avatar`}

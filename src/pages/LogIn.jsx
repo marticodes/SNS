@@ -125,7 +125,7 @@ function LogIn() {
                             <input
                                 type="text"
                                 name="username"
-                                placeholder="Choose a username"
+                                placeholder="Username"
                                 value={formValues.username}
                                 onChange={handleChange}
                             />

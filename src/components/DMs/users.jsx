@@ -28,7 +28,7 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
         Messages
         <span
           style={{
-            marginLeft: "120px", // Space between the text and icon
+            marginLeft: "80px", // Space between the text and icon
             marginTop: "5px", // Center the icon vertically
             marginBottom: "-5px", // Center the icon vertically
             cursor: "pointer", // Make it clickable

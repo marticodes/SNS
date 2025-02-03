@@ -50,39 +50,53 @@ const messages = [
 ];
 
 const ChatFee = () => {
-    return (
-      <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', color: 'black' }}>
-        {messages.map((msg, index) => (
-          <ChatMessage
-            key={index}
-            username={msg.username}
-            avatar={msg.avatar}
-            message={msg.message}
-            time={msg.time}
-          />
-        ))}
-      </div>
-    );
-  };
+  return (
+    <div style={{ 
+      backgroundColor: '#fff', 
+      padding: '10px', 
+      borderRadius: '8px', 
+      color: 'black', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'flex-start', 
+      width: "100%", // Fills the dynamic space
+      maxWidth: "900px", // Prevents excessive stretching
+    }}>
+      {messages.map((msg, index) => (
+        <ChatMessage
+          key={index}
+          username={msg.username}
+          avatar={msg.avatar}
+          message={msg.message}
+          time={msg.time}
+          style={{ alignSelf: "flex-start", width: "100%" }}
+        />
+      ))}
+    </div>
+  );
+};
+
+
 
 const ChatFeed = () => {
-    return (
-      <div style={{ display: "flex", height: "100vh", }}>
-        {/* Left Navigation Bar */}
-        <div style={{ width: "15%" }}>
-          <NavBar />
-        </div>
-        <div style={{ width: "20%"}}>
-          <Sidebar />
-        </div>
-  
-        {/* Middle Chat Feed */}
-        <div style={{ flex: 0, padding: "20px", width: "65%" }}>
-          <ChatFee />
-        </div>
-
+  return (
+    <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
+      <div style={{ width: "70px", height: "100%", backgroundColor: "#34495e" }}>
+        <NavBar />
       </div>
-    );
-  };
+      <div style={{ width: "255px", backgroundColor: "#fff" }}>
+        <Sidebar />
+      </div>
+      {/* ChatFee Section - Takes up remaining space */}
+      <div style={{ flex: 1,
+          height: "100%",
+          display: "flex",
+          flexDirection: "column", }}> 
+        <ChatFee />
+      </div>
+    </div>
+  );
+};
+
 
 export default ChatFeed;
