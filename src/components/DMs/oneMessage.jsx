@@ -1,9 +1,52 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { MdOutlineReply } from "react-icons/md";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 
 const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
-  const emojiReactions = ['😀', '😍', '😂', '😢', '😡', '👍', '👏'];
+  const [hovered, setHovered] = useState(false);
+
+  const iconContainer = (
+    <div
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        display: hovered ? "flex" : "none",
+        marginLeft: isCurrentUser ? "10px" : "0px",
+        marginRight: isCurrentUser ? "0px" : "10px",
+      }}
+    >
+      <button
+        style={{
+          border: "none",
+          background: "transparent",
+          cursor: "pointer",
+          color: "#555",
+          fontSize: "20px",
+          padding: "0",
+          margin: "2px",
+        }}
+        onClick={() => onReply(message)}
+        title="Reply"
+      >
+        <MdOutlineReply />
+      </button>
+      <button
+        style={{
+          border: "none",
+          background: "transparent",
+          cursor: "pointer",
+          color: "#555",
+          fontSize: "20px",
+          padding: "0",
+          margin: "1px",
+        }}
+        onClick={() => onReact(message)}
+        title="React"
+      >
+        <MdOutlineEmojiEmotions />
+      </button>
+    </div>
+  );
 
   return (
     <div
@@ -11,10 +54,13 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
         display: "flex",
         justifyContent: isCurrentUser ? "flex-end" : "flex-start",
         margin: "10px 0",
-        position: "relative",
       }}
+      onMouseEnter={() => setHovered(true)} // Show icons on hover
+      onMouseLeave={() => setHovered(false)} // Hide icons when not hovered
     >
-      {/* Message Bubble */}
+
+      {isCurrentUser && iconContainer}
+      
       <div
         style={{
           maxWidth: "70%",
@@ -24,6 +70,7 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
           borderRadius: "15px",
           borderTopLeftRadius: isCurrentUser ? "15px" : "0px",
           borderTopRightRadius: isCurrentUser ? "0px" : "15px",
+          position: "relative",
         }}
       >
         {/* Reply Section */}
@@ -41,7 +88,9 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
         )}
 
         {/* Message Content */}
-        <div style={{ fontSize: "16px", lineHeight: "1.5" }}>{message.text}</div>
+        <div style={{ fontSize: "16px", lineHeight: "1.5" }}>
+          {message.text}
+        </div>
 
         {/* Timestamp */}
         <div
@@ -56,55 +105,14 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
         </div>
       </div>
 
-      {/* Always-Visible Action Icons */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row", // Align horizontally
-          alignItems: "center",
-          justifyContent: isCurrentUser ? "flex-start" : "flex-end",
-          marginLeft: isCurrentUser ? "10px" : "0px",
-          marginRight: isCurrentUser ? "0px" : "10px",
-        }}
-      >
-        {/* Reply Icon */}
-        <button
-          style={{
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            color: "#555",
-            fontSize: "20px",
-            padding: "0", 
-            margin: "2px",
-          }}
-          onClick={() => onReply(message)}
-          title="Reply"
-        >
-          <MdOutlineReply />
-        </button>
-        {/* Reaction Icon */}
-        <button
-          style={{
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            color: "#555",
-            fontSize: "20px",
-            padding: "0", 
-            margin: "1px", 
-          }}
-          onClick={() => onReact(message)}
-          title="React"
-        >
-          <MdOutlineEmojiEmotions />
-        </button>
-      </div>
+      {/* If the message is from someone else, place icons on the right */}
+      {!isCurrentUser && iconContainer}
     </div>
   );
 };
 
 export default SingleMessage;
+
 
 
 
