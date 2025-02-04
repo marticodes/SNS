@@ -12,11 +12,6 @@ const ProfilePics = {
   "Min Yoongi": "https://via.placeholder.com/30?text=MY",
   "Jung Hoseok": "https://via.placeholder.com/30?text=JH",
   "Park Jimin": "https://via.placeholder.com/30?text=PJ",
-  "Kim Taehyung": "https://via.placeholder.com/30?text=KT",
-  "Jeon Jungkook": "https://via.placeholder.com/30?text=JK",
-  "Me": "https://via.placeholder.com/30?text=Me",
-  "Someone Else": "https://via.placeholder.com/30?text=SE",
-  "Another Person": "https://via.placeholder.com/30?text=AP",
 };
 
 const ChatPage = () => {
@@ -41,6 +36,8 @@ const ChatPage = () => {
   const [currentUser, setCurrentUser] = useState("Me");
   const [currentChatUser, setCurrentChatUser] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredMessages, setFilteredMessages] = useState([]);
 
   useEffect(() => {
     if (location.state?.chatUser) {
@@ -66,6 +63,22 @@ const ChatPage = () => {
     setReplyTo(null); // Reset reply after sending the message
   };
 
+  useEffect(() => {
+      setFilteredMessages(messages[currentChatUser] || []);
+    }, [currentChatUser, messages]);
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query) {
+      const filtered = (messages[currentChatUser] || []).filter((msg) =>
+        msg.text.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredMessages(filtered);
+    } else {
+      setFilteredMessages(messages[currentChatUser] || []);
+    }
+  };
+
   const handleCancelReply = () => {
     setReplyTo(null); // Clear the replyTo state
   };
@@ -76,6 +89,14 @@ const ChatPage = () => {
 
   const handleMessageClick = (message) => {
     setReplyTo(message); // Set the message to reply to
+  };
+
+  const handleMessageReply = (message) => {
+    setReplyTo(message); // Set the message to reply to
+  };
+  
+  const handleMessageReact = (message, emoji) => {
+    alert(`Reacted to "${message.text}" with ${emoji}`); // CHANGE THIS WITH POST REQUEST
   };
 
   return (
@@ -101,11 +122,6 @@ const ChatPage = () => {
             "Min Yoongi",
             "Jung Hoseok",
             "Park Jimin",
-            "Kim Taehyung",
-            "Jeon Jungkook",
-            "Me",
-            "Someone Else",
-            "Another Person",
           ]}
           onUserClick={handleUserClick}
           ProfilePics={ProfilePics}
@@ -123,11 +139,16 @@ const ChatPage = () => {
       >
         {currentChatUser && (
           <>
-            <ChatHeader currentChatUser={currentChatUser} ProfilePics={ProfilePics} />
+            <ChatHeader
+              currentChatUser={currentChatUser}
+              ProfilePics={ProfilePics}
+              onSearch={handleSearch} // Pass onSearch function
+            />
             <MessageList
-              messages={messages[currentChatUser] || []}
+              messages={filteredMessages}
               currentUser={currentUser}
-              onMessageClick={handleMessageClick} // Handle message click to reply
+              onReply={handleMessageReply}
+              onReact={handleMessageReact}
             />
             <MessageInput
               onSendMessage={handleSendMessage}

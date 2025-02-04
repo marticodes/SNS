@@ -1,7 +1,13 @@
-import React from "react";
-import { MdOutlineAddComment } from "react-icons/md";
+import React, { useState } from "react";
 
 const UserList = ({ users, onUserClick, ProfilePics }) => {
+  const [selectedUser, setSelectedUser] = useState(null); // Track selected user
+
+  const handleUserClick = (user) => {
+    setSelectedUser(user); // Set the clicked user as selected
+    onUserClick(user); // Call the parent callback function
+  };
+
   return (
     <div
       style={{
@@ -41,11 +47,11 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
               cursor: "pointer",
               borderRadius: "8px",
               transition: "background-color 0.2s ease-in-out",
-              backgroundColor: "transparent",
+              backgroundColor: selectedUser === user ? "#d0e6ff" : "transparent", // Blue background if selected
             }}
-            onClick={() => onUserClick(user)} // Call the function when the user is clicked
+            onClick={() => handleUserClick(user)} // Call the function when the user is clicked
             onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
-            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = selectedUser === user ? "#d0e6ff" : "transparent")}
           >
             {/* Display user profile picture */}
             <img
@@ -58,7 +64,9 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
                 marginRight: "10px",
               }}
             />
-            <span style={{ fontSize: "14px", fontWeight: "500" }}>{user}</span>
+            <span style={{ fontSize: "14px", fontWeight: "500", color: "#000" }}>
+              {user}
+            </span>
           </div>
         ))}
       </div>
@@ -67,4 +75,5 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
 };
 
 export default UserList;
+
 
