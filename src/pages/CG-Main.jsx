@@ -91,6 +91,14 @@ const ChatPage = () => {
     setReplyTo(message); // Set the message to reply to
   };
 
+  const handleMessageReply = (message) => {
+    setReplyTo(message); // Set the message to reply to
+  };
+  
+  const handleMessageReact = (message, emoji) => {
+     // CHANGE THIS WITH POST REQUEST
+  };
+
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
       {/* NavBar */}
@@ -138,8 +146,8 @@ const ChatPage = () => {
             />
             <MessageList
               messages={filteredMessages} // Use filteredMessages to display only relevant ones
-              currentUser={currentUser}
-              onMessageClick={handleMessageClick} // Handle message click to reply
+              onReply={handleMessageReply}
+              onReact={handleMessageReact}
             />
             <MessageInput
               onSendMessage={handleSendMessage}

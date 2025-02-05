@@ -87,10 +87,6 @@ const ChatPage = () => {
     setCurrentChatUser(user);
   };
 
-  const handleMessageClick = (message) => {
-    setReplyTo(message); // Set the message to reply to
-  };
-
   const handleMessageReply = (message) => {
     setReplyTo(message); // Set the message to reply to
   };

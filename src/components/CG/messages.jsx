@@ -1,7 +1,7 @@
 import React from "react";
 import SingleMessage from "./oneMessage";
 
-const MessageList = ({ messages, currentUser, onMessageClick }) => {
+const MessageList = ({ messages, onReply, onReact }) => {
   return (
     <div
       style={{
@@ -15,8 +15,8 @@ const MessageList = ({ messages, currentUser, onMessageClick }) => {
         <SingleMessage
           key={index}
           message={message}
-          isCurrentUser={message.sender === currentUser}
-          onMessageClick={() => onMessageClick(message)} // Handle click to reply
+          onReply={onReply} // Pass reply handler
+          onReact={onReact} // Pass reaction handler
         />
       ))}
     </div>

@@ -65,7 +65,7 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
             style={{
               position: "absolute",
               top: "100%", // Position the picker directly below the button
-              left: 0,
+              left: isCurrentUser ? "-300px" : "0px",
               zIndex: 1000,
             }}
           >

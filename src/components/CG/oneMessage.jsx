@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import { MdOutlineReply, MdOutlineEmojiEmotions } from "react-icons/md";
+import EmojiPicker from "emoji-picker-react";
 
 const formatTimestamp = (timestamp) => {
   // Format timestamp as "HH:MM" in 24-hour format
@@ -10,7 +12,90 @@ const formatTimestamp = (timestamp) => {
   });
 };
 
-const SingleMessage = ({ message, isCurrentUser, onMessageClick }) => {
+const SingleMessage = ({ message, onReply, onReact }) => {
+  const [hovered, setHovered] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [reaction, setReaction] = useState(null);
+
+  const handleEmojiClick = (emoji) => {
+    setReaction(emoji.emoji);
+    if (onReact) {
+      onReact(message, emoji.emoji);
+    }
+    setShowEmojiPicker(false);
+  };
+
+  const toggleEmojiPicker = (e) => {
+    e.stopPropagation(); // Prevent event bubbling
+    setShowEmojiPicker((prev) => !prev);
+  };
+
+  const handleReplyClick = (e) => {
+    e.stopPropagation(); // Prevent event bubbling
+    if (onReply) {
+      onReply(message);
+    }
+  };
+
+  const iconContainer = (
+    <div
+      style={{
+        display: hovered ? "flex" : "none",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: "5px",
+        position: "absolute",
+        top: "5px",
+        right: "5px",
+        zIndex: 1000,
+      }}
+    >
+      <button
+        style={{
+          border: "none",
+          background: "transparent",
+          cursor: "pointer",
+          color: "#555",
+          fontSize: "18px",
+          padding: "0",
+        }}
+        onClick={handleReplyClick}
+        title="Reply"
+      >
+        <MdOutlineReply />
+      </button>
+
+      <div style={{ position: "relative", display: "inline-block" }}>
+        <button
+          style={{
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            color: "#555",
+            fontSize: "18px",
+            padding: "0",
+          }}
+          onClick={toggleEmojiPicker}
+          title="React"
+        >
+          <MdOutlineEmojiEmotions />
+        </button>
+        {showEmojiPicker && (
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: "-20px",
+              zIndex: 1000,
+            }}
+          >
+            <EmojiPicker onEmojiClick={handleEmojiClick} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div
       style={{
@@ -21,32 +106,31 @@ const SingleMessage = ({ message, isCurrentUser, onMessageClick }) => {
       }}
     >
       {/* Avatar */}
-    <div
-      style={{
-        width: "40px",
-        height: "40px",
-        borderRadius: "50%",
-        backgroundColor: "#E4E6EB", // Neutral background color as fallback
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        color: "#000", // Text color
-        fontWeight: "bold",
-        fontSize: "14px",
-        overflow: "hidden", // To ensure the image is contained within the circle
-      }}
-    >
-      <img
-        src={`https://i.pravatar.cc/40?u=${message.sender}`} // CHANGE THIS WITH ACTUAL PIC
-        alt="User Avatar"
+      <div
         style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover", // Ensures the image covers the area without stretching
+          width: "40px",
+          height: "40px",
+          borderRadius: "50%",
+          backgroundColor: "#E4E6EB",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          color: "#000",
+          fontWeight: "bold",
+          fontSize: "14px",
+          overflow: "hidden",
         }}
-      />
-    </div>
-
+      >
+        <img
+          src={`https://i.pravatar.cc/40?u=${message.sender}`}
+          alt="User Avatar"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      </div>
 
       {/* Message Content */}
       <div style={{ maxWidth: "75%" }}>
@@ -60,14 +144,24 @@ const SingleMessage = ({ message, isCurrentUser, onMessageClick }) => {
           }}
         >
           {message.sender}{" "}
-          <span style={{ fontSize: "12px", color: "#999", marginLeft: "5px" }}>
+          <span
+            style={{
+              fontSize: "12px",
+              color: "#999",
+              marginLeft: "5px",
+            }}
+          >
             {formatTimestamp(message.timestamp)}
           </span>
         </div>
 
         {/* Message Bubble */}
         <div
-          onClick={onMessageClick}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => {
+            setHovered(false);
+            setShowEmojiPicker(false);
+          }}
           style={{
             padding: "1px",
             color: "#000",
@@ -78,6 +172,8 @@ const SingleMessage = ({ message, isCurrentUser, onMessageClick }) => {
             position: "relative",
           }}
         >
+          {iconContainer}
+
           {message.replyTo && (
             <div
               style={{
@@ -92,7 +188,21 @@ const SingleMessage = ({ message, isCurrentUser, onMessageClick }) => {
               Reply to {message.replyTo.sender}: {message.replyTo.text}
             </div>
           )}
+
           {message.text}
+
+          {reaction && (
+            <div
+              style={{
+                marginTop: "5px",
+                fontSize: "20px",
+                textAlign: "right",
+                color: "#000",
+              }}
+            >
+              {reaction}
+            </div>
+          )}
         </div>
       </div>
     </div>
