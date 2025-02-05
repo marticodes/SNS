@@ -96,7 +96,7 @@ const ChatPage = () => {
   };
   
   const handleMessageReact = (message, emoji) => {
-    alert(`Reacted to "${message.text}" with ${emoji}`); // CHANGE THIS WITH POST REQUEST
+     // CHANGE THIS WITH POST REQUEST
   };
 
   return (

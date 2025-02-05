@@ -1,9 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { MdOutlineReply } from "react-icons/md";
-import { MdOutlineEmojiEmotions } from "react-icons/md";
+import React, { useState } from "react";
+import { MdOutlineReply, MdOutlineEmojiEmotions } from "react-icons/md";
+import EmojiPicker from "emoji-picker-react";
 
 const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
   const [hovered, setHovered] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [reaction, setReaction] = useState(null);
+
+  const handleEmojiClick = (emoji) => {
+    setReaction(emoji.emoji); // Update the reaction state
+    onReact(message, emoji.emoji); // Call the provided `onReact` callback
+    setShowEmojiPicker(false); // Hide the emoji picker after selection
+  };
+
+  const toggleEmojiPicker = () => {
+    setShowEmojiPicker((prev) => !prev);
+  };
 
   const iconContainer = (
     <div
@@ -30,21 +42,37 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
       >
         <MdOutlineReply />
       </button>
-      <button
-        style={{
-          border: "none",
-          background: "transparent",
-          cursor: "pointer",
-          color: "#555",
-          fontSize: "20px",
-          padding: "0",
-          margin: "1px",
-        }}
-        onClick={() => onReact(message)}
-        title="React"
-      >
-        <MdOutlineEmojiEmotions />
-      </button>
+
+      {/* Wrap the emoji button and picker in a relative container */}
+      <div style={{ position: "relative", display: "inline-block" }}>
+        <button
+          style={{
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            color: "#555",
+            fontSize: "20px",
+            padding: "0",
+            margin: "1px",
+          }}
+          onClick={toggleEmojiPicker}
+          title="React"
+        >
+          <MdOutlineEmojiEmotions />
+        </button>
+        {showEmojiPicker && (
+          <div
+            style={{
+              position: "absolute",
+              top: "100%", // Position the picker directly below the button
+              left: 0,
+              zIndex: 1000,
+            }}
+          >
+            <EmojiPicker onEmojiClick={handleEmojiClick} />
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -54,13 +82,16 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
         display: "flex",
         justifyContent: isCurrentUser ? "flex-end" : "flex-start",
         margin: "10px 0",
+        position: "relative",
       }}
-      onMouseEnter={() => setHovered(true)} // Show icons on hover
-      onMouseLeave={() => setHovered(false)} // Hide icons when not hovered
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => {
+        setHovered(false);
+        setShowEmojiPicker(false); // Hide emoji picker when not hovering
+      }}
     >
-
       {isCurrentUser && iconContainer}
-      
+
       <div
         style={{
           maxWidth: "70%",
@@ -92,6 +123,20 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
           {message.text}
         </div>
 
+        {/* Reaction */}
+        {reaction && (
+          <div
+            style={{
+              marginTop: "5px",
+              fontSize: "20px",
+              textAlign: "right",
+              color: isCurrentUser ? "#fff" : "#000",
+            }}
+          >
+            {reaction}
+          </div>
+        )}
+
         {/* Timestamp */}
         <div
           style={{
@@ -105,13 +150,14 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
         </div>
       </div>
 
-      {/* If the message is from someone else, place icons on the right */}
       {!isCurrentUser && iconContainer}
     </div>
   );
 };
 
 export default SingleMessage;
+
+
 
 
 
