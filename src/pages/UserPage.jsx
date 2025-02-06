@@ -36,6 +36,7 @@ const UserPage = () => {
           <ProfileCard
             username="Kim Namjoon"
             userPic="https://via.placeholder.com/100" // Replace with a real profile picture URL
+            bio = "Leader of BTS"
             followers={613}
             following={500}
             onFollowClick={handleFollowClick}

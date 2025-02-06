@@ -1,6 +1,16 @@
 import React from "react";
 
-const ProfileCard = ({ username, userPic, bio, followers, following, onFollowClick, isFollowing, onDMClick }) => {
+const ProfileCard = ({ username, userPic, bio, onFollowClick, isFollowing, onDMClick }) => {
+
+  const handleFollowClick = () => {
+    setIsFollowing((prevState) => !prevState);
+  };
+
+  // Handle Direct Message
+  const handleDMClick = () => {
+    navigate("/chat", { state: { chatUser: {username} } });
+  };
+
   return (
     <div style={profileCardStyle}>
       <img
@@ -9,17 +19,7 @@ const ProfileCard = ({ username, userPic, bio, followers, following, onFollowCli
         style={profilePicStyle}
       />
       <h2 style={usernameStyle}>{username}</h2>
-      <p style={bioStyle}>{bio}</p>
-      
-      <div style={statsContainerStyle}>
-        <p style={statsStyle}>
-          <strong>{followers}</strong> Followers
-        </p>
-        <p style={statsStyle}>
-          <strong>{following}</strong> Following
-        </p>
-      </div>
-
+      <p>{bio}</p>
       <div style={buttonContainerStyle}>
         <button onClick={onFollowClick} style={followButtonStyle}>
           {isFollowing ? "Unfollow" : "Follow"}
@@ -56,24 +56,6 @@ const usernameStyle = {
   fontSize: "22px",
   fontWeight: "bold",
   color: "#333",
-};
-
-const bioStyle = {
-  fontSize: "14px",
-  color: "#555",
-  margin: "10px 0",
-};
-
-const statsContainerStyle = {
-  display: "flex",
-  justifyContent: "space-around",
-  margin: "20px 0",
-};
-
-const statsStyle = {
-  margin: "0",
-  fontSize: "16px",
-  color: "#555",
 };
 
 const buttonContainerStyle = {
@@ -113,5 +95,3 @@ followButtonStyle[":hover"] = { backgroundColor: "#0056b3" };
 dmButtonStyle[":hover"] = { backgroundColor: "#5a6268" };
 
 export default ProfileCard;
-
-

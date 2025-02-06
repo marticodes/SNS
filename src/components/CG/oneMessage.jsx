@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { MdOutlineReply, MdOutlineEmojiEmotions } from "react-icons/md";
 import EmojiPicker from "emoji-picker-react";
+import ProfileCard from "../PopUpProfileCard";
 
 const formatTimestamp = (timestamp) => {
-  // Format timestamp as "HH:MM" in 24-hour format
   const date = new Date(timestamp);
   return date.toLocaleTimeString("en-US", {
     hour: "2-digit",
@@ -16,26 +16,47 @@ const SingleMessage = ({ message, onReply, onReact }) => {
   const [hovered, setHovered] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [reaction, setReaction] = useState(null);
+  const [showProfileCard, setShowProfileCard] = useState(false);
+  const [profilePosition, setProfilePosition] = useState({ x: 0, y: 0 });
+  const profileCardRef = useRef(null); // Ref for the profile card
+  const timeoutRef = useRef(null);
 
   const handleEmojiClick = (emoji) => {
     setReaction(emoji.emoji);
-    if (onReact) {
-      onReact(message, emoji.emoji);
-    }
+    if (onReact) onReact(message, emoji.emoji);
     setShowEmojiPicker(false);
   };
 
   const toggleEmojiPicker = (e) => {
-    e.stopPropagation(); // Prevent event bubbling
+    e.stopPropagation();
     setShowEmojiPicker((prev) => !prev);
   };
 
   const handleReplyClick = (e) => {
-    e.stopPropagation(); // Prevent event bubbling
-    if (onReply) {
-      onReply(message);
-    }
+    e.stopPropagation();
+    if (onReply) onReply(message);
   };
+
+  const handleNameClick = (e) => {
+    e.stopPropagation();
+    const rect = e.target.getBoundingClientRect();
+    setProfilePosition({ x: rect.right + 10, y: rect.top });
+    setShowProfileCard((prev) => !prev);
+  };
+
+  // Detect click outside the profile card to hide it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileCardRef.current && !profileCardRef.current.contains(event.target)) {
+        setShowProfileCard(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const iconContainer = (
     <div
@@ -45,9 +66,10 @@ const SingleMessage = ({ message, onReply, onReact }) => {
         alignItems: "center",
         gap: "5px",
         position: "absolute",
-        top: "5px",
-        right: "5px",
+        top: "1px",
+        right: "-50px",
         zIndex: 1000,
+        marginLeft: "15px",
       }}
     >
       <button
@@ -85,7 +107,7 @@ const SingleMessage = ({ message, onReply, onReact }) => {
             style={{
               position: "absolute",
               top: "100%",
-              left: "-20px",
+              left: "-150px",
               zIndex: 1000,
             }}
           >
@@ -105,7 +127,6 @@ const SingleMessage = ({ message, onReply, onReact }) => {
         gap: "10px",
       }}
     >
-      {/* Avatar */}
       <div
         style={{
           width: "40px",
@@ -132,16 +153,16 @@ const SingleMessage = ({ message, onReply, onReact }) => {
         />
       </div>
 
-      {/* Message Content */}
       <div style={{ maxWidth: "75%" }}>
-        {/* Sender Name */}
         <div
           style={{
             fontSize: "14px",
             fontWeight: "bold",
             color: "#555",
             marginBottom: "3px",
+            cursor: "pointer",
           }}
+          onClick={handleNameClick}
         >
           {message.sender}{" "}
           <span
@@ -155,12 +176,36 @@ const SingleMessage = ({ message, onReply, onReact }) => {
           </span>
         </div>
 
-        {/* Message Bubble */}
+        {showProfileCard && (
+          <div
+            ref={profileCardRef} // Attach ref to profile card container
+            style={{
+              position: "absolute",
+              top: profilePosition.y,
+              left: profilePosition.x,
+              zIndex: 1000,
+            }}
+          >
+            <ProfileCard
+              username={message.sender}
+              userPic={`https://i.pravatar.cc/120?u=${message.sender}`}
+              onFollowClick={() => alert("Follow button clicked")}     //CHANGE
+              isFollowing={false}
+              onDMClick={() => alert("DM button clicked")}     //CHANGE
+            />
+          </div>
+        )}
+
         <div
-          onMouseEnter={() => setHovered(true)}
+          onMouseEnter={() => {
+            clearTimeout(timeoutRef.current);
+            setHovered(true);
+          }}
           onMouseLeave={() => {
-            setHovered(false);
-            setShowEmojiPicker(false);
+            timeoutRef.current = setTimeout(() => {
+              setHovered(false);
+              setShowEmojiPicker(false);
+            }, 300);
           }}
           style={{
             padding: "1px",
@@ -210,5 +255,7 @@ const SingleMessage = ({ message, onReply, onReact }) => {
 };
 
 export default SingleMessage;
+
+
 
 

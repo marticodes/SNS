@@ -1,5 +1,5 @@
 import React from "react";
-import { FaHome, FaEnvelope, FaUser, FaCog } from "react-icons/fa";
+import { FaHome, FaEnvelope, FaBell, FaUser, FaCog } from "react-icons/fa";
 
 const NavBar = () => {
   return (
@@ -26,6 +26,7 @@ const NavBar = () => {
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "5px",  }}>
         <NavItem icon={<FaHome />} label="Home" />
+        <NavItem icon={<FaBell />} label="Notifications" />
         <NavItem icon={<FaEnvelope />} label="Messages" />
         <NavItem icon={<FaUser />} label="Profile" />
         <NavItem icon={<FaCog />} label="Settings" /> 
