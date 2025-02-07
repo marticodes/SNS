@@ -1,6 +1,6 @@
 import React from "react";
 
-const ProfileCard = ({ username, userPic, bio, onFollowClick, isFollowing, onDMClick }) => {
+const ProfileCard = ({ username, id, userPic, bio, onFollowClick, isFollowing, onDMClick }) => {
 
   const handleFollowClick = () => {
     setIsFollowing((prevState) => !prevState);
@@ -19,6 +19,7 @@ const ProfileCard = ({ username, userPic, bio, onFollowClick, isFollowing, onDMC
         style={profilePicStyle}
       />
       <h2 style={usernameStyle}>{username}</h2>
+      <h2 style={idStyle}>{id}</h2>
       <p>{bio}</p>
       <div style={buttonContainerStyle}>
         <button onClick={onFollowClick} style={followButtonStyle}>
@@ -54,6 +55,13 @@ const profilePicStyle = {
 const usernameStyle = {
   margin: "10px 0",
   fontSize: "22px",
+  fontWeight: "bold",
+  color: "#333",
+};
+
+const idStyle = {
+  margin: "2px 0",
+  fontSize: "12px",
   fontWeight: "bold",
   color: "#333",
 };

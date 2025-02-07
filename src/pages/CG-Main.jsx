@@ -14,7 +14,7 @@ const ProfilePics = {
   "Community5": "https://via.placeholder.com/30?text=PJ",
 };
 
-const ChatPage = () => {
+const CGPage = () => {
   const location = useLocation();
   const [messages, setMessages] = useState({
     "Community1": [
@@ -103,7 +103,7 @@ const ChatPage = () => {
     <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
       {/* NavBar */}
       <div style={{ width: "70px", height: "100%", backgroundColor: "#34495e" }}>
-        <NavBar />
+        <NavBar caseId={4} />
       </div>
 
       {/* User List */}
@@ -161,5 +161,5 @@ const ChatPage = () => {
   );
 };
 
-export default ChatPage;
+export default CGPage;
 

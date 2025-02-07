@@ -1,6 +1,8 @@
 import React from "react";
 import SingleMessage from "./oneMessage";
 
+//change to add also group messages
+
 const MessageList = ({ messages, currentUser, onReply, onReact }) => {
   return (
     <div

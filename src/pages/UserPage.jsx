@@ -19,7 +19,7 @@ const UserPage = () => {
 
   // Handle Direct Message
   const handleDMClick = () => {
-    navigate("/chat", { state: { chatUser: "Kim Namjoon" } });
+    navigate("/dms", { state: { chatUser: "Kim Seokjin" } });   //to change
   };
 
   return (
@@ -35,6 +35,7 @@ const UserPage = () => {
           {/* Profile Card */}
           <ProfileCard
             username="Kim Namjoon"
+            id = "@username"
             userPic="https://via.placeholder.com/100" // Replace with a real profile picture URL
             bio = "Leader of BTS"
             followers={613}

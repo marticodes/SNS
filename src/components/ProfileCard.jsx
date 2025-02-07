@@ -1,21 +1,87 @@
-import React from "react";
+import React, { useState } from "react";
+import FollowingPopup from "./FollowList"; // Assuming the component is in the same folder
 
-const ProfileCard = ({ username, userPic, bio, followers, following, onFollowClick, isFollowing, onDMClick }) => {
+const ProfileCard = ({ username, id, userPic, bio, followers, following, onFollowClick, isFollowing, onDMClick }) => {
+  const [isPopupVisible, setPopupVisible] = useState(false);
+  const [foll, setFoll] = useState(1); // 1 for followers, 0 for following
+  const users = [     //to change
+    {
+      id: 1,
+      username: "pharrell",
+      fullname: "SON OF A PHARAOH",
+      avatar: "https://via.placeholder.com/40",
+    },
+    {
+      id: 2,
+      username: "keithharingfoundation",
+      fullname: "Keith Haring Foundation",
+      avatar: "https://via.placeholder.com/40",
+    },
+    {
+      id: 3,
+      username: "beyondthestreetsart",
+      fullname: "BEYOND THE STREETS",
+      avatar: "https://via.placeholder.com/40",
+    },
+    {
+      id: 4,
+      username: "banksy",
+      fullname: "Banksy",
+      avatar: "https://via.placeholder.com/40",
+    },
+    {
+      id: 5,
+      username: "kaws",
+      fullname: "KAWS",
+      avatar: "https://via.placeholder.com/40",
+    },
+    {
+      id: 6,
+      username: "kaws",
+      fullname: "KAWS",
+      avatar: "https://via.placeholder.com/40",
+    },
+    {
+      id: 7,
+      username: "kaws",
+      fullname: "KAWS",
+      avatar: "https://via.placeholder.com/40",
+    },
+    {
+      id: 8,
+      username: "kaws",
+      fullname: "KAWS",
+      avatar: "https://via.placeholder.com/40",
+    },
+    
+
+  ];
+
+  const togglePopup = (follType) => {
+    setFoll(follType); // 1 for followers, 0 for following
+    setPopupVisible(true); // Open popup
+  };
+
   return (
     <div style={profileCardStyle}>
-      <img
-        src={userPic}
-        alt={`${username}'s Profile`}
-        style={profilePicStyle}
-      />
-      <h2 style={usernameStyle}>{username}</h2>
-      <p style={bioStyle}>{bio}</p>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <img
+          src={userPic}
+          alt={`${username}'s Profile`}
+          style={{ ...profilePicStyle, marginRight: '20px', marginLeft: '30px' }} 
+        />
+        <div>
+          <h2 style={usernameStyle}>{username}</h2>
+          <h2 style={idStyle}>{id}</h2>
+          <p style={bioStyle}>{bio}</p>
+        </div>
+      </div>
       
       <div style={statsContainerStyle}>
-        <p style={statsStyle}>
+        <p style={statsStyle} onClick={() => togglePopup(1)}>
           <strong>{followers}</strong> Followers
         </p>
-        <p style={statsStyle}>
+        <p style={statsStyle} onClick={() => togglePopup(0)}>
           <strong>{following}</strong> Following
         </p>
       </div>
@@ -28,6 +94,15 @@ const ProfileCard = ({ username, userPic, bio, followers, following, onFollowCli
           Direct Message
         </button>
       </div>
+
+      {/* Render FollowingPopup if isPopupVisible is true */}
+      {isPopupVisible && (
+        <FollowingPopup 
+          foll={foll} 
+          users={users} // Pass the appropriate users list based on followers or following
+          onClose={() => setPopupVisible(false)} 
+        />
+      )}
     </div>
   );
 };
@@ -44,8 +119,8 @@ const profileCardStyle = {
 
 const profilePicStyle = {
   borderRadius: "50%",
-  width: "120px",
-  height: "120px",
+  width: "90px",
+  height: "90px",
   marginBottom: "15px",
   border: "2px solid #007BFF",
   objectFit: "cover",
@@ -54,6 +129,13 @@ const profilePicStyle = {
 const usernameStyle = {
   margin: "10px 0",
   fontSize: "22px",
+  fontWeight: "bold",
+  color: "#333",
+};
+
+const idStyle = {
+  marginTop: "-10px",
+  fontSize: "12px",
   fontWeight: "bold",
   color: "#333",
 };
@@ -74,6 +156,7 @@ const statsStyle = {
   margin: "0",
   fontSize: "16px",
   color: "#555",
+  cursor: "pointer", // Makes it look clickable
 };
 
 const buttonContainerStyle = {
@@ -113,5 +196,6 @@ followButtonStyle[":hover"] = { backgroundColor: "#0056b3" };
 dmButtonStyle[":hover"] = { backgroundColor: "#5a6268" };
 
 export default ProfileCard;
+
 
 

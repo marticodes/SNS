@@ -188,6 +188,7 @@ const SingleMessage = ({ message, onReply, onReact }) => {
           >
             <ProfileCard
               username={message.sender}
+              id={`@${message.sender}`}
               userPic={`https://i.pravatar.cc/120?u=${message.sender}`}
               onFollowClick={() => alert("Follow button clicked")}     //CHANGE
               isFollowing={false}

@@ -1,12 +1,61 @@
 import React, { useState } from "react";
-import { FaHome, FaEnvelope, FaBell, FaUser, FaCog } from "react-icons/fa";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { FaHome, FaEnvelope, FaBell, FaUser } from "react-icons/fa";
 import NotificationPanel from "../Notifications";
 
-const NavBar = () => {
+
+const NavBar = ({ caseId }) => {
   const [showNotifications, setShowNotifications] = useState(false);
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
+  };
+
+  const renderNavItems = () => {
+    switch (caseId) {
+      case 1:
+        return (
+          <>
+            <NavItem icon={<FaHome />} label="Home" link="/case/1" />
+            <NavItem
+              icon={<FaBell />}
+              label="Notifications"
+              onClick={toggleNotifications}
+            />
+            <NavItem icon={<FaEnvelope />} label="Messages" link="/dms" />
+            <NavItem icon={<FaUser />} label="Profile" link="/user" />
+          </>
+        );
+      case 2:
+        return (
+          <>
+            <NavItem icon={<FaHome />} label="Home" link="/case/2" />
+            <NavItem
+              icon={<FaBell />}
+              label="Notifications"
+              onClick={toggleNotifications}
+            />
+            <NavItem icon={<FaEnvelope />} label="Messages" link="/dms" />
+            <NavItem icon={<FaUser />} label="Profile" link="/user" />
+          </>
+        );
+      case 3:
+        return <NavItem icon={<FaHome />} label="Home" link="/case/3" />;
+      case 4:
+        return (
+          <>
+            <NavItem icon={<FaHome />} label="Home" link="/case/4" />
+            <NavItem
+              icon={<FaBell />}
+              label="Notifications"
+              onClick={toggleNotifications}
+            />
+            <NavItem icon={<FaEnvelope />} label="Messages" link="/dms" />
+          </>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -32,12 +81,15 @@ const NavBar = () => {
         >
           i
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px", alignSelf: "center" }}>
-          <NavItem icon={<FaHome />} label="Home" />
-          <NavItem icon={<FaBell />} label="Notifications" onClick={toggleNotifications} />
-          <NavItem icon={<FaEnvelope />} label="Messages" />
-          <NavItem icon={<FaUser />} label="Profile" />
-          <NavItem icon={<FaCog />} label="Settings" />
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "5px",
+            alignSelf: "center",
+          }}
+        >
+          {renderNavItems()}
         </div>
       </div>
 
@@ -47,9 +99,10 @@ const NavBar = () => {
   );
 };
 
-const NavItem = ({ icon, label, onClick }) => {
+const NavItem = ({ icon, label, link, onClick }) => {
   return (
-    <div
+    <a
+      href={link}
       style={{
         display: "flex",
         alignItems: "center",
@@ -57,16 +110,19 @@ const NavItem = ({ icon, label, onClick }) => {
         cursor: "pointer",
         padding: "10px 15px",
         borderRadius: "5px",
+        textDecoration: "none",
+        color: "inherit",
         transition: "background-color 0.3s ease",
       }}
       onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#6BAED8")}
       onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-      onClick={onClick} // Attach click handler
       title={label}
+      onClick={onClick} // Attach click handler
     >
       <div style={{ fontSize: "24px" }}>{icon}</div>
-    </div>
+    </a>
   );
 };
 
 export default NavBar;
+

@@ -1,10 +1,10 @@
-import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import ChatPage from "../src/pages/ChatPage";
-import UserPage from "../src/pages/UserPage";
-import MainPage from "../src/pages/MainPage";
-import LogIn from "../src/pages/LogIn";
-import ChatFeed from "../src/pages/CG-Main";
+import CGPage from "../src/pages/CG-Main"; // case 4
+import CFPage from "./pages/CF-Main"; // case 3
+import NCPage from "./pages/NC-Main"; // case 2
+import NFPage from "./pages/NF-Main";  // case 1
+import UserPage from "./pages/UserPage";
+import ChatPage from "./pages/ChatPage";
 
 const App = () => {
   return (
@@ -18,30 +18,28 @@ const App = () => {
               <div style={{ textAlign: "center" }}>
                 <h1>Welcome</h1>
                 <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                  <Link to="/chat" style={navButtonStyle}>
-                    Chat
+                  <Link to="/case/1" style={navButtonStyle}>
+                    Case 1 - Network-Following
                   </Link>
-                  <Link to="/UserPage" style={navButtonStyle}>
-                    User Profile
+                  <Link to="/case/2" style={navButtonStyle}>
+                    Case 2 - Network-Group
                   </Link>
-                  <Link to="/MainPage" style={navButtonStyle}>
-                    Main Page
+                  <Link to="/case/3" style={navButtonStyle}>
+                    Case 3 - Chat-Following
                   </Link>
-                  <Link to="/LogIn" style={navButtonStyle}>
-                    Log In
-                  </Link>
-                  <Link to="/ChatFeed" style={navButtonStyle}>
-                    ChatFeed
+                  <Link to="/case/4" style={navButtonStyle}>
+                    Case 4 - Chat-Group
                   </Link>
                 </div>
               </div>
             }
           />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/UserPage" element={<UserPage />} />
-          <Route path="/MainPage" element={<MainPage />} />
-          <Route path="/LogIn" element={<LogIn />} />
-          <Route path="/ChatFeed" element={<ChatFeed />} />
+          <Route path="/case/1" element={<NFPage />} />
+          <Route path="/case/2" element={<NCPage />} />
+          <Route path="/case/3" element={<CFPage />} />
+          <Route path="/case/4" element={<CGPage />} />
+          <Route path="/user" element={<UserPage />} />
+          <Route path="/dms" element={<ChatPage />} />
         </Routes>
       </div>
     </Router>
