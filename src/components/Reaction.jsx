@@ -201,8 +201,10 @@ const CloseButton = styled.button`
 `;
 
 // Component
-const Reaction = ({ userProfile, userName, originalPost, onLike, onUpvote, onDownvote, onEmojiSelect, onCommentClick }) => {
-  const [likeActive, setLikeActive] = useState(false);
+const Reaction = ({ user, userProfile, userName, reactions, originalPost, onLike, onUpvote, onDownvote, onEmojiSelect, onCommentClick }) => {
+  const [likeActive, setLikeActive] = useState(
+    reactions.likedUsers.some((u) => u.userName === user.user_name)
+  );
   const [upvoteActive, setUpvoteActive] = useState(false);
   const [downvoteActive, setDownvoteActive] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
@@ -219,19 +221,32 @@ const Reaction = ({ userProfile, userName, originalPost, onLike, onUpvote, onDow
 
   const toggleLike = () => {
     setLikeActive(!likeActive);
-    onLike(!likeActive); // Notify parent component of the change
+
+    if (!likeActive) {
+      onLike([...reactions.likedUsers, { profileImg: user.profile_picture, userName: user.user_name }]);
+    } else {
+      onLike(reactions.likedUsers.filter((u) => u.userName !== user.user_name));
+    }
   };
 
   const toggleUpvote = () => {
-    if (downvoteActive) setDownvoteActive(false); // Cancel downvote if active
+    if (downvoteActive) {
+      setDownvoteActive(false);
+      onDownvote(false);
+    }
+    
     setUpvoteActive(!upvoteActive);
-    onUpvote(!upvoteActive);
+    onUpvote(!upvoteActive ? 1 : -1);
   };
-
+  
   const toggleDownvote = () => {
-    if (upvoteActive) setUpvoteActive(false); // Cancel upvote if active
+    if (upvoteActive) {
+      setUpvoteActive(false);
+      onUpvote(false);
+    }
+    
     setDownvoteActive(!downvoteActive);
-    onDownvote(!downvoteActive);
+    onDownvote(!downvoteActive ? 1 : -1);
   };
 
   const toggleEmojiPicker = () => {
@@ -239,8 +254,19 @@ const Reaction = ({ userProfile, userName, originalPost, onLike, onUpvote, onDow
   };
 
   const selectEmoji = (emoji) => {
-    onEmojiSelect(emoji);
-    setEmojiPickerOpen(false); // Close picker after selection
+    const currentEmojiReactions = reactions.emojiReactions || [];
+    const existingIndex = currentEmojiReactions.findIndex((u) => u.userName === user.user_name);
+
+    let updatedReactions;
+    if (existingIndex !== -1) {
+      updatedReactions = [...currentEmojiReactions];
+      updatedReactions[existingIndex].emoji = emoji;
+    } else {
+      updatedReactions = [...currentEmojiReactions, { profileImg: user.profile_picture, userName: user.user_name, emoji }];
+    }
+
+    onEmojiSelect(updatedReactions, emoji);
+    setEmojiPickerOpen(false);
   };
 
   const toggleRepostPopup = () => {

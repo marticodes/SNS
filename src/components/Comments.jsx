@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import UserProfile from './UserProfile';
 
-// Styled Components
 const CommentsSection = styled.div`
   margin-top: 1rem;
   padding: 1rem;
@@ -117,17 +117,17 @@ const RepliesList = styled.div`
 `;
 
 // Component
-const Comments = ({ profileImg, userName, initialComments = [], isNested = false }) => {
+const Comments = ({ userProfile, userName, initialComments = [], isNested = false }) => {
   const [comments, setComments] = useState(initialComments);
   const [newComment, setNewComment] = useState('');
-  const [newReply, setNewReply] = useState(''); // Track reply input
-  const [replyIndex, setReplyIndex] = useState(null); // Track which comment is being replied to
+  const [newReply, setNewReply] = useState('');
+  const [replyIndex, setReplyIndex] = useState(null);
 
   const addComment = () => {
     if (newComment.trim()) {
       setComments([
         ...comments,
-        { profileImg, userName, text: newComment, replies: [] },
+        { userProfile, userName, text: newComment, replies: [] },
       ]);
       setNewComment('');
     }
@@ -140,20 +140,20 @@ const Comments = ({ profileImg, userName, initialComments = [], isNested = false
           i === index
             ? {
                 ...comment,
-                replies: [...comment.replies, { profileImg, userName, text: newReply }],
+                replies: [...comment.replies, { userProfile, userName, text: newReply }],
               }
             : comment
         )
       );
-      setNewReply(''); // Clear the reply input
-      setReplyIndex(null); // Close the reply input section
+      setNewReply(''); 
+      setReplyIndex(null); 
     }
   };
 
   return (
     <CommentsSection>
       <UserComment>
-        <ProfileImage src={profileImg} alt={`${userName}'s profile`} />
+        <ProfileImage src={userProfile} alt={`${userName}'s profile`} />
         <TextArea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
@@ -181,7 +181,7 @@ const Comments = ({ profileImg, userName, initialComments = [], isNested = false
             {/* Reply Input */}
             {isNested && replyIndex === index && (
               <UserComment>
-                <ProfileImage src={profileImg} alt={`${userName}'s profile`} />
+                <ProfileImage src={userProfile} alt={`${userName}'s profile`} />
                 <TextArea
                   value={newReply}
                   onChange={(e) => setNewReply(e.target.value)}

@@ -1,11 +1,19 @@
-import React from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect, useRef } from "react";
+import styled from "styled-components";
+import { BsThreeDotsVertical } from "react-icons/bs";
+
+const NavDiv = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  position: relative;
+`;
 
 const ProfileDiv = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom:1rem;
+  margin-bottom: 1rem;
 `;
 
 const ProfileImg = styled.img`
@@ -32,15 +40,93 @@ const PostDate = styled.p`
   font-size: 0.8rem;
 `;
 
-const UserProfile = ({ profileImg, userName, postDate }) => {
+const MenuBtn = styled.button`
+  background-color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #000000;
+`;
+
+const MenuPopup = styled.ul`
+  position: absolute;
+  top: 2.5rem;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 5px;
+  width: 150px;
+  z-index: 10;
+`;
+
+const MenuItem = styled.li`
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  color: #000000;
+  &:hover {
+    background: #f0f0f0;
+  }
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const UserProfile = ({ profileImg, userName, postDate, isOwner }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  const toggleMenu = () => {
+    setMenuOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleMenuClick = (action) => {
+    if (action === "edit") {
+      navigate("/edit-post"); // ✅ Navigate to edit page
+    }
+    setMenuOpen(false); // ✅ Close menu after selecting an option
+  };
+
   return (
-    <ProfileDiv>
-      <ProfileImg src={profileImg} alt={`${userName}'s profile`} />
-      <TextContainer>
-        <UserName>{userName}</UserName>
-        <PostDate>{postDate}</PostDate>
-      </TextContainer>
-    </ProfileDiv>
+    <NavDiv>
+      <ProfileDiv>
+        <ProfileImg src={profileImg} alt={`${userName}'s profile`} />
+        <TextContainer>
+          <UserName>{userName}</UserName>
+          <PostDate>{postDate}</PostDate>
+        </TextContainer>
+      </ProfileDiv>
+      <MenuBtn onClick={toggleMenu}>
+        <BsThreeDotsVertical />
+      </MenuBtn>
+
+      {menuOpen && (
+        <MenuPopup ref={menuRef}>
+          {isOwner && <MenuItem onClick={() => handleMenuClick("edit")}>Edit</MenuItem>}
+          <MenuItem onClick={() => handleMenuClick("block")}>Block</MenuItem>
+          <MenuItem onClick={() => handleMenuClick("share")}>Share URL</MenuItem>
+          <MenuItem onClick={() => handleMenuClick("report")}>Report</MenuItem>
+          <MenuItem onClick={() => handleMenuClick("unfollow")}>Unfollow</MenuItem>
+        </MenuPopup>
+      )}
+    </NavDiv>
   );
 };
 
