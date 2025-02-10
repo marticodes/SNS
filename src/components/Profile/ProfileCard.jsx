@@ -1,11 +1,32 @@
 import React, { useState } from "react";
-import FollowingPopup from "./FollowList"; // Assuming the component is in the same folder
+import FollowingPopup from "./FollowList";
+import ProfileEdit from "./EditProfile";
 
-const ProfileCard = ({ username, id, userPic, bio, followers, following, onDMClick }) => {
+const ProfileCard = ({ username, id, userid, userPic, bio, followers, following, email, isMyProfile, onDMClick }) => {
   const [isFollowing, setIsFollowing] = useState(false); // State to track follow/unfollow
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [foll, setFoll] = useState(1); // 1 for followers, 0 for following
-  
+  const [isEditing, setIsEditing] = useState(false);  //to come out the editing popup
+
+  const handleSaveChanges = (updatedData) => {
+    console.log("Updated data:", updatedData);
+    setIsEditing(false);
+    // Update the profile data here if needed
+  };
+
+  if (isEditing) {
+    return (
+      <ProfileEdit
+        initialName={username}
+        initialBio={bio}
+        initialEmail={email}
+        initialImage={userPic}
+        initialPrivateProfile={false} // Update based on your data
+        onSave={handleSaveChanges}
+      />
+    );
+  }
+
   const users = [
     {
       id: 1,
@@ -41,9 +62,19 @@ const ProfileCard = ({ username, id, userPic, bio, followers, following, onDMCli
         />
         <div>
           <h2 style={usernameStyle}>{username}</h2>
-          <h2 style={idStyle}>{id}</h2>
+          <h2 style={idStyle}>{userid}</h2>
           <p style={bioStyle}>{bio}</p>
         </div>
+
+        {isMyProfile && (
+        <button
+          onClick={() => setIsEditing(true)}
+          style={{ ...followButtonStyle, backgroundColor: "#28a745" }}
+        >
+          Edit Profile
+        </button>
+      )}
+
       </div>
 
       <div style={statsContainerStyle}>

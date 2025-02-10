@@ -1,8 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import ProfileCard from "../components/ProfileCard"; // Adjust the path as necessary
+import ProfileCard from "../components/Profile/ProfileCard"; // Adjust the path as necessary
 import NavBar from "../components/NavBar/Full";
 import Feed from "../components/NF-NG/Feed";
+
+const globalUserId = 1; // ID of the logged-in user
 
 const UserPage = () => {
   const navigate = useNavigate();
@@ -83,14 +85,16 @@ const UserPage = () => {
         <div style={centerContentStyle}>
           {/* Profile Card */}
           <ProfileCard
+            id={1}
             username= {user.user_name}
-            id="@janedoe"
+            userid="@janedoe"
             userPic={user.profile_picture}
             bio="Photographer & Nature Lover"
             followers={1200}
             following={600}
             onDMClick={handleDMClick}
             relationship={user.relationship}
+            isMyProfile={globalUserId === 1}
           />
 
           {/* User's Posts */}
