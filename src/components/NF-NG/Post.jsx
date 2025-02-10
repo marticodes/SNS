@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import UserProfile from "./UserProfile";
 import ContentSection from "./ContentSection";
-import ReactionSummary from "./reactionSummary";
+import ReactionSummary from "./ReactionSummary";
 import Reaction from "./Reaction";
 import Comments from "./Comments";
 

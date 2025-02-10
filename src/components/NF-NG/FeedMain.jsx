@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import FeedSearch from "./FeedSearch";
-import Feed from "./feed";
+import Feed from "./Feed";
 
 // Styled Components
 const FeedContainer = styled.div`
