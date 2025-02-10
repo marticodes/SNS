@@ -1,25 +1,74 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileCard from "../components/ProfileCard"; // Adjust the path as necessary
 import NavBar from "../components/NavBar/Full";
+import Feed from "../components/NF-NG/Feed";
 
 const UserPage = () => {
-  const [isFollowing, setIsFollowing] = useState(false); // State for the Follow button
-  const [posts] = useState([
-    { id: 1, content: "This is my first post!", date: "2025-01-01" },
-    { id: 2, content: "Enjoying the weekend 🌟", date: "2025-01-15" },
-    { id: 3, content: "Just finished reading a great book 📚", date: "2025-01-20" },
-  ]); // Mock posts
   const navigate = useNavigate();
 
-  // Handle Follow/Unfollow
-  const handleFollowClick = () => {
-    setIsFollowing((prevState) => !prevState);
+  const user = {
+    user_name: "Jane Doe",
+    profile_picture: "./src/dummy-profile-img.jpg",
+    isPrivate: true, // Set this to `false` for public profiles
+    relationship: "Following", // Options: "Following", "Follow Back", "Follow", "Requested", "Unfollow"
   };
+
+  const posts = [
+    {
+      id: 1,
+      profileImg: "./src/dummy-profile-img.jpg",
+      userName: "Jane Doe",
+      postDate: "2025-01-21",
+      text: "This is a sample feed post with images.",
+      hashtags: ["nature", "photo"],
+      images: [
+        "../src/dummy-feed-img-1.jpg",
+        "../src/dummy-feed-img-2.jpg",
+        "../src/dummy-feed-img-3.jpg",
+      ],
+      reactions: {
+        likedUsers: [
+          { profileImg: "./src/dummy-profile-img-2.jpg", userName: "John Smith" },
+          { profileImg: "./src/dummy-profile-img-4.jpeg", userName: "Alice Brown" },
+        ],
+        emojiReactions: [
+          { profileImg: "./src/dummy-profile-img-3.jpg", userName: "Bob Smith", emoji: "😂" },
+          { profileImg: "./src/dummy-profile-img-4.jpeg", userName: "Charlie Lee", emoji: "❤️" },
+        ],
+        upvotedUsers: 10,
+        downvotedUsers: 2,
+        shares: 3,
+      },
+      comments: [
+        {
+          id: 101,
+          profileImg: "./src/dummy-profile-img-2.jpg",
+          userName: "John Smith",
+          text: "Awesome post!",
+          replies: [
+            {
+              id: 201,
+              profileImg: "./src/dummy-profile-img-4.jpeg",
+              userName: "Alice Brown",
+              text: "Agreed!",
+            },
+          ],
+        },
+        {
+          id: 102,
+          profileImg: "./src/dummy-profile-img-4.jpeg",
+          userName: "Alice Brown",
+          text: "Really nice!",
+          replies: [],
+        },
+      ],
+    },
+  ];
 
   // Handle Direct Message
   const handleDMClick = () => {
-    navigate("/dms", { state: { chatUser: "Kim Seokjin" } });   //to change
+    navigate("/dms", { state: { chatUser: "Kim Seokjin" } });
   };
 
   return (
@@ -34,27 +83,28 @@ const UserPage = () => {
         <div style={centerContentStyle}>
           {/* Profile Card */}
           <ProfileCard
-            username="Kim Namjoon"
-            id = "@username"
-            userPic="https://via.placeholder.com/100" // Replace with a real profile picture URL
-            bio = "Leader of BTS"
-            followers={613}
-            following={500}
-            onFollowClick={handleFollowClick}
-            isFollowing={isFollowing}
+            username= {user.user_name}
+            id="@janedoe"
+            userPic={user.profile_picture}
+            bio="Photographer & Nature Lover"
+            followers={1200}
+            following={600}
             onDMClick={handleDMClick}
+            relationship={user.relationship}
           />
 
           {/* User's Posts */}
-          <div style={feedContainerStyle}>
-            <h3 style={feedTitleStyle}>Posts</h3>
-            {posts.map((post) => (
-              <div key={post.id} style={postStyle}>
-                <p style={postContentStyle}>{post.content}</p>
-                <p style={postDateStyle}>{post.date}</p>
-              </div>
-            ))}
-          </div>
+          {user.relationship === "Following" || !user.isPrivate ? (
+            <>
+              <h2 style={feedTitleStyle}>Posts</h2>
+              <Feed user={user} posts={posts} />
+            </>
+          ) : (
+            <div style={privateProfileStyle}>
+              <p>This account is private</p>
+              <p>Follow to see their photos and videos.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -64,45 +114,35 @@ const UserPage = () => {
 // Styles
 const pageStyle = {
   display: "flex",
-  height: "100vh", // Full height of the screen
-  width: "100vw", // Full width of the screen
+  height: "100vh",
+  width: "100vw",
 };
 
 const navBarStyle = {
-  position: "fixed", // Fix the NavBar to the side
+  position: "fixed",
   top: 0,
   left: 0,
-  width: "180px", // 20% width for the navbar, this can be adjusted as needed
-  height: "100%", // Full height of the screen
-  backgroundColor: "#fff", // Optional background color for the NavBar
-  boxShadow: "2px 0 5px rgba(0, 0, 0, 0.1)", // Optional shadow for visual separation
+  width: "180px",
+  height: "100%",
+  backgroundColor: "#fff",
+  boxShadow: "2px 0 5px rgba(0, 0, 0, 0.1)",
 };
 
 const contentStyle = {
-  marginLeft: "20%", // Leave space for the fixed NavBar
+  marginLeft: "20%",
   padding: "20px",
-  width: "80%", // Content takes the remaining 80% of the width
-  overflowY: "auto", // Allow scrolling if the content overflows
+  width: "80%",
+  overflowY: "auto",
   backgroundColor: "#fff",
 };
 
 const centerContentStyle = {
   display: "flex",
   flexDirection: "column",
-  alignItems: "center", // Center content horizontally
-  justifyContent: "flex-start", // Start from the top
+  alignItems: "center",
+  justifyContent: "flex-start",
   width: "100%",
   marginTop: "20px",
-};
-
-const feedContainerStyle = {
-  width: "90%",
-  maxWidth: "600px",
-  marginTop: "20px",
-  backgroundColor: "#fff",
-  borderRadius: "10px",
-  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-  padding: "15px",
 };
 
 const feedTitleStyle = {
@@ -113,22 +153,14 @@ const feedTitleStyle = {
   color: "#000",
 };
 
-const postStyle = {
-  padding: "10px",
-  borderBottom: "1px solid #ddd",
-};
-
-const postContentStyle = {
-  fontSize: "16px",
-  color: "#000",
-};
-
-const postDateStyle = {
-  fontSize: "12px",
+const privateProfileStyle = {
+  textAlign: "center",
   color: "#555",
-  textAlign: "right",
-  marginTop: "5px",
+  fontSize: "16px",
+  padding: "20px",
 };
 
 export default UserPage;
+
+
 

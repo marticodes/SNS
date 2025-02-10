@@ -117,7 +117,6 @@ const NFPage = () => {
 
   return (
     <AppContainer>
-      <NavBar caseId={2}/>
       <FeedMain user={userInfo} posts={samplePosts} />
     </AppContainer>
   )
