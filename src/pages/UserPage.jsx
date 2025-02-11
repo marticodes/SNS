@@ -4,6 +4,8 @@ import ProfileCard from "../components/Profile/ProfileCard"; // Adjust the path 
 import NavBar from "../components/NavBar/Full";
 import Feed from "../components/NF-NG/Feed";
 
+const caseNumb = 1; // Change this to test different cases
+
 const globalUserId = 1; // ID of the logged-in user
 
 const UserPage = () => {
@@ -77,7 +79,7 @@ const UserPage = () => {
     <div style={pageStyle}>
       {/* Fixed NavBar */}
       <div style={navBarStyle}>
-        <NavBar />
+        <NavBar caseId={caseNumb}/>
       </div>
 
       {/* Main content area */}

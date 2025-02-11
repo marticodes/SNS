@@ -6,6 +6,8 @@ import MessageInput from "../components/DMs/message_input.jsx";
 import ChatHeader from "../components/DMs/chatheader.jsx";
 import NavBar from "../components/NavBar/Small.jsx";
 
+const caseNumb = 1; // Change this to test different cases
+
 const ProfilePics = {
   "Kim Namjoon": "https://via.placeholder.com/30/FF0000/FFFFFF?text=User",
   "Kim Seokjin": "https://via.placeholder.com/30?text=KS",
@@ -99,7 +101,7 @@ const ChatPage = () => {
     <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
       {/* NavBar */}
       <div style={{ width: "70px", height: "100%", backgroundColor: "#34495e" }}>
-        <NavBar />
+      <NavBar caseId={caseNumb}/>
       </div>
 
       {/* User List */}

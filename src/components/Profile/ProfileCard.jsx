@@ -8,6 +8,10 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
   const [foll, setFoll] = useState(1); // 1 for followers, 0 for following
   const [isEditing, setIsEditing] = useState(false);  //to come out the editing popup
 
+  const handleClose = () => {
+    setIsEditing(false);
+  };
+
   const handleSaveChanges = (updatedData) => {
     console.log("Updated data:", updatedData);
     setIsEditing(false);
@@ -23,6 +27,7 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
         initialImage={userPic}
         initialPrivateProfile={false} // Update based on your data
         onSave={handleSaveChanges}
+        onClose={handleClose}
       />
     );
   }
@@ -66,15 +71,6 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
           <p style={bioStyle}>{bio}</p>
         </div>
 
-        {isMyProfile && (
-        <button
-          onClick={() => setIsEditing(true)}
-          style={{ ...followButtonStyle, backgroundColor: "#28a745" }}
-        >
-          Edit Profile
-        </button>
-      )}
-
       </div>
 
       <div style={statsContainerStyle}>
@@ -94,6 +90,15 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
           Direct Message
         </button>
       </div>
+
+      {isMyProfile && (
+        <button
+          onClick={() => setIsEditing(true)}
+          style={{ ...followButtonStyle, marginTop: "10px", backgroundColor: "#28a745" }}
+        >
+          Edit Profile
+        </button>
+      )}
 
       {isPopupVisible && (
         <FollowingPopup
@@ -121,7 +126,7 @@ const profilePicStyle = {
   width: "90px",
   height: "90px",
   marginBottom: "15px",
-  border: "2px solid #007BFF",
+  border: "2px solid #7CB9E8",
   objectFit: "cover",
 };
 
@@ -170,7 +175,7 @@ const followButtonStyle = {
   padding: "10px 15px",
   borderRadius: "8px",
   border: "none",
-  backgroundColor: "#007BFF",
+  backgroundColor: "#7CB9E8",
   color: "#fff",
   cursor: "pointer",
   fontSize: "15px",
@@ -190,9 +195,6 @@ const dmButtonStyle = {
   fontWeight: "bold",
   transition: "background-color 0.3s",
 };
-
-followButtonStyle[":hover"] = { backgroundColor: "#0056b3" };
-dmButtonStyle[":hover"] = { backgroundColor: "#5a6268" };
 
 export default ProfileCard;
 

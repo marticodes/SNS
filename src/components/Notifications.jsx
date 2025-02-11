@@ -1,30 +1,51 @@
 import React from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { IoMdClose } from "react-icons/io";
 
 const notifications = [
-  { id: 1, type: "like", user: "user_x", post: "your post", timestamp: "2025-02-06 10:00 AM" },
-  { id: 2, type: "comment", user: "user_y", post: "your post", timestamp: "2025-02-06 09:45 AM" },
+  { id: 0, type: "reaction", user: "user_a", postId: 103, reactionType: "love", timestamp: "2025-02-06 10:15 AM" },
+  { id: 1, type: "like", user: "user_x", postId: 101, timestamp: "2025-02-06 10:00 AM" },
+  { id: 2, type: "comment", user: "user_y", postId: 102, timestamp: "2025-02-06 09:45 AM" },
   { id: 3, type: "follow", user: "user_z", timestamp: "2025-02-06 09:30 AM" },
   { id: 4, type: "request", user: "user_w", timestamp: "2025-02-06 09:15 AM" },
 ];
 
-export default function NotificationPanel({ onClose, onUserClick }) {
+export default function NotificationPanel({ onClose }) {
+  const navigate = useNavigate(); // Initialize navigate
+
+  const handleUserClick = (username) => {
+    navigate(`/user`); // Navigate to user page
+  };
+
+  const handlePostClick = (postId) => {
+    navigate(`/post/${postId}`); // Navigate to post page
+  };
+
   const renderNotification = (notification) => {
     switch (notification.type) {
+      case "reaction":
+        return (
+          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
+            <p style={textStyle}>
+              <strong>{notification.user}</strong> reacted to your post.
+            </p>
+            <p style={timestampStyle}>{notification.timestamp}</p>
+          </div>
+        );
       case "like":
         return (
-          <div style={{ cursor: "pointer" }} onClick={() => onUserClick(notification.user)}>
+          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
             <p style={textStyle}>
-              <strong>{notification.user}</strong> liked {notification.post}.
+              <strong>{notification.user}</strong> liked your post.
             </p>
             <p style={timestampStyle}>{notification.timestamp}</p>
           </div>
         );
       case "comment":
         return (
-          <div style={{ cursor: "pointer" }} onClick={() => onUserClick(notification.user)}>
+          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
             <p style={textStyle}>
-              <strong>{notification.user}</strong> commented on {notification.post}.
+              <strong>{notification.user}</strong> commented on your post.
             </p>
             <p style={timestampStyle}>{notification.timestamp}</p>
           </div>
@@ -32,7 +53,7 @@ export default function NotificationPanel({ onClose, onUserClick }) {
       case "follow":
         return (
           <div style={notificationItemStyle}>
-            <div style={{ cursor: "pointer" }} onClick={() => onUserClick(notification.user)}> 
+            <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
               <p style={textStyle}>
                 <strong>{notification.user}</strong> started following you.
               </p>
@@ -44,7 +65,7 @@ export default function NotificationPanel({ onClose, onUserClick }) {
       case "request":
         return (
           <div style={notificationItemStyle}>
-            <div style={{ cursor: "pointer" }} onClick={() => onUserClick(notification.user)}>
+            <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
               <p style={textStyle}>
                 <strong>{notification.user}</strong> requested to follow you.
               </p>

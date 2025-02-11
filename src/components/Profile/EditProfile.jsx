@@ -1,49 +1,66 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 const ProfileEdit = ({
   initialName,
   initialBio,
-  initialEmail,
   initialImage,
   initialPrivateProfile,
   onSave,
+  onClose,
 }) => {
   const [name, setName] = useState(initialName || "");
   const [bio, setBio] = useState(initialBio || "");
-  const [email, setEmail] = useState(initialEmail || "");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [privateProfile, setPrivateProfile] = useState(
-    initialPrivateProfile || false
-  );
+  const [privateProfile, setPrivateProfile] = useState(initialPrivateProfile || false);
+  const [profileImage, setProfileImage] = useState(initialImage || "https://via.placeholder.com/150");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleConfirmChanges = () => {
-    if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match.");
-      return;
-    }
+  const fileInputRef = useRef(null);
 
+  const handleConfirmChanges = () => {
     setErrorMessage("");
-    onSave({ name, bio, email, privateProfile, password });
+    onSave({ name, bio, privateProfile, profileImage });
+  };
+
+  const handleEditImage = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setProfileImage(imageUrl);
+    }
   };
 
   return (
     <div className="popup-overlay">
       <div className="popup-container">
-        <button className="popup-close" aria-label="Close">×</button>
+        <button className="popup-close" aria-label="Close" onClick={onClose}>
+          x
+        </button>
 
         <div className="popup-profile">
           <div className="profile-image">
-            <img
-              src={initialImage || "https://via.placeholder.com/150"}
-              alt="Profile"
-              className="image"
-            />
+            <img src={profileImage} alt="Profile" className="image" />
           </div>
           <div className="profile-actions">
-            <button className="edit-button">Edit Image</button>
-            <button className="delete-button">Delete Image</button>
+            <button className="edit-button" onClick={handleEditImage}>
+              Edit Image
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+            <button
+              className="delete-button"
+              onClick={() => setProfileImage("https://via.placeholder.com/150")}
+            >
+              Delete Image
+            </button>
           </div>
         </div>
 
@@ -58,46 +75,17 @@ const ProfileEdit = ({
 
         <div className="input-group">
           <label>Bio</label>
-          <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-          />
+          <textarea value={bio} onChange={(e) => setBio(e.target.value)} />
         </div>
 
-        <div className="input-group checkbox-group">
+        <div className="input-group toggle-group">
           <label>Private Profile</label>
-          <input
-            type="checkbox"
-            checked={privateProfile}
-            onChange={(e) => setPrivateProfile(e.target.checked)}
-          />
-        </div>
-
-        <div className="input-group">
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        <div className="input-group">
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-
-        <div className="input-group">
-          <label>Confirm Password</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
+          <div
+            className={`toggle ${privateProfile ? "active" : ""}`}
+            onClick={() => setPrivateProfile(!privateProfile)}
+          >
+            <div className="toggle-thumb"></div>
+          </div>
         </div>
 
         {errorMessage && <p className="error-message">{errorMessage}</p>}
@@ -172,7 +160,7 @@ const ProfileEdit = ({
           cursor: pointer;
         }
         .edit-button {
-          background: #007bff;
+          background: #7CB9E8;
           color: white;
         }
         .delete-button {
@@ -190,17 +178,50 @@ const ProfileEdit = ({
         }
         .input-group input,
         .input-group textarea {
-          width: 100%;
+          width: 95%;
           padding: 10px;
           border: 1px solid #ddd;
           border-radius: 8px;
           font-size: 14px;
+          color: #333;
+          background: #fff;
         }
-        .input-group.checkbox-group {
+        .toggle-group {
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          gap: 100px;
         }
+
+        .toggle {
+          width: 50px;
+          height: 25px;
+          border-radius: 50px;
+          background-color: #ccc;
+          position: relative;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+          margin-left: auto;
+        }
+
+        .toggle.active {
+          background-color:#7CB9E8;
+        }
+
+        .toggle-thumb {
+          width: 20px;
+          height: 20px;
+          background-color: white;
+          border-radius: 50%;
+          position: absolute;
+          top: 2.5px;
+          left: 2.5px;
+          transition: left 0.3s ease;
+        }
+
+        .toggle.active .toggle-thumb {
+          left: 27.5px;
+        }
+
         .error-message {
           color: red;
           font-size: 14px;
@@ -209,7 +230,7 @@ const ProfileEdit = ({
         .confirm-button {
           width: 100%;
           padding: 10px;
-          background: #007bff;
+          background: #7CB9E8;
           color: white;
           border: none;
           border-radius: 8px;
@@ -218,7 +239,7 @@ const ProfileEdit = ({
           transition: background 0.3s;
         }
         .confirm-button:hover {
-          background: #0056b3;
+          background: #7CB9E8;
         }
       `}</style>
     </div>
