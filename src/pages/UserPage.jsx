@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import ProfileCard from "../components/Profile/ProfileCard"; // Adjust the path as necessary
+import ProfileCard from "../components/Profile/ProfileCard";
 import NavBar from "../components/NavBar/Full";
 import Feed from "../components/NF-NG/Feed";
 

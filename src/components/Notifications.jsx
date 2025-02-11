@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { IoMdClose } from "react-icons/io";
+import ProfileCard from "../components/PopUpProfileCard";
 
 const notifications = [
   { id: 0, type: "reaction", user: "user_a", postId: 103, reactionType: "love", timestamp: "2025-02-06 10:15 AM" },
@@ -10,11 +11,41 @@ const notifications = [
   { id: 4, type: "request", user: "user_w", timestamp: "2025-02-06 09:15 AM" },
 ];
 
+const caseNumb = 3; // Change this to test different cases
+
 export default function NotificationPanel({ onClose }) {
   const navigate = useNavigate(); // Initialize navigate
+  const [selectedUser, setSelectedUser] = useState(null);
+  const profileCardRef = useRef(null); // Create a ref for ProfileCard
 
-  const handleUserClick = (username) => {
-    navigate(`/user`); // Navigate to user page
+  // Close ProfileCard when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileCardRef.current && !profileCardRef.current.contains(event.target)) {
+        setSelectedUser(null); // Close ProfileCard when click is outside
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleDMClick = () => {
+    navigate("/dms", { state: { chatUser: "Kim Seokjin" } });
+  };
+
+  const handleUserClick = (user) => {
+    if (caseNumb === 1 || caseNumb === 2) {
+      navigate(`/user`); // Navigate to user profile page
+    } else if (caseNumb === 3 || caseNumb === 4) {
+      setSelectedUser(user); // Update state to show ProfileCard
+    }
+  };
+
+  const handleCloseProfileCard = () => {
+    setSelectedUser(null); // Close ProfileCard
   };
 
   const handlePostClick = (postId) => {
@@ -166,6 +197,34 @@ export default function NotificationPanel({ onClose }) {
           </div>
         ))}
       </div>
+
+      {selectedUser && (
+        <div
+          ref={profileCardRef} // Assign ref to ProfileCard container
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 100,
+            backgroundColor: "rgba(255, 255, 255, 1)",
+            borderRadius: "10px",
+            padding: "20px",
+          }}
+        >
+          <ProfileCard
+            id={1}
+            username={selectedUser}
+            userid="@janedoe"
+            userPic={"profile_picture_url"}
+            bio="Photographer & Nature Lover"
+            onDMClick={handleDMClick}
+            relationship={"follower"}
+            isMyProfile={false}
+            onClose={handleCloseProfileCard} // Close button callback
+          />
+        </div>
+      )}
     </div>
   );
 }

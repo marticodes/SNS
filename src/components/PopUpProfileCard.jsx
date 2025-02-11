@@ -20,7 +20,7 @@ const ProfileCard = ({ username, id, userPic, bio, onFollowClick, isFollowing, o
       />
       <h2 style={usernameStyle}>{username}</h2>
       <h2 style={idStyle}>{id}</h2>
-      <p>{bio}</p>
+      <p style={bioStyle}>{bio}</p>
       <div style={buttonContainerStyle}>
         <button onClick={onFollowClick} style={followButtonStyle}>
           {isFollowing ? "Unfollow" : "Follow"}
@@ -33,13 +33,18 @@ const ProfileCard = ({ username, id, userPic, bio, onFollowClick, isFollowing, o
   );
 };
 
+const bioStyle = {
+  margin: "1px 0",
+  color: "#333",
+};
+
 const profileCardStyle = {
   backgroundColor: "#fff",
   padding: "20px",
   borderRadius: "12px",
   boxShadow: "0 6px 10px rgba(0, 0, 0, 0.15)",
   textAlign: "center",
-  width: "320px",
+  width: "250px",
   fontFamily: "Arial, sans-serif",
 };
 
@@ -54,7 +59,7 @@ const profilePicStyle = {
 
 const usernameStyle = {
   margin: "10px 0",
-  fontSize: "22px",
+  fontSize: "20px",
   fontWeight: "bold",
   color: "#333",
 };
@@ -75,31 +80,26 @@ const buttonContainerStyle = {
 
 const followButtonStyle = {
   flex: 1,
-  padding: "10px 15px",
+  padding: "10px 10px",
   borderRadius: "8px",
   border: "none",
   backgroundColor: "#007BFF",
   color: "#fff",
   cursor: "pointer",
-  fontSize: "15px",
+  fontSize: "12px",
   fontWeight: "bold",
-  transition: "background-color 0.3s",
 };
 
 const dmButtonStyle = {
   flex: 1,
-  padding: "10px 15px",
+  padding: "10px 10px",
   borderRadius: "8px",
   border: "none",
   backgroundColor: "#6C757D",
   color: "#fff",
   cursor: "pointer",
-  fontSize: "15px",
+  fontSize: "12px",
   fontWeight: "bold",
-  transition: "background-color 0.3s",
 };
-
-followButtonStyle[":hover"] = { backgroundColor: "#0056b3" };
-dmButtonStyle[":hover"] = { backgroundColor: "#5a6268" };
 
 export default ProfileCard;
