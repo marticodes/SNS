@@ -1,9 +1,18 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import SingleMessage from "./oneMessage";
 
 const MessageList = ({ messages, onReply, onReact }) => {
-  return (
+  const messageListRef = useRef(null); 
+  
+  useEffect(() => {
+      if (messageListRef.current) {
+        messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+      }
+    }, [messages]);
+  
+    return (
     <div
+      ref={messageListRef}
       style={{
         flex: 1,
         overflowY: "auto",
