@@ -1,36 +1,31 @@
 import React from "react";
 
+const myID = 24;
+
 const ProfileCard = ({ username, id, userPic, bio, onFollowClick, isFollowing, onDMClick }) => {
-
-  const handleFollowClick = () => {
-    setIsFollowing((prevState) => !prevState);
-  };
-
-  // Handle Direct Message
-  const handleDMClick = () => {
-    navigate("/chat", { state: { chatUser: {username} } });
-  };
 
   return (
     <div style={profileCardStyle}>
-      <img
-        src={userPic}
-        alt={`${username}'s Profile`}
-        style={profilePicStyle}
-      />
+      <img src={userPic} style={profilePicStyle} alt="User Profile" />
       <h2 style={usernameStyle}>{username}</h2>
       <h2 style={idStyle}>{id}</h2>
       <p style={bioStyle}>{bio}</p>
-      <div style={buttonContainerStyle}>
-        <button onClick={onFollowClick} style={followButtonStyle}>
-          {isFollowing ? "Unfollow" : "Follow"}
-        </button>
-        <button onClick={onDMClick} style={dmButtonStyle}>
-          Direct Message
-        </button>
-      </div>
+      {id !== myID ? (
+        <div style={buttonContainerStyle}>
+          <button onClick={onFollowClick} style={followButtonStyle}>
+            {isFollowing ? "Unfollow" : "Follow"}
+          </button>
+          <button onClick={onDMClick} style={dmButtonStyle}>
+            Direct Message
+          </button>
+        </div>
+      ) : (
+        <div style={buttonContainerStyle} onClick = {() => {window.location.href = "/user"}}>  
+          <button>Edit Profile</button>
+        </div>
+      )}
     </div>
-  );
+  );  
 };
 
 const bioStyle = {
