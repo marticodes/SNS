@@ -1,15 +1,36 @@
 import React, { useState } from "react";
 import { MdOutlineAddComment } from "react-icons/md";
-import NewChat from "./newChat"; // Import the component properly
+import NewChat from "../newChat"; // Import the component properly
 
 let globalCaseType = 1; // Global variable for caseType
 
 const UserList = ({ users, onUserClick, ProfilePics }) => {
+  const [userList, setUserList] = useState(users);
   const [showNewChat, setShowNewChat] = useState(false); // State to control visibility of the newChat component
 
+  const userss = [
+    { id: 1, name: "Alice Johnson", image: "https://via.placeholder.com/30" },
+    { id: 2, name: "Bob Smith", image: "https://via.placeholder.com/30"},
+    { id: 3, name: "Charlie Brown", image: "https://via.placeholder.com/30" },
+    { id: 4, name: "Daisy Carter", image: "https://via.placeholder.com/30" },
+    { id: 5, name: "Ethan Wright", image: "https://via.placeholder.com/30" },
+    { id: 6, name: "Fiona Davis", image: "https://via.placeholder.com/30" },
+    { id: 7, name: "George Miller", image: "https://via.placeholder.com/30" },
+    { id: 8, name: "Hannah Wilson", image: "https://via.placeholder.com/30" },
+    { id: 9, name: "Ian Clark", image: "https://via.placeholder.com/30" },
+    { id: 10, name: "Jane Moore", image: "https://via.placeholder.com/30" },
+  ];
+
   const handleOpenNewChat = () => {
-    globalCaseType = 2; // Update the global caseType
     setShowNewChat(true); // Show the newChat component
+  };
+
+  const handleCloseNewChat = () => {
+    setShowNewChat(false); // Hide the newChat component
+  };
+
+  const handleUserListUpdate = (newChat) => {
+    setUserList((prevList) => [...prevList, newChat]); // Add the new chat to the list
   };
 
   return (
@@ -21,6 +42,7 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
         padding: "10px",
         overflowY: "auto", // Allows scrolling if there are too many users
         borderRight: "0.1px solid #B0BEC5",
+        position: "relative", // Required for stacking NewChat box
       }}
     >
       <h2
@@ -49,47 +71,76 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
         </span>
       </h2>
 
-      {/* Conditionally render the newChat component */}
-      {showNewChat ? (
-        <NewChat caseType={globalCaseType} followers={users} />
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {users.map((user, index) => (
-            <li
-              key={index}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "10px",
-                cursor: "pointer",
-                backgroundColor: "#F4FAFF",
-                margin: "5px 0",
-                borderRadius: "3px",
-                color: "#000000",
-              }}
-              onClick={() => onUserClick(user)} // Call the function when the user is clicked
-            >
-              {/* Display user profile picture */}
-              <img
-                src={ProfilePics[user] || "https://via.placeholder.com/30"} // Use the dummy image URL based on user name
-                alt={user}
-                style={{
-                  width: "30px",
-                  height: "30px",
-                  borderRadius: "50%",
-                  marginRight: "10px",
-                }}
-              />
-              {user}
-            </li>
-          ))}
-        </ul>
+      {/* Render the newChat modal */}
+      {showNewChat && (
+        <div style={styles.modalBackdrop}>
+          <div style={styles.modalContainer}>
+            <NewChat
+              caseType={globalCaseType}
+              users={userss}
+              closeModal={handleCloseNewChat}
+              onUserListUpdate={handleUserListUpdate} // Pass the function to update the user list
+            />
+          </div>
+        </div>
       )}
+
+      {/* Render the user list */}
+      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        {userList.map((user, index) => (
+          <li
+            key={index}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              padding: "10px",
+              cursor: "pointer",
+              backgroundColor: "#F4FAFF",
+              margin: "5px 0",
+              borderRadius: "3px",
+              color: "#000000",
+            }}
+            onClick={() => onUserClick(user)} // Call the function when the user is clicked
+          >
+            {/* Display user profile picture */}
+            <img
+              src={ProfilePics[user] || "https://via.placeholder.com/30"} // Use the dummy image URL based on user name
+              alt={user}
+              style={{
+                width: "30px",
+                height: "30px",
+                borderRadius: "50%",
+                marginRight: "10px",
+              }}
+            />
+            {user}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
 
 export default UserList;
 
-
-
+/* Styles for modal */
+const styles = {
+  modalBackdrop: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000, // On top of other elements
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderRadius: "8px",
+    padding: "20px",
+    width: "400px",
+    position: "relative", // Needed for positioning the close button
+  },
+};

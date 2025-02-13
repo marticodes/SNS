@@ -40,6 +40,13 @@ const ChatPage = () => {
   const [replyTo, setReplyTo] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredMessages, setFilteredMessages] = useState([]);
+  const [userList, setUserList] = useState([
+    "Kim Namjoon",
+    "Kim Seokjin",
+    "Min Yoongi",
+    "Jung Hoseok",
+    "Park Jimin",
+  ]);
 
   useEffect(() => {
     if (location.state?.chatUser) {
@@ -97,6 +104,15 @@ const ChatPage = () => {
      // CHANGE THIS WITH POST REQUEST
   };
 
+  const handleUserListUpdate = (newChat) => {
+    setUserList((prevList) => [...prevList, newChat.name]); // Add the new chat to the list
+    setMessages((prev) => ({
+      ...prev,
+      [newChat.name]: [], // Initialize an empty message list for the new chat
+    }));
+    setCurrentChatUser(newChat.name); // Navigate to the new chat
+  };
+
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
       {/* NavBar */}
@@ -114,15 +130,10 @@ const ChatPage = () => {
         }}
       >
         <UserList
-          users={[
-            "Kim Namjoon",
-            "Kim Seokjin",
-            "Min Yoongi",
-            "Jung Hoseok",
-            "Park Jimin",
-          ]}
+          users={userList}
           onUserClick={handleUserClick}
           ProfilePics={ProfilePics}
+          onUserListUpdate={handleUserListUpdate} // Pass the function to update the user list
         />
       </div>
 
