@@ -116,9 +116,9 @@ const NCPage = () => {
   ];
 
   return (
-    <AppContainer>
-      <FeedMain user={userInfo} posts={samplePosts} />
-    </AppContainer>
+    <div>
+      <h1>NCPage</h1>
+    </div>
   )
 };
 
