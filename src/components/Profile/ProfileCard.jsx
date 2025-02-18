@@ -1,10 +1,38 @@
 import React, { useState } from "react";
-import FollowingPopup from "./FollowList"; // Assuming the component is in the same folder
+import FollowingPopup from "./FollowList";
+import ProfileEdit from "./EditProfile";
 
-const ProfileCard = ({ username, id, userPic, bio, followers, following, onFollowClick, isFollowing, onDMClick }) => {
+const ProfileCard = ({ username, id, userid, userPic, bio, followers, following, email, isMyProfile, onDMClick }) => {
+  const [isFollowing, setIsFollowing] = useState(false); // State to track follow/unfollow
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [foll, setFoll] = useState(1); // 1 for followers, 0 for following
-  const users = [     //to change
+  const [isEditing, setIsEditing] = useState(false);  //to come out the editing popup
+
+  const handleClose = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveChanges = (updatedData) => {
+    console.log("Updated data:", updatedData);
+    setIsEditing(false);
+    // Update the profile data here if needed
+  };
+
+  if (isEditing) {
+    return (
+      <ProfileEdit
+        initialName={username}
+        initialBio={bio}
+        initialEmail={email}
+        initialImage={userPic}
+        initialPrivateProfile={false} // Update based on your data
+        onSave={handleSaveChanges}
+        onClose={handleClose}
+      />
+    );
+  }
+
+  const users = [
     {
       id: 1,
       username: "pharrell",
@@ -17,44 +45,6 @@ const ProfileCard = ({ username, id, userPic, bio, followers, following, onFollo
       fullname: "Keith Haring Foundation",
       avatar: "https://via.placeholder.com/40",
     },
-    {
-      id: 3,
-      username: "beyondthestreetsart",
-      fullname: "BEYOND THE STREETS",
-      avatar: "https://via.placeholder.com/40",
-    },
-    {
-      id: 4,
-      username: "banksy",
-      fullname: "Banksy",
-      avatar: "https://via.placeholder.com/40",
-    },
-    {
-      id: 5,
-      username: "kaws",
-      fullname: "KAWS",
-      avatar: "https://via.placeholder.com/40",
-    },
-    {
-      id: 6,
-      username: "kaws",
-      fullname: "KAWS",
-      avatar: "https://via.placeholder.com/40",
-    },
-    {
-      id: 7,
-      username: "kaws",
-      fullname: "KAWS",
-      avatar: "https://via.placeholder.com/40",
-    },
-    {
-      id: 8,
-      username: "kaws",
-      fullname: "KAWS",
-      avatar: "https://via.placeholder.com/40",
-    },
-    
-
   ];
 
   const togglePopup = (follType) => {
@@ -62,21 +52,27 @@ const ProfileCard = ({ username, id, userPic, bio, followers, following, onFollo
     setPopupVisible(true); // Open popup
   };
 
+  // Function to handle follow/unfollow
+  const handleFollowClick = () => {
+    setIsFollowing(!isFollowing); // Toggle isFollowing state
+  };
+
   return (
     <div style={profileCardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ display: "flex", alignItems: "center" }}>
         <img
           src={userPic}
           alt={`${username}'s Profile`}
-          style={{ ...profilePicStyle, marginRight: '20px', marginLeft: '30px' }} 
+          style={{ ...profilePicStyle, marginRight: "20px", marginLeft: "30px" }}
         />
         <div>
           <h2 style={usernameStyle}>{username}</h2>
-          <h2 style={idStyle}>{id}</h2>
+          <h2 style={idStyle}>{userid}</h2>
           <p style={bioStyle}>{bio}</p>
         </div>
+
       </div>
-      
+
       <div style={statsContainerStyle}>
         <p style={statsStyle} onClick={() => togglePopup(1)}>
           <strong>{followers}</strong> Followers
@@ -87,7 +83,7 @@ const ProfileCard = ({ username, id, userPic, bio, followers, following, onFollo
       </div>
 
       <div style={buttonContainerStyle}>
-        <button onClick={onFollowClick} style={followButtonStyle}>
+        <button onClick={handleFollowClick} style={followButtonStyle}>
           {isFollowing ? "Unfollow" : "Follow"}
         </button>
         <button onClick={onDMClick} style={dmButtonStyle}>
@@ -95,12 +91,20 @@ const ProfileCard = ({ username, id, userPic, bio, followers, following, onFollo
         </button>
       </div>
 
-      {/* Render FollowingPopup if isPopupVisible is true */}
+      {isMyProfile && (
+        <button
+          onClick={() => setIsEditing(true)}
+          style={{ ...followButtonStyle, marginTop: "10px", backgroundColor: "#28a745" }}
+        >
+          Edit Profile
+        </button>
+      )}
+
       {isPopupVisible && (
-        <FollowingPopup 
-          foll={foll} 
-          users={users} // Pass the appropriate users list based on followers or following
-          onClose={() => setPopupVisible(false)} 
+        <FollowingPopup
+          foll={foll}
+          users={users}
+          onClose={() => setPopupVisible(false)}
         />
       )}
     </div>
@@ -122,7 +126,7 @@ const profilePicStyle = {
   width: "90px",
   height: "90px",
   marginBottom: "15px",
-  border: "2px solid #007BFF",
+  border: "2px solid #7CB9E8",
   objectFit: "cover",
 };
 
@@ -171,7 +175,7 @@ const followButtonStyle = {
   padding: "10px 15px",
   borderRadius: "8px",
   border: "none",
-  backgroundColor: "#007BFF",
+  backgroundColor: "#7CB9E8",
   color: "#fff",
   cursor: "pointer",
   fontSize: "15px",
@@ -192,10 +196,6 @@ const dmButtonStyle = {
   transition: "background-color 0.3s",
 };
 
-followButtonStyle[":hover"] = { backgroundColor: "#0056b3" };
-dmButtonStyle[":hover"] = { backgroundColor: "#5a6268" };
-
 export default ProfileCard;
-
 
 

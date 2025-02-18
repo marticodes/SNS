@@ -1,30 +1,82 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { IoMdClose } from "react-icons/io";
+import ProfileCard from "../components/PopUpProfileCard";
 
 const notifications = [
-  { id: 1, type: "like", user: "user_x", post: "your post", timestamp: "2025-02-06 10:00 AM" },
-  { id: 2, type: "comment", user: "user_y", post: "your post", timestamp: "2025-02-06 09:45 AM" },
+  { id: 0, type: "reaction", user: "user_a", postId: 103, reactionType: "love", timestamp: "2025-02-06 10:15 AM" },
+  { id: 1, type: "like", user: "user_x", postId: 101, timestamp: "2025-02-06 10:00 AM" },
+  { id: 2, type: "comment", user: "user_y", postId: 102, timestamp: "2025-02-06 09:45 AM" },
   { id: 3, type: "follow", user: "user_z", timestamp: "2025-02-06 09:30 AM" },
   { id: 4, type: "request", user: "user_w", timestamp: "2025-02-06 09:15 AM" },
 ];
 
-export default function NotificationPanel({ onClose, onUserClick }) {
+const caseNumb = 3; // Change this to test different cases
+
+export default function NotificationPanel({ onClose }) {
+  const navigate = useNavigate(); // Initialize navigate
+  const [selectedUser, setSelectedUser] = useState(null);
+  const profileCardRef = useRef(null); // Create a ref for ProfileCard
+
+  // Close ProfileCard when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileCardRef.current && !profileCardRef.current.contains(event.target)) {
+        setSelectedUser(null); // Close ProfileCard when click is outside
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleDMClick = () => {
+    navigate("/dms", { state: { chatUser: "Kim Seokjin" } });
+  };
+
+  const handleUserClick = (user) => {
+    if (caseNumb === 1 || caseNumb === 2) {
+      navigate(`/user`); // Navigate to user profile page
+    } else if (caseNumb === 3 || caseNumb === 4) {
+      setSelectedUser(user); // Update state to show ProfileCard
+    }
+  };
+
+  const handleCloseProfileCard = () => {
+    setSelectedUser(null); // Close ProfileCard
+  };
+
+  const handlePostClick = (postId) => {
+    navigate(`/post/${postId}`); // Navigate to post page
+  };
+
   const renderNotification = (notification) => {
     switch (notification.type) {
+      case "reaction":
+        return (
+          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
+            <p style={textStyle}>
+              <strong>{notification.user}</strong> reacted to your post.
+            </p>
+            <p style={timestampStyle}>{notification.timestamp}</p>
+          </div>
+        );
       case "like":
         return (
-          <div style={{ cursor: "pointer" }} onClick={() => onUserClick(notification.user)}>
+          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
             <p style={textStyle}>
-              <strong>{notification.user}</strong> liked {notification.post}.
+              <strong>{notification.user}</strong> liked your post.
             </p>
             <p style={timestampStyle}>{notification.timestamp}</p>
           </div>
         );
       case "comment":
         return (
-          <div style={{ cursor: "pointer" }} onClick={() => onUserClick(notification.user)}>
+          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
             <p style={textStyle}>
-              <strong>{notification.user}</strong> commented on {notification.post}.
+              <strong>{notification.user}</strong> commented on your post.
             </p>
             <p style={timestampStyle}>{notification.timestamp}</p>
           </div>
@@ -32,7 +84,7 @@ export default function NotificationPanel({ onClose, onUserClick }) {
       case "follow":
         return (
           <div style={notificationItemStyle}>
-            <div style={{ cursor: "pointer" }} onClick={() => onUserClick(notification.user)}> 
+            <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
               <p style={textStyle}>
                 <strong>{notification.user}</strong> started following you.
               </p>
@@ -44,7 +96,7 @@ export default function NotificationPanel({ onClose, onUserClick }) {
       case "request":
         return (
           <div style={notificationItemStyle}>
-            <div style={{ cursor: "pointer" }} onClick={() => onUserClick(notification.user)}>
+            <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
               <p style={textStyle}>
                 <strong>{notification.user}</strong> requested to follow you.
               </p>
@@ -145,6 +197,34 @@ export default function NotificationPanel({ onClose, onUserClick }) {
           </div>
         ))}
       </div>
+
+      {selectedUser && (
+        <div
+          ref={profileCardRef} // Assign ref to ProfileCard container
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 100,
+            backgroundColor: "rgba(255, 255, 255, 1)",
+            borderRadius: "10px",
+            padding: "20px",
+          }}
+        >
+          <ProfileCard
+            id={1}
+            username={selectedUser}
+            userid="@janedoe"
+            userPic={"profile_picture_url"}
+            bio="Photographer & Nature Lover"
+            onDMClick={handleDMClick}
+            relationship={"follower"}
+            isMyProfile={false}
+            onClose={handleCloseProfileCard} // Close button callback
+          />
+        </div>
+      )}
     </div>
   );
 }

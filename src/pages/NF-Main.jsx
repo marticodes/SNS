@@ -132,6 +132,7 @@ const NFPage = () => {
   };
 
   return (
+
     <AppContainer>
       <NavBar caseId={2} />
       <Routes>

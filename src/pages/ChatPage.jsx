@@ -6,6 +6,8 @@ import MessageInput from "../components/DMs/message_input.jsx";
 import ChatHeader from "../components/DMs/chatheader.jsx";
 import NavBar from "../components/NavBar/Small.jsx";
 
+const caseNumb = 1; // Change this to test different cases
+
 const ProfilePics = {
   "Kim Namjoon": "https://via.placeholder.com/30/FF0000/FFFFFF?text=User",
   "Kim Seokjin": "https://via.placeholder.com/30?text=KS",
@@ -38,6 +40,13 @@ const ChatPage = () => {
   const [replyTo, setReplyTo] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredMessages, setFilteredMessages] = useState([]);
+  const [userList, setUserList] = useState([
+    "Kim Namjoon",
+    "Kim Seokjin",
+    "Min Yoongi",
+    "Jung Hoseok",
+    "Park Jimin",
+  ]);
 
   useEffect(() => {
     if (location.state?.chatUser) {
@@ -95,11 +104,20 @@ const ChatPage = () => {
      // CHANGE THIS WITH POST REQUEST
   };
 
+  const handleUserListUpdate = (newChat) => {
+    setUserList((prevList) => [...prevList, newChat.name]); // Add the new chat to the list
+    setMessages((prev) => ({
+      ...prev,
+      [newChat.name]: [], // Initialize an empty message list for the new chat
+    }));
+    setCurrentChatUser(newChat.name); // Navigate to the new chat
+  };
+
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
       {/* NavBar */}
       <div style={{ width: "70px", height: "100%", backgroundColor: "#34495e" }}>
-        <NavBar />
+      <NavBar caseId={caseNumb}/>
       </div>
 
       {/* User List */}
@@ -112,15 +130,10 @@ const ChatPage = () => {
         }}
       >
         <UserList
-          users={[
-            "Kim Namjoon",
-            "Kim Seokjin",
-            "Min Yoongi",
-            "Jung Hoseok",
-            "Park Jimin",
-          ]}
+          users={userList}
           onUserClick={handleUserClick}
           ProfilePics={ProfilePics}
+          onUserListUpdate={handleUserListUpdate} // Pass the function to update the user list
         />
       </div>
 

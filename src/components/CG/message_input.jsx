@@ -10,6 +10,13 @@ const MessageInput = ({ onSendMessage, replyTo, onCancelReply }) => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent newline in input
+      handleSend();
+    }
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", padding: "10px", backgroundColor: "#fff" }}>
       {replyTo && (
@@ -46,6 +53,7 @@ const MessageInput = ({ onSendMessage, replyTo, onCancelReply }) => {
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Type a message"
           style={{
             flex: 1,

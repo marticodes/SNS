@@ -1,36 +1,61 @@
-import React from "react";
+import React, { useState } from "react";
+import ProfileEdit from "./Profile/EditProfile";
+
+const myID = 24;
 
 const ProfileCard = ({ username, id, userPic, bio, onFollowClick, isFollowing, onDMClick }) => {
+  const [isEditing, setIsEditing] = useState(false);  //to come out the editing popup
 
-  const handleFollowClick = () => {
-    setIsFollowing((prevState) => !prevState);
+  const handleClose = () => {
+    setIsEditing(false);
   };
 
-  // Handle Direct Message
-  const handleDMClick = () => {
-    navigate("/chat", { state: { chatUser: {username} } });
+  const handleSaveChanges = (updatedData) => {
+    console.log("Updated data:", updatedData);
+    setIsEditing(false);
+    // Update the profile data here if needed
   };
+
+  if (isEditing) {
+    return (
+      <ProfileEdit
+        initialName={username}
+        initialBio={bio}
+        initialImage={userPic}
+        initialPrivateProfile={false} // Update based on your data
+        onSave={handleSaveChanges}
+        onClose={handleClose}
+      />
+    );
+  }
 
   return (
     <div style={profileCardStyle}>
-      <img
-        src={userPic}
-        alt={`${username}'s Profile`}
-        style={profilePicStyle}
-      />
+      <img src={userPic} style={profilePicStyle} alt="User Profile" />
       <h2 style={usernameStyle}>{username}</h2>
       <h2 style={idStyle}>{id}</h2>
-      <p>{bio}</p>
-      <div style={buttonContainerStyle}>
-        <button onClick={onFollowClick} style={followButtonStyle}>
-          {isFollowing ? "Unfollow" : "Follow"}
-        </button>
-        <button onClick={onDMClick} style={dmButtonStyle}>
-          Direct Message
-        </button>
-      </div>
+      <p style={bioStyle}>{bio}</p>
+      {id !== myID ? (
+        <div style={buttonContainerStyle}>
+          <button onClick={onFollowClick} style={followButtonStyle}>
+            {isFollowing ? "Unfollow" : "Follow"}
+          </button>
+          <button onClick={onDMClick} style={dmButtonStyle}>
+            Direct Message
+          </button>
+        </div>
+      ) : (
+        <div onClick={() => setIsEditing(true)}>  
+          <button style={buttonEditStyle} >Edit Profile</button>
+        </div>
+      )}
     </div>
-  );
+  );  
+};
+
+const bioStyle = {
+  margin: "1px 0",
+  color: "#333",
 };
 
 const profileCardStyle = {
@@ -39,7 +64,7 @@ const profileCardStyle = {
   borderRadius: "12px",
   boxShadow: "0 6px 10px rgba(0, 0, 0, 0.15)",
   textAlign: "center",
-  width: "320px",
+  width: "250px",
   fontFamily: "Arial, sans-serif",
 };
 
@@ -48,13 +73,13 @@ const profilePicStyle = {
   width: "120px",
   height: "120px",
   marginBottom: "15px",
-  border: "2px solid #007BFF",
+  border: "1px solid #7CB9E8",
   objectFit: "cover",
 };
 
 const usernameStyle = {
   margin: "10px 0",
-  fontSize: "22px",
+  fontSize: "20px",
   fontWeight: "bold",
   color: "#333",
 };
@@ -73,33 +98,36 @@ const buttonContainerStyle = {
   marginTop: "20px",
 };
 
+const buttonEditStyle = {
+  justifyContent: "center",
+  gap: "10px",
+  marginTop: "20px",
+  backgroundColor : "#7CB9E8",
+
+};
+
 const followButtonStyle = {
   flex: 1,
-  padding: "10px 15px",
+  padding: "10px 10px",
   borderRadius: "8px",
   border: "none",
-  backgroundColor: "#007BFF",
+  backgroundColor: "#7CB9E8",
   color: "#fff",
   cursor: "pointer",
-  fontSize: "15px",
+  fontSize: "12px",
   fontWeight: "bold",
-  transition: "background-color 0.3s",
 };
 
 const dmButtonStyle = {
   flex: 1,
-  padding: "10px 15px",
+  padding: "10px 10px",
   borderRadius: "8px",
   border: "none",
   backgroundColor: "#6C757D",
   color: "#fff",
   cursor: "pointer",
-  fontSize: "15px",
+  fontSize: "12px",
   fontWeight: "bold",
-  transition: "background-color 0.3s",
 };
-
-followButtonStyle[":hover"] = { backgroundColor: "#0056b3" };
-dmButtonStyle[":hover"] = { backgroundColor: "#5a6268" };
 
 export default ProfileCard;
