@@ -4,8 +4,6 @@ import styled from 'styled-components';
 import FeedMain from "../components/NF-NG/FeedMain";
 import EditPost from "../components/NF-NG/EditPost";
 
-const caseNumb = 1; // Change this to test different cases
-
 const AppContainer = styled.div`
   width: 100vw;
   display: flex;

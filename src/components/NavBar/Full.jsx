@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaHome, FaEnvelope, FaBell, FaUser } from "react-icons/fa";
 import NotificationPanel from "../Notifications";
+import image from "../../assets/logo.png";
 
 
 const NavBar = ({ caseId }) => {
@@ -39,7 +40,12 @@ const NavBar = ({ caseId }) => {
           </>
         );
       case 3:
-        return <NavItem icon={<FaHome />} label="Home" link="/case/3" />;
+        return (
+          <>
+        <NavItem icon={<FaHome />} label="Home" link="/case/3" />
+        <NavItem icon={<FaUser />} label="Profile" link="/user" />
+        </>
+        );
       case 4:
         return (
           <>
@@ -78,7 +84,11 @@ const NavBar = ({ caseId }) => {
             fontSize: "20px",
           }}
         >
-          i
+          <img src={image} alt="Logo" style={{
+          width: "70px",         
+          height: "auto",       
+        }} 
+        />
         </div>
         <div
           style={{
