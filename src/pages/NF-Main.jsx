@@ -134,7 +134,6 @@ const NFPage = () => {
   return (
 
     <AppContainer>
-      <NavBar caseId={2} />
       <Routes>
         <Route path="/" element={<FeedMain user={userInfo} posts={posts} />} />
         <Route path="new-post" element={<NewPost user={userInfo} addNewPost={addNewPost} />} />

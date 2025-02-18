@@ -69,6 +69,7 @@ const NavBar = ({ caseId }) => {
       <div
         style={{
           height: "100vh",
+          width: "70px",
           backgroundColor: "#7CB9E8",
           display: "flex",
           flexDirection: "column",

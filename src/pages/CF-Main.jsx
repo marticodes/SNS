@@ -98,10 +98,7 @@ const CFPage = () => {
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
       {/* NavBar */}
-      <div style={{ width: "70px", height: "100%", backgroundColor: "#34495e" }}>
         <NavBar caseId={3} />
-      </div>
-
       {/* User List */}
       <div
         style={{
