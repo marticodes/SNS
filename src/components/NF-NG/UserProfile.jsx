@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 import { BsThreeDotsVertical } from "react-icons/bs";
 
 const NavDiv = styled.div`
@@ -76,9 +77,10 @@ const MenuItem = styled.li`
   }
 `;
 
-const UserProfile = ({ profileImg, userName, postDate, isOwner }) => {
+const UserProfile = ({ profileImg, userName, postDate, isOwner, post, variant = "default" }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
@@ -98,10 +100,12 @@ const UserProfile = ({ profileImg, userName, postDate, isOwner }) => {
   }, []);
 
   const handleMenuClick = (action) => {
-    if (action === "edit") {
-      navigate("/edit-post"); // ✅ Navigate to edit page
+    if (action === "edit" && post) {
+      navigate(`/case/1/edit-post/${post.id}`, { state: { post } });
+    } else if (action === "edit") {
+      console.error("Post data is missing in UserProfile.jsx!");
     }
-    setMenuOpen(false); // ✅ Close menu after selecting an option
+    setMenuOpen(false);
   };
 
   return (
@@ -110,21 +114,25 @@ const UserProfile = ({ profileImg, userName, postDate, isOwner }) => {
         <ProfileImg src={profileImg} alt={`${userName}'s profile`} />
         <TextContainer>
           <UserName>{userName}</UserName>
-          <PostDate>{postDate}</PostDate>
+          {variant === "default" && <PostDate>{postDate}</PostDate>}
         </TextContainer>
       </ProfileDiv>
-      <MenuBtn onClick={toggleMenu}>
-        <BsThreeDotsVertical />
-      </MenuBtn>
 
-      {menuOpen && (
-        <MenuPopup ref={menuRef}>
-          {isOwner && <MenuItem onClick={() => handleMenuClick("edit")}>Edit</MenuItem>}
-          <MenuItem onClick={() => handleMenuClick("block")}>Block</MenuItem>
-          <MenuItem onClick={() => handleMenuClick("share")}>Share URL</MenuItem>
-          <MenuItem onClick={() => handleMenuClick("report")}>Report</MenuItem>
-          <MenuItem onClick={() => handleMenuClick("unfollow")}>Unfollow</MenuItem>
-        </MenuPopup>
+      {variant === "default" && isOwner && (
+        <>
+          <MenuBtn onClick={toggleMenu}>
+            <BsThreeDotsVertical />
+          </MenuBtn>
+          {menuOpen && (
+            <MenuPopup ref={menuRef}>
+              <MenuItem onClick={() => handleMenuClick("edit")}>Edit</MenuItem>
+              <MenuItem onClick={() => handleMenuClick("block")}>Block</MenuItem>
+              <MenuItem onClick={() => handleMenuClick("share")}>Share URL</MenuItem>
+              <MenuItem onClick={() => handleMenuClick("report")}>Report</MenuItem>
+              <MenuItem onClick={() => handleMenuClick("unfollow")}>Unfollow</MenuItem>
+            </MenuPopup>
+          )}
+        </>
       )}
     </NavDiv>
   );

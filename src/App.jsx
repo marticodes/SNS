@@ -38,7 +38,7 @@ const App = () => {
               </div>
             }
           />
-          <Route path="/case/1" element={<NFPage />} />
+          <Route path="/case/1/*" element={<NFPage />} />
           <Route path="/case/2" element={<NCPage />} />
           <Route path="/case/3" element={<CFPage />} />
           <Route path="/case/4" element={<CGPage />} />

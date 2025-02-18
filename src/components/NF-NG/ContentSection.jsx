@@ -52,7 +52,7 @@ const ContentSection = ({ text, hashtags, images = [] }) => {
       {images.length > 0 && (
         <ImageGrid>
           {images.map((img, index) => (
-            <Image key={index} src={img} alt={`content-${index}`} />
+            <Image key={index} src={img} alt={`Post Image ${index}`} />
           ))}
         </ImageGrid>
       )}

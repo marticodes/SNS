@@ -1,8 +1,10 @@
-import React from "react";
-import NavBar from "../components/NavBar/Full"; // Adjust the import path as needed
-import styled from 'styled-components';
+import React, { useState } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import NavBar from "../components/NavBar/Full"; 
+import styled from "styled-components";
 import FeedMain from "../components/NF-NG/FeedMain";
 import EditPost from "../components/NF-NG/EditPost";
+import NewPost from "../components/NF-NG/NewPost";
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -14,12 +16,14 @@ const AppContainer = styled.div`
 `;
 
 const NFPage = () => {
+  const navigate = useNavigate(); 
+
   const userInfo = {
     user_name: "Jane Doe",
     profile_picture: "./src/dummy-profile-img.jpg",
   };
 
-  const samplePosts = [
+  const [posts, setPosts] = useState([
     {
       id: 1,
       profileImg: "./src/dummy-profile-img.jpg",
@@ -78,9 +82,7 @@ const NFPage = () => {
       images: [],
       hashtags: ["example"],
       reactions: {
-        likedUsers: [
-          { profileImg: "./src/dummy-profile-img-2.jpg", userName: "John Smith" },
-        ],
+        likedUsers: [{ profileImg: "./src/dummy-profile-img-2.jpg", userName: "John Smith" }],
         emojiReactions: [
           { profileImg: "./src/dummy-profile-img-3.jpg", userName: "Bob Smith", emoji: "😂" },
           { profileImg: "./src/dummy-profile-img-4.jpeg", userName: "Charlie Lee", emoji: "❤️" },
@@ -113,14 +115,33 @@ const NFPage = () => {
         },
       ],
     },
-  ];
+  ]);
+
+  const addNewPost = (newPost) => {
+    setPosts((prev) => [newPost, ...prev]);
+    navigate("/case/1");
+  };
+
+  const updatePost = (postId, updatedData) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId ? { ...post, ...updatedData } : post
+      )
+    );
+    navigate("/case/1");
+  };
 
   return (
 
     <AppContainer>
-      <FeedMain user={userInfo} posts={samplePosts} />
+      <NavBar caseId={2} />
+      <Routes>
+        <Route path="/" element={<FeedMain user={userInfo} posts={posts} />} />
+        <Route path="new-post" element={<NewPost user={userInfo} addNewPost={addNewPost} />} />
+        <Route path="edit-post/:postId" element={<EditPost user={userInfo} posts={posts} updatePost={updatePost} />} />
+      </Routes>
     </AppContainer>
-  )
+  );
 };
 
 export default NFPage;
