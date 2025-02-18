@@ -151,9 +151,6 @@ const FeedSearch = ({ posts, users, onSearch, onUserClick, resetFeed }) => {
 
   return (
     <FeedHeader>
-      <AppIcon onClick={handleResetFeed}>
-        <FaHome />
-      </AppIcon>
       <SearchContainer>
         <SearchInput
           type="text"

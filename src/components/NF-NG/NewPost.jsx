@@ -8,8 +8,7 @@ import { BsSignTurnLeft } from "react-icons/bs";
 // Styled Components
 const NewPostContainer = styled.div`
   display: flex;
-  width: 100%;
-  background-color: #f4f4f4;
+  width: 85%;
 `;
 
 const PostDiv = styled.div`
@@ -182,7 +181,6 @@ const NewPost = ({ user, addNewPost }) => {
 
   return (
     <NewPostContainer>
-      <NavBar caseId={1} />
       <PostDiv>
       <Title>Create New Post</Title>
       <UserProfile profileImg={user.profile_picture} userName={user.user_name} variant="header" />

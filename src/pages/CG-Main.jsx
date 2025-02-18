@@ -103,7 +103,6 @@ const CGPage = () => {
     <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
       {/* NavBar */}
         <NavBar caseId={4} />
-
       {/* User List */}
       <div
         style={{

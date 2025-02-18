@@ -29,6 +29,7 @@ const NewPostDiv = styled.div`
 const NewPostButton = styled.button`
   width: 100%;
   padding: 12px;
+  margin-top: 6rem;
   font-size: 1rem;
   border: none;
   border-radius: 5px;
@@ -75,7 +76,6 @@ const FeedMain = ({ user, posts }) => {
 
   return (
     <FeedContainer>
-      <NavBar caseId={1} />
       <FeedContent>
         <FeedSearch posts={posts} users={[user]} onSearch={handleSearch} resetFeed={resetFeed} />
         <NewPostDiv>

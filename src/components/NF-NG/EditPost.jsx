@@ -7,8 +7,7 @@ import NavBar from "../NavBar/Small"
 // Styled Components
 const EditPostContainer = styled.div`
   display: flex;
-  width: 100%;
-  background-color: #f4f4f4;
+  width: 85%;
 `;
 
 const PostDiv = styled.div`
@@ -185,7 +184,6 @@ const EditPost = ({ posts, updatePost }) => {
 
   return (
     <EditPostContainer>
-      <NavBar caseId={1} />
     <PostDiv>
       <Title>Edit Your Post</Title>
       <UserProfile profileImg={originalPost.profileImg} userName={originalPost.userName} variant="header" />

@@ -13,6 +13,7 @@ const AppContainer = styled.div`
   justify-content: center;
   background-color: #f0f0f0;
   min-height: 100vh;
+  margin-left: 173px;
 `;
 
 const NFPage = () => {
@@ -132,7 +133,10 @@ const NFPage = () => {
   };
 
   return (
-
+    <>
+    <div style={{ position: "fixed", top: 0, left: 0, height: "100vh" }}>
+  <NavBar caseId={1} />
+</div>
     <AppContainer>
       <Routes>
         <Route path="/" element={<FeedMain user={userInfo} posts={posts} />} />
@@ -140,6 +144,7 @@ const NFPage = () => {
         <Route path="edit-post/:postId" element={<EditPost user={userInfo} posts={posts} updatePost={updatePost} />} />
       </Routes>
     </AppContainer>
+    </>
   );
 };
 
