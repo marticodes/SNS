@@ -1,8 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
+import ProfileEdit from "./Profile/EditProfile";
 
 const myID = 24;
 
 const ProfileCard = ({ username, id, userPic, bio, onFollowClick, isFollowing, onDMClick }) => {
+  const [isEditing, setIsEditing] = useState(false);  //to come out the editing popup
+
+  const handleClose = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveChanges = (updatedData) => {
+    console.log("Updated data:", updatedData);
+    setIsEditing(false);
+    // Update the profile data here if needed
+  };
+
+  if (isEditing) {
+    return (
+      <ProfileEdit
+        initialName={username}
+        initialBio={bio}
+        initialImage={userPic}
+        initialPrivateProfile={false} // Update based on your data
+        onSave={handleSaveChanges}
+        onClose={handleClose}
+      />
+    );
+  }
 
   return (
     <div style={profileCardStyle}>
@@ -20,8 +45,8 @@ const ProfileCard = ({ username, id, userPic, bio, onFollowClick, isFollowing, o
           </button>
         </div>
       ) : (
-        <div style={buttonContainerStyle} onClick = {() => {window.location.href = "/user"}}>  
-          <button>Edit Profile</button>
+        <div onClick={() => setIsEditing(true)}>  
+          <button style={buttonEditStyle} >Edit Profile</button>
         </div>
       )}
     </div>
@@ -48,7 +73,7 @@ const profilePicStyle = {
   width: "120px",
   height: "120px",
   marginBottom: "15px",
-  border: "2px solid #007BFF",
+  border: "1px solid #7CB9E8",
   objectFit: "cover",
 };
 
@@ -73,12 +98,20 @@ const buttonContainerStyle = {
   marginTop: "20px",
 };
 
+const buttonEditStyle = {
+  justifyContent: "center",
+  gap: "10px",
+  marginTop: "20px",
+  backgroundColor : "#7CB9E8",
+
+};
+
 const followButtonStyle = {
   flex: 1,
   padding: "10px 10px",
   borderRadius: "8px",
   border: "none",
-  backgroundColor: "#007BFF",
+  backgroundColor: "#7CB9E8",
   color: "#fff",
   cursor: "pointer",
   fontSize: "12px",
