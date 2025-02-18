@@ -96,7 +96,14 @@ const Post = ({ user, post, commentType = 'flat' }) => {
   
     return (
       <PostContainer>
-        <UserProfile profileImg={profileImg} userName={userName} postDate={postDate} isOwner={isOwner} />
+        <UserProfile 
+        profileImg={profileImg} 
+        userName={userName} 
+        postDate={postDate} 
+        isOwner={user.user_name === post.userName}
+        post={post}
+        variant="default" />
+        
         <ContentSection text={text} hashtags={post.hashtags} images={images} />
         <ReactionSummary
         likes={likes}

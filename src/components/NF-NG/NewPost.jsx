@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 import UserProfile from "./UserProfile";
 import NavBar from "../NavBar/Small"
+import { BsSignTurnLeft } from "react-icons/bs";
 
 // Styled Components
-const EditPostContainer = styled.div`
+const NewPostContainer = styled.div`
   display: flex;
   width: 100%;
   background-color: #f4f4f4;
@@ -99,7 +100,7 @@ const DeleteButton = styled.button`
   position: absolute;
   top: 5px;
   right: 5px;
-  background: rgb(177, 169, 169);
+  background:rgb(177, 169, 169);
   color: white;
   border: none;
   border-radius: 50%;
@@ -136,21 +137,10 @@ const Button = styled.button`
   }
 `;
 
-const EditPost = ({ posts, updatePost }) => {
+const NewPost = ({ user, addNewPost }) => {
   const navigate = useNavigate();
-  const { postId } = useParams();
-
-  const location = useLocation();
-  const originalPost = posts.find((post) => post.id === parseInt(postId));
-
-  if (!originalPost) {
-    navigate("/case/1");
-    return null;
-  }
-
-  const [postText, setPostText] = useState(originalPost.text);
-  const [mediaFiles, setMediaFiles] = useState(originalPost.images || []); 
-
+  const [postText, setPostText] = useState("");
+  const [mediaFiles, setMediaFiles] = useState([]); 
   const handleTextChange = (e) => {
     setPostText(e.target.value);
   };
@@ -165,17 +155,24 @@ const EditPost = ({ posts, updatePost }) => {
     setMediaFiles((prev) => prev.filter((_, i) => i !== index)); 
   };
 
-  const handleSave = () => {
+  const handlePost = () => {
     if (!postText.trim() && mediaFiles.length === 0) {
       alert("Post cannot be empty!");
       return;
     }
 
-    updatePost(originalPost.id, {
+    const newPost = {
+      id: Date.now(),
+      profileImg: user.profile_picture,
+      userName: user.user_name,
+      postDate: new Date().toISOString().split("T")[0],
       text: postText,
-      images: mediaFiles,
-    });
+      images: mediaFiles.length > 0 ? mediaFiles : [],
+      reactions: { likedUsers: [], upvotedUsers: 0, downvotedUsers: 0, emojiReactions: [], shares: 0 },
+      comments: [],
+    };
 
+    addNewPost(newPost);
     navigate("/case/1");
   };
 
@@ -184,13 +181,13 @@ const EditPost = ({ posts, updatePost }) => {
   };
 
   return (
-    <EditPostContainer>
+    <NewPostContainer>
       <NavBar caseId={1} />
-    <PostDiv>
-      <Title>Edit Your Post</Title>
-      <UserProfile profileImg={originalPost.profileImg} userName={originalPost.userName} variant="header" />
+      <PostDiv>
+      <Title>Create New Post</Title>
+      <UserProfile profileImg={user.profile_picture} userName={user.user_name} variant="header" />
 
-      <TextArea value={postText} onChange={handleTextChange} />
+      <TextArea value={postText} onChange={handleTextChange} placeholder="Say Something..." />
 
       <UploadContainer>
         <UploadLabel htmlFor="file-upload">Upload Images/Videos</UploadLabel>
@@ -215,11 +212,11 @@ const EditPost = ({ posts, updatePost }) => {
 
       <ButtonGroup>
         <Button cancel onClick={handleCancel}>Cancel</Button>
-        <Button onClick={handleSave}>Save Changes</Button>
+        <Button onClick={handlePost}>Post</Button>
       </ButtonGroup>
       </PostDiv>
-    </EditPostContainer>
+    </NewPostContainer>
   );
 };
 
-export default EditPost;
+export default NewPost;
