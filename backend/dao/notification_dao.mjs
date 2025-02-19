@@ -42,18 +42,18 @@ const NotificationDAO = {
         });
     },
 
-    async getNotificationByType(notif_type){
+    async getNotificationByType(notif_type, receiver_id){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'SELECT * FROM Notification WHERE notif_type = ?';
-                db.get(sql, [notif_type], (err, row) => {
+                const sql = 'SELECT * FROM Notification WHERE notif_type = ? AND receiver_id=?';
+                db.all(sql, [notif_type, receiver_id], (err, rows) => {
                     if (err) {
                         reject(err);
-                    } else if (row.length === 0) {
+                    } else if (rows.length === 0) {
                         resolve(false);
                     } else {
-                        const notif = new Notification(row.content, row.notif_type, row.sender_id, row.receiver_id, row.timestamp);
-                        resolve(notif);
+                        const notifs = rows.map(row =>new Notification(row.notif_id,row.content, row.notif_type, row.sender_id, row.receiver_id, row.timestamp));
+                        resolve(notifs);
                     }
                 });
             } catch (error) {

@@ -22,7 +22,7 @@ const CommunityDAO = {
         });
     },
 
-    async creatNewChannel(comm_name, comm_image, comm_bio){
+    async createNewChannel(comm_name, comm_image, comm_bio){
         return new Promise((resolve, reject) => {
             try {
                 const sql = 'INSERT INTO Community (comm_name, comm_image, comm_bio) VALUES (?,?,?)';

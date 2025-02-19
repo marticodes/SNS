@@ -21,7 +21,6 @@ import MessageDAO from './dao/message_dao.mjs';
 import FeedDAO from './dao/feed_dao.mjs';
 import CMemberDAO from './dao/community_membership_dao.mjs';
 import CommunityDAO from './dao/community_dao.mjs';
-import HashtagDAO from './dao/hashtag_dao.mjs';
 import NotificationDAO from './dao/notification_dao.mjs';
 
 const chatDao = ChatDAO;
@@ -37,7 +36,6 @@ const messageDao = MessageDAO;
 const feedDao = FeedDAO;
 const cmemberDao = CMemberDAO;
 const communityDao = CommunityDAO;
-const hashtagDao = HashtagDAO;
 const notificationDao = NotificationDAO;
 
 const SERVER_URL = 'http://localhost:3001/api';
@@ -89,7 +87,7 @@ app.get('/api/user/:user_id',
     } 
 );
 
-app.get('/api/user/active',
+app.get('/api/users/active',
     async (req, res) => {
         try {
           const user = await userDao.getActiveUsers();
@@ -125,7 +123,7 @@ app.post('/api/user/add',
 app.post('/api/user/update/bio',
     async (req, res) => {
         try {
-          const set = await userDao.updateUserBio(req.body.user_id, req.body.status);
+          const set = await userDao.updateUserBio(req.body.user_id, req.body.user_bio);
           res.status(201).json({set});
         } catch (err) {
           res.status(503).json({ error: `BE: Error updating bio ${err}` });
@@ -237,7 +235,7 @@ app.get('/api/posts/keyword/:keyword',
       }
 );
 
-app.post('/api/user/post/add',
+app.post('/api/post/add',
     async (req, res) => {
         try {
           const ina = await postDao.insertPost(req.body.parent_id, req.body.user_id, req.body.content, req.body.topic, req.body.media_type, req.body.media_url, req.body.timestamp, req.body.duration, req.body.visibility, req.body.comm_id);
@@ -270,6 +268,30 @@ app.post('/api/posts/content',
       }
 );
 
+//Hashtag API
+
+app.get('/api/hashtags/count/:content',
+  async (req, res) => {
+      try {
+        const count = await postDao.countHashtag(req.params.content);
+        res.status(200).json(count);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error retriving count ${err}` });
+      }
+    }
+);
+
+app.get('/api/hashtags/post/:content',
+  async (req, res) => {
+      try {
+        const ids = await postDao.getPostIdsWithHashtag(req.params.content);
+        res.status(200).json(ids);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error retriving post ids ${err}` });
+      }
+    }
+);
+
 //Ephemeral Contents API
 app.get('/api/viewers/:post_id',
     async (req, res) => {
@@ -285,7 +307,7 @@ app.get('/api/viewers/:post_id',
 app.post('/api/viewers/post/add',
     async (req, res) => {
         try {
-          const ina = await viewerDao.getAllViewers(req.body.user_id, req.body.post_id);
+          const ina = await viewerDao.addPostViewer(req.body.user_id, req.body.post_id);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error adding viewer ${err}` });
@@ -294,10 +316,10 @@ app.post('/api/viewers/post/add',
 );
 
 //Comments API
-app.get('/api/comments/all/:post_id',
+app.get('/api/comments/all/:parent_id/:post',
     async (req, res) => {
         try {
-          const comments = await commentDao.getAllComments(req.params.post_id);
+          const comments = await commentDao.getAllComments(req.params.parent_id, req.params.post);
           res.status(200).json(comments);
         } catch (err) {
           res.status(500).json({ error: `BE: Error listing all comments ${err}` });
@@ -308,7 +330,7 @@ app.get('/api/comments/all/:post_id',
 app.post('/api/post/comment/add',
     async (req, res) => {
         try {
-          const ina = await userDao.insertComment(req.body.parent_id, req.body.user_id, req.body.content, req.body.media_type, req.body.media_url, req.body.timestamp, req.body.reaction, req.body.visibility);
+          const ina = await commentDao.insertComment(req.body.parent_id, req.body.user_id, req.body.content, req.body.media_type, req.body.media_url, req.body.timestamp, req.body.visibility, req.body.post);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error inserting comment ${err}` });
@@ -339,24 +361,13 @@ app.get('/api/reactions/comments/:comment_id',
       }
 );
 
-app.get('/api/reactions/messages/:message_id',
+app.get('/api/reactions/messages/:chat_id/:message_id',
     async (req, res) => {
         try {
-          const reactions = await reactionDao.getMessageReactions(req.params.message_id);
+          const reactions = await reactionDao.getMessageReactions(req.params.chat_id, req.params.message_id);
           res.status(200).json(reactions);
         } catch (err) {
           res.status(500).json({ error: `BE: Error obtaining message reactions ${err}` });
-        }
-      }
-);
-
-app.get('/api/reactions/type/:reaction_type',
-    async (req, res) => {
-        try {
-          const reactions = await reactionDao.getReactionsbyType(req.params.reaction_type);
-          res.status(200).json(reactions);
-        } catch (err) {
-          res.status(500).json({ error: `BE: Error obtaining reaction types ${err}` });
         }
       }
 );
@@ -386,7 +397,7 @@ app.post('/api/reactions/comment/add',
 app.post('/api/reactions/message/add',
     async (req, res) => {
         try {
-          const ina = await reactionDao.insertMessageReaction(req.body.reaction_type, req.body.message_id, req.body.user_id, req.body.timestamp);
+          const ina = await reactionDao.insertMessageReaction(req.body.reaction_type, req.body.chat_id, req.body.message_id, req.body.user_id, req.body.timestamp);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error inserting message reaction ${err}` });
@@ -406,7 +417,7 @@ app.get('/api/relations/:user_id/:relation_type',
       }
 );
 
-app.get('/api/relations/restricted/:user_id/',
+app.get('/api/restricted/:user_id',
     async (req, res) => {
         try {
           const user_ids = await relationDao.getRestrictedUsers(req.params.user_id);
@@ -417,10 +428,10 @@ app.get('/api/relations/restricted/:user_id/',
       }
 );
 
-app.get('/api/relations/mutual/:user_id_1/:user_id_2',
+app.get('/api/relations/mutuals/:user_id_1/:user_id_2',
     async (req, res) => {
         try {
-          const user_ids = await relationDao.getRestrictedUsers(req.params.user_id_1,req.params.user_id_2);
+          const user_ids = await relationDao.getMutualFollowers(req.params.user_id_1,req.params.user_id_2);
           res.status(200).json(user_ids);
         } catch (err) {
           res.status(500).json({ error: `BE: Error obtaining mutuals list ${err}` });
@@ -511,12 +522,23 @@ app.get('/api/chats/all/:user_id',
 app.post('/api/chats/add',
     async (req, res) => {
         try {
-          const ina = await chatDao.insertChat(req.body.user_id_1, req.body.user_id_2, req.body.group_chat, req.body.chat_name, req.body.chat_image);
+          const ina = await chatDao.insertDM(req.body.user_id_1, req.body.user_id_2, req.body.chat_name, req.body.chat_image);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error inserting chat ${err}` });
         }
       }
+);
+
+app.post('/api/chats/group/add',
+  async (req, res) => {
+      try {
+        const ina = await chatDao.insertGroupChat(req.body.user_ids, req.body.chat_name, req.body.chat_image);
+        res.status(201).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error inserting group chat ${err}` });
+      }
+    }
 );
 
 app.get('/api/messages/all/:chat_id',
@@ -613,7 +635,7 @@ app.get('/api/channels/:user_id/',
 app.post('/api/channels/create',
     async (req, res) => {
         try {
-          const ina = await communityDao.creatNewChannel(req.body.comm_name, req.body.comm_image, req.body.comm_bio);
+          const ina = await communityDao.createNewChannel(req.body.comm_name, req.body.comm_image, req.body.comm_bio);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error creating channel ${err}` });
@@ -656,31 +678,6 @@ app.get('/api/channels/info/:comm_id/',
       }
 );
 
-
-//Hashtag API
-
-app.get('/api/hashtags/count/:content/',
-    async (req, res) => {
-        try {
-          const count = await hashtagDao.countHashtag(req.params.content);
-          res.status(200).json(count);
-        } catch (err) {
-          res.status(500).json({ error: `BE: Error retriving count ${err}` });
-        }
-      }
-);
-
-app.get('/api/hashtags/post/:content/',
-    async (req, res) => {
-        try {
-          const ids = await hashtagDao.getPostIdsWithHashtag(req.params.content);
-          res.status(200).json(ids);
-        } catch (err) {
-          res.status(500).json({ error: `BE: Error retriving post ids ${err}` });
-        }
-      }
-);
-
 //Notification API
 
 app.post('/api/notifs/add',
@@ -705,10 +702,10 @@ app.get('/api/notifs/id/:user_id/',
       }
 );
 
-app.get('/api/notifs/type/:notif_type/',
+app.get('/api/notifs/type/:notif_type/:receiver_id',
     async (req, res) => {
         try {
-          const notifs = await notificationDao.getNotificationByType(req.params.notif_type);
+          const notifs = await notificationDao.getNotificationByType(req.params.notif_type, req.params.receiver_id);
           res.status(200).json(notifs);
         } catch (err) {
           res.status(500).json({ error: `BE: Error retriving notifs by type ${err}` });

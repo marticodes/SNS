@@ -17,11 +17,11 @@ const FeedDAO = {
                 LIMIT ? OFFSET ?;
             `;
     
-            db.all(sql, [userId, userId, userId, limit, offset], (err, rows) => {
+            db.all(sql, [userId, userId, limit, offset], (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
-                    const posts= rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id));
+                    const posts= rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id, row.hashtag));
                     resolve(posts);
                 }
             });
@@ -45,7 +45,7 @@ const FeedDAO = {
                         WHERE (r.user_id_1 = ? OR r.user_id_2 = ?) 
                             AND r.relation_type IN (0, 1, 2)  
                     )
-                    AND p.visibility = 'public'
+                    AND p.visibility = 2
                 ORDER BY p.timestamp DESC
                 LIMIT ? OFFSET ?;
             `;
@@ -54,7 +54,7 @@ const FeedDAO = {
                 if (err) {
                     reject(err);
                 } else {
-                    const posts= rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id));
+                    const posts= rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id, row.hashtag));
                     resolve(posts);
                 }
             });
