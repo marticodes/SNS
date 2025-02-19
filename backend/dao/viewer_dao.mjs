@@ -5,14 +5,14 @@ const ViewerDAO = {
     async getAllViewers(post_id){
         return new Promise((resolve, reject) => {
             try {         
-                const sql = 'SELECT * FROM Viewer WHERE post_id=?';
+                const sql = 'SELECT user_id FROM Viewer WHERE post_id=?';
                 db.all(sql, [post_id], (err, rows) => {
                     if (err) {
                         reject(err);
                     } else if (rows.length === 0) {
                         resolve([]);
                     } else {
-                        const viewers= rows.map(row => new Viewer(row.viewer_id, row.user_id, row.post_id));
+                        const viewers= rows.map(row => row.user_id);
                         resolve(viewers);
                     }
                 });

@@ -114,7 +114,7 @@ const RelationDAO = {
                 if (err) {
                     reject(err);
                 } else if (rows.length === 0) {
-                    resolve([]);
+                    resolve(false);
                 } else {
                     resolve(rows.map(row => row.user_id_2))
                 }

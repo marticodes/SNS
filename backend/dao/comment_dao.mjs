@@ -2,17 +2,17 @@ import db from '../db.mjs';
 import Comment from '../models/comment_model.mjs';
 
 const CommentDAO = {
-    async getAllComments(post_id){
+    async getAllComments(comment_id, post){
         return new Promise((resolve, reject) => {
             try {         
-                const sql = 'SELECT * FROM Comment WHERE post_id=?';
-                db.all(sql, [post_id], (err, rows) => {
+                const sql = 'SELECT * FROM Comment WHERE parent_id=? AND post =?';
+                db.all(sql, [comment_id, post], (err, rows) => {
                     if (err) {
                         reject(err);
                     } else if (rows.length === 0) {
                         resolve([]);
                     } else {
-                        const comments= rows.map(row => new Comment(row.comment_id, row.parent_id, row.user_id, row.content, row.media_type, row.media_url, row.timestamp, row.reaction, row.visibility));
+                        const comments= rows.map(row => new Comment(row.comment_id, row.parent_id, row.user_id, row.content, row.media_type, row.media_url, row.timestamp, row.reaction, row.visibility, row.post));
                         resolve(comments);
                     }
                 });
@@ -22,11 +22,11 @@ const CommentDAO = {
         });
     },
 
-    async insertComment(parent_id, user_id, content, media_type, media_url, timestamp, reaction, visibility) {
+    async insertComment(parent_id, user_id, content, media_type, media_url, timestamp, visibility, post) {
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO Comment (parent_id, user_id, content, media_type, media_url, timestamp, reaction, visibility) VALUES (?,?,?,?,?,?,?,?)';
-                db.run(sql, [parent_id, user_id, content, media_type, media_url, timestamp, reaction, visibility], function(err) { 
+                const sql = 'INSERT INTO Comment (parent_id, user_id, content, media_type, media_url, timestamp, visibility, post) VALUES (?,?,?,?,?,?,?,?)';
+                db.run(sql, [parent_id, user_id, content, media_type, media_url, timestamp, visibility, post], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 

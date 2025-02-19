@@ -53,7 +53,7 @@ const CMemberDAO = {
                     } else if (rows.length === 0) {
                         resolve([]);
                     } else {
-                        const posts= rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id));
+                        const posts= rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id, row.hashtag));
                         resolve(posts);
                     }
                 });

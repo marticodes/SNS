@@ -1,18 +1,21 @@
 import db from '../db.mjs';
-import Reaction from '../models/reaction_model.mjs';
+import Reactions from '../models/reaction_model.mjs';
 
 const ReactionDAO = {
     async getPostReactions(post_id){
         return new Promise((resolve, reject) => {
-            try {         
-                const sql = 'SELECT * FROM Reaction WHERE post_id=?';
+            try {
+                const sql = `
+                    SELECT reaction_type, COUNT(*) AS count 
+                    FROM Reactions 
+                    WHERE post_id = ? 
+                    GROUP BY reaction_type
+                `;
                 db.all(sql, [post_id], (err, rows) => {
                     if (err) {
                         reject(err);
-                    } else if (rows.length === 0) {
-                        resolve([]);
                     } else {
-                        const reactions= rows.map(row => new Reaction(row.reaction_id, row.reaction_type, row.post_id, row.comment_id, row.message_id, row.user_id, row.timestamp));
+                        const reactions = rows.map(row => [row.reaction_type, row.count]);
                         resolve(reactions);
                     }
                 });
@@ -24,15 +27,18 @@ const ReactionDAO = {
 
     async getCommentReactions(comment_id){
         return new Promise((resolve, reject) => {
-            try {         
-                const sql = 'SELECT * FROM Reaction WHERE comment_id=?';
+            try {
+                const sql = `
+                    SELECT reaction_type, COUNT(*) AS count 
+                    FROM Reactions 
+                    WHERE comment_id = ? 
+                    GROUP BY reaction_type
+                `;
                 db.all(sql, [comment_id], (err, rows) => {
                     if (err) {
                         reject(err);
-                    } else if (rows.length === 0) {
-                        resolve([]);
                     } else {
-                        const reactions= rows.map(row => new Reaction(row.reaction_id, row.reaction_type, row.post_id, row.comment_id, row.message_id, row.user_id, row.timestamp));
+                        const reactions = rows.map(row => [row.reaction_type, row.count]);
                         resolve(reactions);
                     }
                 });
@@ -42,37 +48,20 @@ const ReactionDAO = {
         });
     },
 
-    async getMessageReactions(message_id){
+    async getMessageReactions(chat_id, message_id){
         return new Promise((resolve, reject) => {
-            try {         
-                const sql = 'SELECT * FROM Reaction WHERE message_id=?';
-                db.all(sql, [message_id], (err, rows) => {
+            try {
+                const sql = `
+                    SELECT reaction_type, COUNT(*) AS count 
+                    FROM Reactions 
+                    WHERE message_id = ? AND chat_id = ? 
+                    GROUP BY reaction_type
+                `;
+                db.all(sql, [message_id, chat_id], (err, rows) => {
                     if (err) {
                         reject(err);
-                    } else if (rows.length === 0) {
-                        resolve([]);
                     } else {
-                        const reactions= rows.map(row => new Reaction(row.reaction_id, row.reaction_type, row.post_id, row.comment_id, row.message_id, row.user_id, row.timestamp));
-                        resolve(reactions);
-                    }
-                });
-            } catch (error) {
-                reject(error);
-            }
-        });
-    },
-
-    async getReactionsbyType(reaction_type){
-        return new Promise((resolve, reject) => {
-            try {         
-                const sql = 'SELECT * FROM Reaction WHERE reaction_type=?';
-                db.all(sql, [reaction_type], (err, rows) => {
-                    if (err) {
-                        reject(err);
-                    } else if (rows.length === 0) {
-                        resolve([]);
-                    } else {
-                        const reactions= rows.map(row => new Reaction(row.reaction_id, row.reaction_type, row.post_id, row.comment_id, row.message_id, row.user_id, row.timestamp));
+                        const reactions = rows.map(row => [row.reaction_type, row.count]);
                         resolve(reactions);
                     }
                 });
@@ -85,8 +74,8 @@ const ReactionDAO = {
     async insertPostReaction(reaction_type, post_id, user_id, timestamp) {
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO Reaction (reaction_type, post_id, comment_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?)';
-                db.run(sql, [reaction_type, post_id, 0, 0, user_id, timestamp], function(err) { 
+                const sql = 'INSERT INTO Reactions (reaction_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?)';
+                db.run(sql, [reaction_type, post_id, 0, 0, 0, user_id, timestamp], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
@@ -105,8 +94,8 @@ const ReactionDAO = {
     async insertCommentReaction(reaction_type, comment_id, user_id, timestamp){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO Reaction (reaction_type, post_id, comment_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?)';
-                db.run(sql, [reaction_type, 0, comment_id, 0, user_id, timestamp], function(err) { 
+                const sql = 'INSERT INTO Reactions (reaction_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?)';
+                db.run(sql, [reaction_type, 0, comment_id, 0, 0, user_id, timestamp], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
@@ -122,11 +111,11 @@ const ReactionDAO = {
         });
     },
 
-    async insertMessageReaction(reaction_type, message_id, user_id, timestamp){
+    async insertMessageReaction(reaction_type, chat_id, message_id, user_id, timestamp){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO Reaction (reaction_type, post_id, comment_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?)';
-                db.run(sql, [reaction_type, 0, 0, message_id, user_id, timestamp], function(err) { 
+                const sql = 'INSERT INTO Reactions (reaction_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?)';
+                db.run(sql, [reaction_type, 0, 0,chat_id, message_id, user_id, timestamp], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 

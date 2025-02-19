@@ -9,7 +9,7 @@ const UserDAO = {
                 db.get(sql, [user_id], (err, row) => {
                     if (err) {
                         reject(err);
-                    } else if (row.length === 0) {
+                    } else if (!row) {
                         resolve(false);
                     } else {
                         const user = new User(row.user_id, row.id_name, row.user_name, row.email, row.password, row.user_bio, row.profile_picture, row.status, row.visibility);
