@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+const selectedCase = localStorage.getItem("selectedCase");
 
 function LogIn() {
     const initialValues = {
@@ -8,6 +11,9 @@ function LogIn() {
     const [formValues, setFormValues] = useState(initialValues);
     const [formErrors, setFormErrors] = useState({});
     const [isSubmit, setIsSubmit] = useState(false);
+    const [loginResult, setLoginResult] = useState(""); // State to store login result
+
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -25,12 +31,32 @@ function LogIn() {
         return errors;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const errors = validate(formValues);
         setFormErrors(errors);
+
         if (Object.keys(errors).length === 0) {
             setIsSubmit(true);
+            try {
+                const response = await fetch(
+                    `http://localhost:3001/api/user/${formValues.username}/${formValues.password}`
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data) {
+                        localStorage.setItem("userID", data);
+                        navigate(`/case/${selectedCase || 3}`);
+                        setLoginResult(`Welcome user ${data}`); // Handle success
+                    } else {
+                        setLoginResult("Invalid credentials."); // Handle failure
+                    }
+                } else {
+                    setLoginResult("An error occurred while logging in."); // Handle server error
+                }
+            } catch (error) {
+                setLoginResult(`Error: ${error.message}`); // Handle network error
+            }
         } else {
             setIsSubmit(false);
         }
@@ -150,6 +176,7 @@ function LogIn() {
                         <button type="submit" className="fluid ui button blue">
                             Log In
                         </button>
+                        {loginResult && <p>{loginResult}</p>}
                     </div>
                 </form>
             </div>

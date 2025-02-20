@@ -5,6 +5,7 @@ import NCPage from "./pages/NC-Main"; // case 2
 import NFPage from "./pages/NF-Main";  // case 1
 import UserPage from "./pages/UserPage";
 import ChatPage from "./pages/ChatPage";
+import LogIn from "./pages/LogIn";
 
 const App = () => {
   const handleClick = (caseNumber) => {
@@ -22,16 +23,16 @@ const App = () => {
               <div style={{ textAlign: "center" }}>
                 <h1>Welcome</h1>
                 <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                  <Link to="/case/1" style={navButtonStyle} onClick={() => handleClick(1)}>
+                  <Link to="/login" style={navButtonStyle} onClick={() => handleClick(1)}>
                     Case 1 - Network-Following
                   </Link>
-                  <Link to="/case/2" style={navButtonStyle} onClick={() => handleClick(2)}>
+                  <Link to="/login" style={navButtonStyle} onClick={() => handleClick(2)}>
                     Case 2 - Network-Group
                   </Link>
-                  <Link to="/case/3" style={navButtonStyle} onClick={() => handleClick(3)}>
+                  <Link to="/login" style={navButtonStyle} onClick={() => handleClick(3)}>
                     Case 3 - Chat-Following
                   </Link>
-                  <Link to="/case/4" style={navButtonStyle} onClick={() => handleClick(4)}>
+                  <Link to="/login" style={navButtonStyle} onClick={() => handleClick(4)}>
                     Case 4 - Chat-Group
                   </Link>
                 </div>
@@ -43,7 +44,8 @@ const App = () => {
           <Route path="/case/3" element={<CFPage />} />
           <Route path="/case/4" element={<CGPage />} />
           <Route path="/user" element={<UserPage />} />
-          <Route path="/dms" element={<ChatPage />} />
+          <Route path="/dms" element={<ChatPage />} />+
+          <Route path="/login" element={<LogIn />} />
         </Routes>
       </div>
     </Router>
