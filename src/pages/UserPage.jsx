@@ -4,12 +4,14 @@ import ProfileCard from "../components/Profile/ProfileCard";
 import NavBar from "../components/NavBar/Full";
 import Feed from "../components/NF-NG/Feed";
 
-const caseNumb = 1; // Change this to test different cases
-
-const globalUserId = 1; // ID of the logged-in user
-
 const UserPage = () => {
   const navigate = useNavigate();
+
+  const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
+  const globalUserId = parseInt(localStorage.getItem("userID"), 10);
+
+  console.log("caseNumb: ", caseNumb);
+  console.log("globalUserId: ", globalUserId);
 
   const user = {
     user_name: "Jane Doe",

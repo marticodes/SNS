@@ -23,16 +23,16 @@ const App = () => {
               <div style={{ textAlign: "center" }}>
                 <h1>Welcome</h1>
                 <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                  <Link to="/case/1" style={navButtonStyle} onClick={() => handleClick(1)}>
+                  <Link to="/login" style={navButtonStyle} onClick={() => handleClick(1)}>
                     Case 1 - Network-Following
                   </Link>
-                  <Link to="/case/2" style={navButtonStyle} onClick={() => handleClick(2)}>
+                  <Link to="/login" style={navButtonStyle} onClick={() => handleClick(2)}>
                     Case 2 - Network-Group
                   </Link>
-                  <Link to="/case/3" style={navButtonStyle} onClick={() => handleClick(3)}>
+                  <Link to="/login" style={navButtonStyle} onClick={() => handleClick(3)}>
                     Case 3 - Chat-Following
                   </Link>
-                  <Link to="/case/4" style={navButtonStyle} onClick={() => handleClick(4)}>
+                  <Link to="/login" style={navButtonStyle} onClick={() => handleClick(4)}>
                     Case 4 - Chat-Group
                   </Link>
                 </div>
