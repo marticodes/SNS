@@ -5,6 +5,26 @@ import ProfileCard from "../components/Profile/ProfileCard";
 import NavBar from "../components/NavBar/Full";
 import Feed from "../components/NF-NG/Feed";
 
+const fetchRelation = async (userId, relationType) => {
+  try {
+    let response;
+    if (relationType === 2) {
+      response = await fetch(`http://localhost:3001/api/relations/${userId}/2`);
+    } else {
+      response = await fetch(`http://localhost:3001/api/with/relations/${userId}/2`);
+    }
+    if (!response.ok) {
+      throw new Error(`Error fetching relation for ${userId}`);
+    }
+
+    const userIds = await response.json();
+    return userIds.length;
+  } catch (error) {
+    console.error(error);
+    return 0; // Return 0 if there was an error
+  }
+};
+
 const UserPage = () => {
   const navigate = useNavigate();
   const { userId } = useParams();
@@ -14,12 +34,16 @@ const UserPage = () => {
     user_bio: "",
     profile_picture: "",
     isPrivate: 0,
-    relationship: "Follow", // Options: "Following", "Follow Back", "Follow", "Requested", "Unfollow" CHECK THIS LATER
+    relationship: "Follow", // Options: "Following", "Follow Back", "Follow", "Requested", "Unfollow"
   });
+  const [followersCount, setFollowersCount] = useState(0); // State for followers count
+  const [followingCount, setFollowingCount] = useState(0); // State for following count
   const [loading, setLoading] = useState(true);
 
   const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
-  const myUserId = parseInt(localStorage.getItem("userID"), 10);
+  const myUserId = localStorage.getItem("userID");
+
+  console.log("User ID:", userId);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -39,11 +63,6 @@ const UserPage = () => {
           isPrivate: data.visibility,
         });
 
-        // FOR LATER MAYBE??
-        // const postsResponse = await fetch(`/api/user/${userId}/posts`);
-        // const postsData = await postsResponse.json();
-        // setPosts(postsData);
-
         setLoading(false);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -52,6 +71,18 @@ const UserPage = () => {
     };
 
     fetchUserData();
+  }, [userId]);
+
+  useEffect(() => {
+    // Fetch the follower count and following count
+    const fetchCounts = async () => {
+      const followers = await fetchRelation(userId, 2); // Followers count
+      const following = await fetchRelation(userId, 1); // Following count
+      setFollowersCount(followers); // Set followers count
+      setFollowingCount(following); // Set following count
+    };
+
+    fetchCounts();
   }, [userId]);
 
   const posts = [
@@ -106,18 +137,16 @@ const UserPage = () => {
     },
   ];
 
-  // change this to the correct user
   const handleDMClick = () => {
     navigate("/dms", { state: { chatUser: "Kim Seokjin" } });
   };
 
-  //FOR DEBUGGING
   if (loading) {
-    return <div>Loading...</div>; // Display a loading state while fetching
+    return <div>Loading...</div>;
   }
 
   if (!user) {
-    return <div>User not found</div>; // Handle the case if no user data is found
+    return <div>User not found</div>;
   }
 
   return (
@@ -132,20 +161,21 @@ const UserPage = () => {
         <div style={centerContentStyle}>
           {/* Profile Card */}
           <ProfileCard
-            username= {user.user_name}
-            id = {userId}
+            username={user.user_name}
+            id={userId}
             userid={`@${user.user_id}`}
             userPic={user.profile_picture}
             bio={user.user_bio}
-            followers={1200}
-            following={600}
+            followers={followersCount} // Use followersCount here
+            following={followingCount} // Use followingCount here
             onDMClick={handleDMClick}
+            isPrivate={user.isPrivate}
             relationship={user.relationship}
             isMyProfile={myUserId === userId}
           />
 
           {/* User's Posts */}
-          {user.relationship === "Following" || !user.isPrivate ? (
+          {user.relationship === "Following" || !user.isPrivate || (myUserId === userId) ? (
             <>
               <h2 style={feedTitleStyle}>Posts</h2>
               <Feed user={user} posts={posts} />

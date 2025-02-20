@@ -121,7 +121,7 @@ export default function NotificationPanel({ onClose }) {
     width: "320px",
     backgroundColor: "#fff",
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-    zIndex: 50,
+    zIndex: 1000,
     overflowY: "auto",
     borderLeft: "1px solid #e0e0e0",
   };

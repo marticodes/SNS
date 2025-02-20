@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import FollowingPopup from "./FollowList";
 import ProfileEdit from "./EditProfile";
 
-const ProfileCard = ({ username, id, userid, userPic, bio, followers, following, email, isMyProfile, onDMClick }) => {
+const ProfileCard = ({ username, id, userid, userPic, bio, followers, following, isMyProfile, isPrivate, onDMClick }) => {
   const [isFollowing, setIsFollowing] = useState(false); // State to track follow/unfollow
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [foll, setFoll] = useState(2); // 2 for followers, 0 for following
@@ -21,11 +21,11 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
   if (isEditing) {
     return (
       <ProfileEdit
+        userId={id}
         initialName={username}
         initialBio={bio}
-        initialEmail={email}
         initialImage={userPic}
-        initialPrivateProfile={false} // Update based on your data
+        initialPrivateProfile={isPrivate}
         onSave={handleSaveChanges}
         onClose={handleClose}
       />

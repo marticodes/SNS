@@ -98,6 +98,17 @@ app.get('/api/users/active',
     } 
 );
 
+app.get('/api/is/user/active/:user_id',
+  async (req, res) => {
+      try {
+        const user = await userDao.isActiveUser(user_id);
+        res.status(200).json(user);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error getting user info ${err}` });
+      }
+  } 
+);
+
 app.post('/api/user/update/status',
     async (req, res) => {
         try {
@@ -417,6 +428,17 @@ app.get('/api/relations/:user_id/:relation_type',
       }
 );
 
+app.get('/api/with/relations/:user_id/:relation_type',
+  async (req, res) => {
+      try {
+        const user_ids = await relationDao.getUsersWithRelation(req.params.user_id, req.params.relation_type);
+        res.status(200).json(user_ids);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining relation list ${err}` });
+      }
+    }
+);
+
 app.get('/api/restricted/:user_id',
     async (req, res) => {
         try {
@@ -442,7 +464,7 @@ app.get('/api/relations/mutuals/:user_id_1/:user_id_2',
 app.post('/api/relations/add',
     async (req, res) => {
         try {
-          const ina = await relationDao.addRelation(req.body.user_id_1, req.body.user_id_2, req.body.relation_type, req.body.restricted);
+          const ina = await relationDao.addRelation(req.body.user_id_1, req.body.user_id_2, req.body.relation_type, req.body.restricted, req.body.closeness);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error creating relation between users ${err}` });
@@ -723,6 +745,10 @@ app.delete('/api/notifs/delete',
         }
       }
 );
+
+//Social Group API
+
+
 
 app.listen(port, ()=> {
     console.log(`API server started at http://localhost:${port}`);

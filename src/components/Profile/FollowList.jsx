@@ -15,7 +15,12 @@ const fetchUserInfo = async (userId) => {
 
 const fetchRelation = async (userId, relationType) => {
   try {
-    const response = await fetch(`http://localhost:3001/api/relations/${userId}/${relationType}`);
+    let response;
+    if (relationType === 2) {
+      response = await fetch(`http://localhost:3001/api/relations/${userId}/2`);
+    } else {
+      response = await fetch(`http://localhost:3001/api/with/relations/${userId}/2`);
+    }
     if (!response.ok) {
       throw new Error(`Error fetching relation for ${userId}`);
     }
@@ -26,10 +31,15 @@ const fetchRelation = async (userId, relationType) => {
   }
 };
 
-
 const FollowingPopup = ({ relation, id, onClose }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredUsers = users.filter((user) =>
+    user.user_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   const styles = {
     overlay: {
@@ -49,13 +59,13 @@ const FollowingPopup = ({ relation, id, onClose }) => {
       backgroundColor: "#fff",
       borderRadius: "10px",
       overflow: "hidden",
-      boxShadow: "0 5px 15px rgba(0, 0, 0, 0.3)",
+      boxShadow: "0 5px 15px rgba(0, 0, 0, 0.2)",
     },
     header: {
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      padding: "10px",
+      padding: "1px",
       backgroundColor: "#fff",
       color: "#2c2c2c",
       fontSize: "12px",
@@ -72,7 +82,7 @@ const FollowingPopup = ({ relation, id, onClose }) => {
       backgroundColor: "#fff",
     },
     searchInput: {
-      width: "80%",
+      width: "90%",
       padding: "8px",
       borderRadius: "5px",
       border: "none",
@@ -83,6 +93,7 @@ const FollowingPopup = ({ relation, id, onClose }) => {
     list: {
       maxHeight: "400px",
       overflowY: "auto",
+      marginLeft: "15px",
     },
     userRow: {
       display: "flex",
@@ -149,30 +160,32 @@ const FollowingPopup = ({ relation, id, onClose }) => {
           </button>
         </div>
         <div style={styles.search}>
-          <input
-            type="text"
-            placeholder="Search"
-            style={styles.searchInput}
-          />
+        <input
+          type="text"
+          placeholder="Search"
+          style={styles.searchInput}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
         </div>
         <div style={styles.list}>
-          {users.map((user) => (
-            <div
-              key={user.user_id}
-              style={styles.userRow}
-              onClick={() => (window.location.href = `/user/${user.user_id}`)} // Navigate to user profile
-            >
-              <img
-                src={user.profile_picture}
-                alt={user.user_name}
-                style={styles.avatar}
-              />
-              <div style={styles.userInfo}>
-                <span style={styles.username}>{user.user_name}</span>
-                <span style={styles.fullname}>{user.user_bio}</span>
-              </div>
+        {filteredUsers.map((user) => (
+          <div
+            key={user.user_id}
+            style={styles.userRow}
+            onClick={() => (window.location.href = `/user/${user.user_id}`)}
+          >
+            <img
+              src={user.profile_picture}
+              alt={user.user_name}
+              style={styles.avatar}
+            />
+            <div style={styles.userInfo}>
+              <span style={styles.username}>{user.user_name}</span>
+              <span style={styles.fullname}>{user.user_bio}</span>
             </div>
-          ))}
+          </div>
+        ))}
         </div>
       </div>
     </div>
