@@ -5,6 +5,7 @@ import NCPage from "./pages/NC-Main"; // case 2
 import NFPage from "./pages/NF-Main";  // case 1
 import UserPage from "./pages/UserPage";
 import ChatPage from "./pages/ChatPage";
+import LogIn from "./pages/LogIn";
 
 const App = () => {
   const handleClick = (caseNumber) => {
@@ -43,7 +44,8 @@ const App = () => {
           <Route path="/case/3" element={<CFPage />} />
           <Route path="/case/4" element={<CGPage />} />
           <Route path="/user" element={<UserPage />} />
-          <Route path="/dms" element={<ChatPage />} />
+          <Route path="/dms" element={<ChatPage />} />+
+          <Route path="/login" element={<LogIn />} />
         </Routes>
       </div>
     </Router>
