@@ -1,6 +1,36 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
-const FollowingPopup = ({ foll, users, onClose }) => {
+const fetchUserInfo = async (userId) => {
+  try {
+    const response = await fetch(`http://localhost:3001/api/user/${userId}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching user info for ID ${userId}`);
+    }
+    return await response.json(); // Assuming the response is a user object
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+const fetchRelation = async (userId, relationType) => {
+  try {
+    const response = await fetch(`http://localhost:3001/api/relations/${userId}/${relationType}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching relation for ${userId}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
+
+const FollowingPopup = ({ relation, id, onClose }) => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const styles = {
     overlay: {
       position: "fixed",
@@ -8,7 +38,7 @@ const FollowingPopup = ({ foll, users, onClose }) => {
       left: 0,
       width: "100vw",
       height: "100vh",
-      backgroundColor: "rgba(255, 255, 255, 0.86)",
+      backgroundColor: "rgba(255, 255, 255, 0.0s6)",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
@@ -83,8 +113,31 @@ const FollowingPopup = ({ foll, users, onClose }) => {
     },
   };
 
-  // Dynamically change the header and list based on "foll"
-  const headerText = foll === 1 ? "Followers" : "Following";
+  const headerText = relation === 2 ? "Followers" : "Following";
+
+  useEffect(() => {
+    const fetchAllUserDetails = async () => {
+      try {
+        const userIds = await fetchRelation(id, relation);
+        const userDetailsPromises = userIds.map((id) => fetchUserInfo(id));
+        const usersData = await Promise.all(userDetailsPromises);
+
+        const validUsers = usersData.filter((user) => user !== null);
+
+        setUsers(validUsers);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching all user details:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchAllUserDetails();
+  }, [id, relation]); // Re-run if userId or relationType changes
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div style={styles.overlay}>
@@ -105,18 +158,18 @@ const FollowingPopup = ({ foll, users, onClose }) => {
         <div style={styles.list}>
           {users.map((user) => (
             <div
-              key={user.id}
+              key={user.user_id}
               style={styles.userRow}
-              onClick={() => (window.location.href = `/user/${user.id}`)}   //change this
+              onClick={() => (window.location.href = `/user/${user.user_id}`)} // Navigate to user profile
             >
               <img
-                src={user.avatar}
-                alt={user.name}
+                src={user.profile_picture}
+                alt={user.user_name}
                 style={styles.avatar}
               />
               <div style={styles.userInfo}>
-                <span style={styles.username}>{user.username}</span>
-                <span style={styles.fullname}>{user.fullname}</span>
+                <span style={styles.username}>{user.user_name}</span>
+                <span style={styles.fullname}>{user.user_bio}</span>
               </div>
             </div>
           ))}

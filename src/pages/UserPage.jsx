@@ -1,24 +1,58 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useParams } from 'react-router-dom';
 import ProfileCard from "../components/Profile/ProfileCard";
 import NavBar from "../components/NavBar/Full";
 import Feed from "../components/NF-NG/Feed";
 
 const UserPage = () => {
   const navigate = useNavigate();
+  const { userId } = useParams();
+  const [user, setUser] = useState({
+    user_name: "",
+    user_id: "",
+    user_bio: "",
+    profile_picture: "",
+    isPrivate: 0,
+    relationship: "Follow", // Options: "Following", "Follow Back", "Follow", "Requested", "Unfollow" CHECK THIS LATER
+  });
+  const [loading, setLoading] = useState(true);
 
   const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
-  const globalUserId = parseInt(localStorage.getItem("userID"), 10);
+  const myUserId = parseInt(localStorage.getItem("userID"), 10);
 
-  console.log("caseNumb: ", caseNumb);
-  console.log("globalUserId: ", globalUserId);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
 
-  const user = {
-    user_name: "Jane Doe",
-    profile_picture: "./src/dummy-profile-img.jpg",
-    isPrivate: true, // Set this to `false` for public profiles
-    relationship: "Following", // Options: "Following", "Follow Back", "Follow", "Requested", "Unfollow"
-  };
+        const response = await fetch(`http://localhost:3001/api/user/${userId}`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+
+        setUser({
+          user_name: data.user_name,
+          profile_picture: data.profile_picture,
+          user_id: data.id_name,
+          user_bio: data.user_bio,
+          isPrivate: data.visibility,
+        });
+
+        // FOR LATER MAYBE??
+        // const postsResponse = await fetch(`/api/user/${userId}/posts`);
+        // const postsData = await postsResponse.json();
+        // setPosts(postsData);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [userId]);
 
   const posts = [
     {
@@ -72,10 +106,19 @@ const UserPage = () => {
     },
   ];
 
-  // Handle Direct Message
+  // change this to the correct user
   const handleDMClick = () => {
     navigate("/dms", { state: { chatUser: "Kim Seokjin" } });
   };
+
+  //FOR DEBUGGING
+  if (loading) {
+    return <div>Loading...</div>; // Display a loading state while fetching
+  }
+
+  if (!user) {
+    return <div>User not found</div>; // Handle the case if no user data is found
+  }
 
   return (
     <div style={pageStyle}>
@@ -89,16 +132,16 @@ const UserPage = () => {
         <div style={centerContentStyle}>
           {/* Profile Card */}
           <ProfileCard
-            id={1}
             username= {user.user_name}
-            userid="@janedoe"
+            id = {userId}
+            userid={`@${user.user_id}`}
             userPic={user.profile_picture}
-            bio="Photographer & Nature Lover"
+            bio={user.user_bio}
             followers={1200}
             following={600}
             onDMClick={handleDMClick}
             relationship={user.relationship}
-            isMyProfile={globalUserId === 1}
+            isMyProfile={myUserId === userId}
           />
 
           {/* User's Posts */}

@@ -4,6 +4,7 @@ import { FaHome, FaEnvelope, FaBell, FaUser } from "react-icons/fa";
 import NotificationPanel from "../Notifications";
 import image from "../../assets/logo.png";
 
+const UserId = parseInt(localStorage.getItem("userID"), 10);
 
 const NavBar = ({ caseId }) => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -24,7 +25,7 @@ const NavBar = ({ caseId }) => {
               onClick={toggleNotifications}
             />
             <NavItem icon={<FaEnvelope />} label="Messages" link="/dms" />
-            <NavItem icon={<FaUser />} label="Profile" link="/user" />
+            <NavItem icon={<FaUser />} label="Profile" link={`/user/${UserId}`} />
           </>
         );
       case 2:
@@ -37,14 +38,14 @@ const NavBar = ({ caseId }) => {
               onClick={toggleNotifications}
             />
             <NavItem icon={<FaEnvelope />} label="Messages" link="/dms" />
-            <NavItem icon={<FaUser />} label="Profile" link="/user" />
+            <NavItem icon={<FaUser />} label="Profile" link={`/user/${UserId}`} />
           </>
         );
       case 3:
         return (
           <>
           <NavItem icon={<FaHome />} label="Home" link="/case/3" />
-          <NavItem icon={<FaUser />} label="Profile" link="/user" />
+          <NavItem icon={<FaUser />} label="Profile" link={`/user/${UserId}`} />
           </>
         );
       case 4:

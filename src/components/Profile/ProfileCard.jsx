@@ -5,7 +5,7 @@ import ProfileEdit from "./EditProfile";
 const ProfileCard = ({ username, id, userid, userPic, bio, followers, following, email, isMyProfile, onDMClick }) => {
   const [isFollowing, setIsFollowing] = useState(false); // State to track follow/unfollow
   const [isPopupVisible, setPopupVisible] = useState(false);
-  const [foll, setFoll] = useState(1); // 1 for followers, 0 for following
+  const [foll, setFoll] = useState(2); // 2 for followers, 0 for following
   const [isEditing, setIsEditing] = useState(false);  //to come out the editing popup
 
   const handleClose = () => {
@@ -32,23 +32,8 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
     );
   }
 
-  const users = [
-    {
-      id: 1,
-      username: "pharrell",
-      fullname: "SON OF A PHARAOH",
-      avatar: "https://via.placeholder.com/40",
-    },
-    {
-      id: 2,
-      username: "keithharingfoundation",
-      fullname: "Keith Haring Foundation",
-      avatar: "https://via.placeholder.com/40",
-    },
-  ];
-
   const togglePopup = (follType) => {
-    setFoll(follType); // 1 for followers, 0 for following
+    setFoll(follType);
     setPopupVisible(true); // Open popup
   };
 
@@ -74,10 +59,10 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
       </div>
 
       <div style={statsContainerStyle}>
-        <p style={statsStyle} onClick={() => togglePopup(1)}>
+        <p style={statsStyle} onClick={() => togglePopup(2)}>
           <strong>{followers}</strong> Followers
         </p>
-        <p style={statsStyle} onClick={() => togglePopup(0)}>
+        <p style={statsStyle} onClick={() => togglePopup(3)}>
           <strong>{following}</strong> Following
         </p>
       </div>
@@ -102,8 +87,8 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
 
       {isPopupVisible && (
         <FollowingPopup
-          foll={foll}
-          users={users}
+          relation={foll}
+          id = {id}
           onClose={() => setPopupVisible(false)}
         />
       )}
