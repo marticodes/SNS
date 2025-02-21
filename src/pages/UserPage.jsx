@@ -40,10 +40,10 @@ const UserPage = () => {
   const [followingCount, setFollowingCount] = useState(0); // State for following count
   const [loading, setLoading] = useState(true);
 
+  console.log("Relatioooon:", user.relationship);
+
   const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
   const myUserId = localStorage.getItem("userID");
-
-  console.log("User ID:", userId);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -61,6 +61,7 @@ const UserPage = () => {
           user_id: data.id_name,
           user_bio: data.user_bio,
           isPrivate: data.visibility,
+          relationship: "Requested", // Set the relationship here
         });
 
         setLoading(false);
@@ -103,37 +104,10 @@ const UserPage = () => {
           { profileImg: "./src/dummy-profile-img-2.jpg", userName: "John Smith" },
           { profileImg: "./src/dummy-profile-img-4.jpeg", userName: "Alice Brown" },
         ],
-        emojiReactions: [
-          { profileImg: "./src/dummy-profile-img-3.jpg", userName: "Bob Smith", emoji: "😂" },
-          { profileImg: "./src/dummy-profile-img-4.jpeg", userName: "Charlie Lee", emoji: "❤️" },
-        ],
         upvotedUsers: 10,
         downvotedUsers: 2,
         shares: 3,
       },
-      comments: [
-        {
-          id: 101,
-          profileImg: "./src/dummy-profile-img-2.jpg",
-          userName: "John Smith",
-          text: "Awesome post!",
-          replies: [
-            {
-              id: 201,
-              profileImg: "./src/dummy-profile-img-4.jpeg",
-              userName: "Alice Brown",
-              text: "Agreed!",
-            },
-          ],
-        },
-        {
-          id: 102,
-          profileImg: "./src/dummy-profile-img-4.jpeg",
-          userName: "Alice Brown",
-          text: "Really nice!",
-          replies: [],
-        },
-      ],
     },
   ];
 

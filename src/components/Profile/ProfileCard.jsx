@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import FollowingPopup from "./FollowList";
 import ProfileEdit from "./EditProfile";
 
-const ProfileCard = ({ username, id, userid, userPic, bio, followers, following, isMyProfile, isPrivate, onDMClick }) => {
-  const [isFollowing, setIsFollowing] = useState(false); // State to track follow/unfollow
+const ProfileCard = ({ username, id, userid, userPic, bio, followers, following, relationship, isMyProfile, isPrivate, onDMClick }) => {
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [foll, setFoll] = useState(2); // 2 for followers, 0 for following
-  const [isEditing, setIsEditing] = useState(false);  //to come out the editing popup
+  const [isEditing, setIsEditing] = useState(false);
+  const myUserId = localStorage.getItem("userID");
 
   const handleClose = () => {
     setIsEditing(false);
@@ -15,7 +15,6 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
   const handleSaveChanges = (updatedData) => {
     console.log("Updated data:", updatedData);
     setIsEditing(false);
-    // Update the profile data here if needed
   };
 
   if (isEditing) {
@@ -34,12 +33,69 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
 
   const togglePopup = (follType) => {
     setFoll(follType);
-    setPopupVisible(true); // Open popup
+    setPopupVisible(true);
   };
 
-  // Function to handle follow/unfollow
-  const handleFollowClick = () => {
-    setIsFollowing(!isFollowing); // Toggle isFollowing state
+  const handleClick = async () => {
+    try {
+
+      switch (relationship) {
+        case "Requested":
+          await fetch(`http://localhost:3001/api/requests/delete`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id_1: myUserId, user_id_2: id }),
+          });
+
+          // Missing API - Ensure you add the relevant API call here
+
+          await fetch(`http://localhost:3001/api/notifs/delete`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ notif_id: id }), // FIXED: Ensure notif_id is correctly passed
+          });
+
+          break;
+
+        case "Follow Back":
+        case "Follow":
+          if (isPrivate === 1) {
+            await fetch(`http://localhost:3001/api/requests/add`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ user_id_1: myUserId, user_id_2: id }),
+            });
+
+            await fetch(`http://localhost:3001/api/notifs/add`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ notif_type: 4, sender_id: myUserId, reciever_id: id }),
+            });
+
+          } else {
+            await fetch(`http://localhost:3001/api/relations/add`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ user_id_1: myUserId, user_id_2: id, relation_type: 2 }),
+            });
+
+            await fetch(`http://localhost:3001/api/notifs/add`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ notif_type: 3, sender_id: myUserId, reciever_id: id }),
+            });
+
+          }
+          break;
+
+        default: // "Unfollow"
+          // MISSING API: Ensure the correct unfollow API is added here
+
+          break;
+      }
+    } catch (error) {
+      console.error("Error in handleFollowClick:", error);
+    }
   };
 
   return (
@@ -55,25 +111,28 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
           <h2 style={idStyle}>{userid}</h2>
           <p style={bioStyle}>{bio}</p>
         </div>
-
       </div>
 
       <div style={statsContainerStyle}>
         <p style={statsStyle} onClick={() => togglePopup(2)}>
           <strong>{followers}</strong> Followers
         </p>
-        <p style={statsStyle} onClick={() => togglePopup(3)}>
+        <p style={statsStyle} onClick={() => togglePopup(0)}>
           <strong>{following}</strong> Following
         </p>
       </div>
 
       <div style={buttonContainerStyle}>
-        <button onClick={handleFollowClick} style={followButtonStyle}>
-          {isFollowing ? "Unfollow" : "Follow"}
-        </button>
-        <button onClick={onDMClick} style={dmButtonStyle}>
-          Direct Message
-        </button>
+        {!isMyProfile && (
+          <button onClick={handleClick} style={followButtonStyle}>
+            {relationship}
+          </button>
+        )}
+        {!isMyProfile && (
+          <button onClick={onDMClick} style={dmButtonStyle}>
+            Direct Message
+          </button>
+        )}
       </div>
 
       {isMyProfile && (
@@ -86,11 +145,7 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
       )}
 
       {isPopupVisible && (
-        <FollowingPopup
-          relation={foll}
-          id = {id}
-          onClose={() => setPopupVisible(false)}
-        />
+        <FollowingPopup relation={foll} id={id} onClose={() => setPopupVisible(false)} />
       )}
     </div>
   );
