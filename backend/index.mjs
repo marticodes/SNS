@@ -22,6 +22,7 @@ import FeedDAO from './dao/feed_dao.mjs';
 import CMemberDAO from './dao/community_membership_dao.mjs';
 import CommunityDAO from './dao/community_dao.mjs';
 import NotificationDAO from './dao/notification_dao.mjs';
+import ReceiptsDAO from './dao/read_receipts_dao.mjs';
 
 const chatDao = ChatDAO;
 const userDao = UserDAO;
@@ -37,12 +38,12 @@ const feedDao = FeedDAO;
 const cmemberDao = CMemberDAO;
 const communityDao = CommunityDAO;
 const notificationDao = NotificationDAO;
+const receiptsDAO = ReceiptsDAO;
 
 const SERVER_URL = 'http://localhost:3001/api';
 
 //init express and set up the middlewares
 const app = express();
-// const axios = require('axios');
 
 const port = 3001;
 app.use(morgan('dev'));
@@ -494,6 +495,19 @@ app.post('/api/relations/restriction/update',
       }
 );
 
+app.delete('/api/relations/delete/',
+  async (req, res) => {
+      try {
+        const ina = await relationDao.deleteRelation(req.body.user_id_1, req.body.user_id_2);
+        res.status(200).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error deleting relation ${err}` });
+      }
+    }
+);
+
+
+
 //// Requests Api
 
 app.get('/api/requests/:user_id/',
@@ -530,6 +544,17 @@ app.delete('/api/requests/delete',
 );
 
 //Chats and Messages
+app.delete('/api/read/receipts/delete',
+  async (req, res) => {
+      try {
+        const ina = await requestDao.deleteReceipts(req.body.chat_id, req.body.user_id);
+        res.status(200).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error deleting read receipts ${err}` });
+      }
+    }
+);
+
 app.get('/api/chats/all/:user_id',
     async (req, res) => {
         try {
@@ -746,8 +771,16 @@ app.delete('/api/notifs/delete',
       }
 );
 
-//Social Group API
-
+app.get('/api/notifs/:sender_id/:notif_type/:receiver_id/',
+  async (req, res) => {
+      try {
+        const notif_id = await notificationDao.getSpecificNotification(req.params.sender_id, req.params.notif_type, req.params.receiver_id);
+        res.status(200).json(notif_id);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining notif list ${err}` });
+      }
+    }
+);
 
 
 app.listen(port, ()=> {

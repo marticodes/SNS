@@ -11,5 +11,4 @@ export default function Relations(relation_id, user_id_1, user_id_2, relation_ty
     this.relation_type = relation_type;
     this.restricted = restricted;
     this.closeness = closeness;
-
 }

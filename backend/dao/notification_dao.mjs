@@ -42,6 +42,19 @@ const NotificationDAO = {
         });
     },
 
+    async  getSpecificNotification(sender_id, notif_type, receiver_id) {
+        const sql = 'SELECT notif_id FROM Notification WHERE sender_id = ? AND notif_type = ? AND receiver_id = ?';
+    
+        return new Promise((resolve, reject) => {
+            db.all(sql, [sender_id, notif_type, receiver_id], (err, rows) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(rows.length > 0 ? rows.map(row => row.notif_id) : false);
+            });
+        });
+    },
+    
     async getNotificationByType(notif_type, receiver_id){
         return new Promise((resolve, reject) => {
             try {

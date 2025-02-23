@@ -1,4 +1,5 @@
 import db from '../db.mjs';
+import Relations from '../models/relation_model.mjs'
 
 const RelationDAO = {
     async getUsersByRelation(user_id, relation_type){
@@ -34,6 +35,27 @@ const RelationDAO = {
                     } else {
                         const user_ids = rows.map(row => row.user_id_1);
                         resolve(user_ids);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    },
+
+    async getRelation(user_id_1, user_id_2){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT * FROM Relations WHERE user_id_1 = ? AND user_id_2 = ?';
+                db.get(sql, [user_id_1, user_id_2], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve("No relation exists between users");
+                    } else {
+                        const user = new Relations(row.relation_id, row.user_id_1, row.user_id_2, row.relation_type, row.restricted, row.closeness);
+                        resolve(user);
                     }
                 });
             } catch (error) {
@@ -144,6 +166,18 @@ const RelationDAO = {
             reject(error);
         }
     });
+    },
+
+    async deleteRelation(user_id_1, user_id_2){
+        return new Promise((resolve, reject) => {
+            const sql = 'DELETE FROM Relations WHERE user_id_1=? AND user_id_2=?';
+            db.run(sql, [user_id_1, user_id_2], function (err) {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(this.changes > 0); 
+            });
+        });
     },
 
 };

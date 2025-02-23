@@ -1,19 +1,19 @@
 import db from "../db.mjs";
+import Trait from "../models/trait_model.mjs";
 
-const TraitDao = {
-
-    async getUserTraits(user_id){
+const TraitDAO = {
+    async getUserTraits(user_id) {
         return new Promise((resolve, reject) => {
-            try {         
-                const sql = 'SELECT DISTINCT trait_name FROM Traits WHERE user_id=?';
-                db.all(sql, [user_id], (err, rows) => {
+            try {
+                const sql = 'SELECT * FROM Trait WHERE user_id = ?';
+                db.get(sql, [user_id], (err, row) => {
                     if (err) {
                         reject(err);
-                    } else if (rows.length === 0) {
-                        resolve([]);
+                    } else if (!row) {
+                        resolve(false);
                     } else {
-                        const traits = rows.map(row => row.trait_name);
-                        resolve(traits);
+                        const trait = new Trait(row.user_id, row.posting_trait, row.commenting_trait, row.reacting_trait, row.messaging_trait, row.updating_trait, row.comm_trait, row.notification_trait);
+                        resolve(trait);
                     }
                 });
             } catch (error) {
@@ -22,11 +22,11 @@ const TraitDao = {
         });
     },
 
-    async insertUserSocialGroup(trait_name, user_id) {
+    async insertUserTraits(user_id, posting_trait, commenting_trait, reacting_trait, messaging_trait, updating_trait, comm_trait, notification_trait) {
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO Traits (trait_name, user_id) VALUES (?,?)';
-                db.run(sql, [trait_name, user_id], function(err) { 
+                const sql = 'INSERT INTO Trait (user_id, posting_trait, commenting_trait, reacting_trait, messaging_trait, updating_trait, comm_trait, notification_trait) VALUES (?,?,?,?,?,?,?,?)';
+                db.run(sql, [user_id, posting_trait, commenting_trait, reacting_trait, messaging_trait, updating_trait, comm_trait, notification_trait], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
@@ -44,4 +44,4 @@ const TraitDao = {
 
 };
 
-export default TraitDao;
+export default TraitDAO;
