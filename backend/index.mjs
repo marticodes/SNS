@@ -22,6 +22,7 @@ import FeedDAO from './dao/feed_dao.mjs';
 import CMemberDAO from './dao/community_membership_dao.mjs';
 import CommunityDAO from './dao/community_dao.mjs';
 import NotificationDAO from './dao/notification_dao.mjs';
+import ReceiptsDAO from './dao/read_receipts_dao.mjs';
 
 const chatDao = ChatDAO;
 const userDao = UserDAO;
@@ -37,12 +38,12 @@ const feedDao = FeedDAO;
 const cmemberDao = CMemberDAO;
 const communityDao = CommunityDAO;
 const notificationDao = NotificationDAO;
+const receiptsDAO = ReceiptsDAO;
 
 const SERVER_URL = 'http://localhost:3001/api';
 
 //init express and set up the middlewares
 const app = express();
-// const axios = require('axios');
 
 const port = 3001;
 app.use(morgan('dev'));
@@ -96,6 +97,17 @@ app.get('/api/users/active',
           res.status(500).json({ error: `BE: Error getting user info ${err}` });
         }
     } 
+);
+
+app.get('/api/is/user/active/:user_id',
+  async (req, res) => {
+      try {
+        const user = await userDao.isActiveUser(user_id);
+        res.status(200).json(user);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error getting user info ${err}` });
+      }
+  } 
 );
 
 app.post('/api/user/update/status',
@@ -417,6 +429,17 @@ app.get('/api/relations/:user_id/:relation_type',
       }
 );
 
+app.get('/api/with/relations/:user_id/:relation_type',
+  async (req, res) => {
+      try {
+        const user_ids = await relationDao.getUsersWithRelation(req.params.user_id, req.params.relation_type);
+        res.status(200).json(user_ids);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining relation list ${err}` });
+      }
+    }
+);
+
 app.get('/api/restricted/:user_id',
     async (req, res) => {
         try {
@@ -426,6 +449,17 @@ app.get('/api/restricted/:user_id',
           res.status(500).json({ error: `BE: Error obtaining relation list ${err}` });
         }
       }
+);
+
+app.get('/api/relations/:user_id_1/:user_id_2',
+  async (req, res) => {
+      try {
+        const rln = await relationDao.getRelation(req.params.user_id_1, req.params.user_id_2);
+        res.status(200).json(rln);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining relation list ${err}` });
+      }
+    }
 );
 
 app.get('/api/relations/mutuals/:user_id_1/:user_id_2',
@@ -442,7 +476,7 @@ app.get('/api/relations/mutuals/:user_id_1/:user_id_2',
 app.post('/api/relations/add',
     async (req, res) => {
         try {
-          const ina = await relationDao.addRelation(req.body.user_id_1, req.body.user_id_2, req.body.relation_type, req.body.restricted);
+          const ina = await relationDao.addRelation(req.body.user_id_1, req.body.user_id_2, req.body.relation_type, req.body.restricted, req.body.closeness);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error creating relation between users ${err}` });
@@ -471,6 +505,19 @@ app.post('/api/relations/restriction/update',
         }
       }
 );
+
+app.delete('/api/relations/delete/',
+  async (req, res) => {
+      try {
+        const ina = await relationDao.deleteRelation(req.body.user_id_1, req.body.user_id_2);
+        res.status(200).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error deleting relation ${err}` });
+      }
+    }
+);
+
+
 
 //// Requests Api
 
@@ -508,6 +555,17 @@ app.delete('/api/requests/delete',
 );
 
 //Chats and Messages
+app.delete('/api/read/receipts/delete',
+  async (req, res) => {
+      try {
+        const ina = await requestDao.deleteReceipts(req.body.chat_id, req.body.user_id);
+        res.status(200).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error deleting read receipts ${err}` });
+      }
+    }
+);
+
 app.get('/api/chats/all/:user_id',
     async (req, res) => {
         try {
@@ -517,6 +575,50 @@ app.get('/api/chats/all/:user_id',
           res.status(500).json({ error: `BE: Error obtaining chats ${err}` });
         }
       }
+);
+
+app.get('/api/chats/all/ids/:user_id',
+  async (req, res) => {
+      try {
+        const chats = await chatDao.getAllChatIds(req.params.user_id);
+        res.status(200).json(chats);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining chat ids ${err}` });
+      }
+    }
+);
+
+app.get('/api/chat/:chat_id',
+  async (req, res) => {
+      try {
+        const chats = await chatDao.getChatFromChatId(req.params.chat_id);
+        res.status(200).json(chats);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining chat ${err}` });
+      }
+    }
+);
+
+app.get('/api/members/chat/:chat_id',
+  async (req, res) => {
+      try {
+        const mems = await chatDao.getChatMembers(req.params.chat_id);
+        res.status(200).json(mems);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining members ${err}` });
+      }
+    }
+);
+
+app.get('/api/members/channel/:comm_id',
+  async (req, res) => {
+      try {
+        const mems = await cmemberDao.getChannelMembers(req.params.comm_id);
+        res.status(200).json(mems);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining members ${err}` });
+      }
+    }
 );
 
 app.post('/api/chats/add',
@@ -723,6 +825,18 @@ app.delete('/api/notifs/delete',
         }
       }
 );
+
+app.get('/api/notifs/:sender_id/:notif_type/:receiver_id/',
+  async (req, res) => {
+      try {
+        const notif_id = await notificationDao.getSpecificNotification(req.params.sender_id, req.params.notif_type, req.params.receiver_id);
+        res.status(200).json(notif_id);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining notif list ${err}` });
+      }
+    }
+);
+
 
 app.listen(port, ()=> {
     console.log(`API server started at http://localhost:${port}`);

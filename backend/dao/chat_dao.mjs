@@ -61,9 +61,29 @@ const ChatDAO = {
             }
         });
     },
+
+    async getChatMembers(chat_id){
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT user_id
+                FROM GCMembership
+                WHERE chat_id = ?
+            `;
+    
+            db.all(sql, [chat_id], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    const mems = rows.map(row => row.user_id);
+                    resolve(mems);
+                }
+            });
+        });
+
+    },
     
 
-    async getAllUserChats(userId) {
+    async getAllUserChats(user_id) {
         return new Promise((resolve, reject) => {
             const sql = `
                 SELECT c.*
@@ -76,12 +96,57 @@ const ChatDAO = {
                 ORDER BY c.chat_id DESC;
             `;
     
-            db.all(sql, [userId, userId, userId], (err, rows) => {
+            db.all(sql, [user_id, user_id, user_id], (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
                     const chats = rows.map(row => new Chat(row.chat_id, row.user_id_1, row.user_id_2, row.group_chat, row.chat_name, row.chat_image));
                     resolve(chats);
+                }
+            });
+        });
+    },
+
+    async getAllChatIds(user_id) {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT c.chat_id
+                FROM Chat c
+                LEFT JOIN GCMembership gcm ON c.chat_id = gcm.chat_id
+                WHERE 
+                    (c.group_chat = 0 AND (c.user_id_1 = ? OR c.user_id_2 = ?)) 
+                    OR 
+                    (c.group_chat = 1 AND gcm.user_id = ?)
+                ORDER BY c.chat_id DESC;
+            `;
+    
+            db.all(sql, [user_id, user_id, user_id], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    const chats = rows.map(row => row.chat_id);
+                    resolve(chats);
+                }
+            });
+        });
+    },
+
+    async getChatFromChatId(chat_id) {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT c.*
+                FROM Chat c
+                WHERE chat_id = ?;
+            `;
+    
+            db.get(sql, [chat_id], (err, row) => {
+                if (err) {
+                    reject(err);
+                } else if (!row) {
+                    resolve(false);
+                } else {
+                    const user = new Chat(row.chat_id, row.user_id_1, row.user_id_2, row.group_chat, row.chat_name, row.chat_image);
+                    resolve(user);
                 }
             });
         });
