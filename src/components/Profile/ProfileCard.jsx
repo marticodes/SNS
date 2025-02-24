@@ -47,12 +47,18 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
             body: JSON.stringify({ user_id_1: myUserId, user_id_2: id }),
           });
 
-          // Missing API - Ensure you add the relevant API call here
+          const notifIdResponse = await fetch(`http://localhost:3001/api/notifs/type/4/${id}`);
+          const notifid = await notifIdResponse.json();
+          if (notifid.length > 0) {
+            return notifid[0].notif_id; 
+          } else {
+            console.log("No notification found.");
+          }
 
           await fetch(`http://localhost:3001/api/notifs/delete`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ notif_id: id }), // FIXED: Ensure notif_id is correctly passed
+            body: JSON.stringify({ notif_id: notifid }), 
           });
 
           break;
@@ -89,7 +95,11 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
           break;
 
         default: // "Unfollow"
-          // MISSING API: Ensure the correct unfollow API is added here
+          await fetch(`http://localhost:3001/api/relations/delete`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id_1: myUserId, user_id_2: id }),
+          });
 
           break;
       }
