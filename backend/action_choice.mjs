@@ -204,7 +204,7 @@ async function testUserBio(user_id = 1) {
     Your responses should reflect this background **naturally** without explicitly listing and without using all of the attributes. Instead, adopt a tone, style, and perspective that aligns with this persona. You SHOULD NOT mention every attribute—just let them subtly shape the way you respond.`
     
 
-    Simulation.insertAGCommentOnComment(user_id, system_prompt);
+    Simulation.insertAGMessage(user_id, system_prompt);
 
 }
 

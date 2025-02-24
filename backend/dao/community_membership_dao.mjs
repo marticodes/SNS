@@ -61,7 +61,26 @@ const CMemberDAO = {
                 reject(error);
             }
         });
-        
+    },
+
+    async getChannelMembers(comm_id){
+
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT user_id
+                FROM CommunityMembership
+                WHERE comm_id = ?
+            `;
+    
+            db.all(sql, [comm_id], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    const mems = rows.map(row => row.user_id);
+                    resolve(mems);
+                }
+            });
+        });
 
     },
 

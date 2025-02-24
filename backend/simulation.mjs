@@ -79,6 +79,25 @@ async function selectCommentOnPost(post_id) {
     return feed[Math.floor(Math.random() * feed.length)];
 }
 
+async function selectChatFromInbox(user_id) {
+    const feed = await ChatDAO.getAllChatIds(user_id);
+
+    if (!feed || feed.length === 0) {
+        console.error("No chats found. Cannot generate a message.");
+        return null;
+    }
+
+    return feed[Math.floor(Math.random() * feed.length)];
+}
+
+async function closeness(){
+
+}
+
+async function socialGroups(){
+
+}
+
 
 
 const Simulation = {
@@ -143,6 +162,69 @@ const Simulation = {
             console.error("Error adding comment:", error);
         }
     },
+
+    async insertAGMessage(user_id, system_prompt){
+
+        try {
+            const sel_chat_id = await selectChatFromInbox(user_id);
+            console.log(sel_chat_id);
+
+            if (!sel_chat_id) return;
+
+            const sel_messages =  await MessageDAO.getMessageContentByChatId(10);
+            console.log(sel_messages);
+
+
+            let last_messages = "";
+
+            if (!sel_messages || sel_messages.length === 0) {
+                last_messages = "No messages";
+            }
+            
+            else last_messages = sel_messages.slice(-10); // Get the last 10 messages (or fewer if not available)
+
+            console.log(last_messages);
+
+
+            let people = await ChatDAO.getChatMembers(10);
+
+            console.log(people);
+
+            let closeness_levels = await Promise.all(
+                people.map(async (person) => {
+                    let closeness = await RelationDAO.getCloseness(user_id, person);
+                    return closeness;
+                })
+            );
+
+            let social_groups = await SocialGroupDao.getGroupsByIds(people);
+
+            console.log(social_groups);
+
+            const user_prompt = `You are about to send a message in a conversation in a chatroom. The last messages in the chatroom were: "${last_messages}". 
+            There are "${people.length}" people involved in the conversation. Your closeness levels to the people on a scale of 1 to 10 are "${closeness_levels}". 
+            You belong to "${social_groups}" soial groups together. 
+            Using the provided information as a premise to adopt a tone and style, generate a message to contribute to the ongoing conversation or start a new conversation as you see fit.`;
+            
+            console.log(user_prompt);
+            const message = await generateResponse(system_prompt, user_prompt);
+            console.log(message);
+
+            const time = new Date().toISOString();
+            await MessageDAO.insertMessage("http://localhost:3001/api/messages/add", "POST", {
+                chat_id: 10,
+                sender_id: user_id,
+                reply_id: null,
+                content: message,
+                media_type:0,
+                media_url: null,
+                timestamp: time,
+            });
+        } catch (error) {
+            console.error("Error adding message:", error);
+        }
+
+    }
 
 };
 export default Simulation;

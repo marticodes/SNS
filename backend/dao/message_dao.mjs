@@ -68,7 +68,7 @@ const MessageDAO = {
     async getMessagesByChatId(chat_id) {
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'SELECT * FROM Message WHERE chat_id = ?';
+                const sql = 'SELECT * FROM Message WHERE chat_id = ? ORDER BY timestamp ASC';
     
                 db.all(sql, [chat_id], (err, rows) => {
                     if (err) {
@@ -77,6 +77,27 @@ const MessageDAO = {
                         resolve([]);
                     } else {
                         const messages= rows.map(row => new Message(row.message_id, row.chat_id, row.sender_id, row.reply_id, row.content, row.media_type, row.media_url, row.timestamp));
+                        resolve(messages);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async getMessageContentByChatId(chat_id) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT * FROM Message WHERE chat_id = ? ORDER BY timestamp ASC';
+    
+                db.all(sql, [chat_id], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else if (rows.length === 0) {
+                        resolve([]);
+                    } else {
+                        const messages= rows.map(row => row.content);
                         resolve(messages);
                     }
                 });

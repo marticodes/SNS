@@ -83,7 +83,6 @@ const RelationDAO = {
                 reject(error);
             }
         });
-
     },
 
     async addRelation(user_id_1, user_id_2, relation_type, restricted, closeness) {
@@ -179,6 +178,27 @@ const RelationDAO = {
             });
         });
     },
+
+    async getCloseness(user_id_1, user_id_2){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT closeness FROM Relations WHERE user_id_1 = ? AND user_id_2 = ?';
+                db.get(sql, [user_id_1, user_id_2], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve("No relation exists between users");
+                    } else {
+                        const closeness = row.closeness;
+                        resolve(closeness);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    }
 
 };
 

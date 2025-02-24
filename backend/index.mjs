@@ -451,6 +451,17 @@ app.get('/api/restricted/:user_id',
       }
 );
 
+app.get('/api/relations/:user_id_1/:user_id_2',
+  async (req, res) => {
+      try {
+        const rln = await relationDao.getRelation(req.params.user_id_1, req.params.user_id_2);
+        res.status(200).json(rln);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining relation list ${err}` });
+      }
+    }
+);
+
 app.get('/api/relations/mutuals/:user_id_1/:user_id_2',
     async (req, res) => {
         try {
@@ -564,6 +575,50 @@ app.get('/api/chats/all/:user_id',
           res.status(500).json({ error: `BE: Error obtaining chats ${err}` });
         }
       }
+);
+
+app.get('/api/chats/all/ids/:user_id',
+  async (req, res) => {
+      try {
+        const chats = await chatDao.getAllChatIds(req.params.user_id);
+        res.status(200).json(chats);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining chat ids ${err}` });
+      }
+    }
+);
+
+app.get('/api/chat/:chat_id',
+  async (req, res) => {
+      try {
+        const chats = await chatDao.getChatFromChatId(req.params.chat_id);
+        res.status(200).json(chats);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining chat ${err}` });
+      }
+    }
+);
+
+app.get('/api/members/chat/:chat_id',
+  async (req, res) => {
+      try {
+        const mems = await chatDao.getChatMembers(req.params.chat_id);
+        res.status(200).json(mems);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining members ${err}` });
+      }
+    }
+);
+
+app.get('/api/members/channel/:comm_id',
+  async (req, res) => {
+      try {
+        const mems = await cmemberDao.getChannelMembers(req.params.comm_id);
+        res.status(200).json(mems);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining members ${err}` });
+      }
+    }
 );
 
 app.post('/api/chats/add',

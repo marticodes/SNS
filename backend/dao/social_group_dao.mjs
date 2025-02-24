@@ -42,6 +42,31 @@ const SocialGroupDao = {
         });
     },
 
+     async getGroupsByIds(group_ids) {
+        return new Promise((resolve, reject) => {
+            if (group_ids.length === 0) {
+                resolve([]);
+                return;
+            }
+            const placeholders = group_ids.map(() => '?').join(', ');
+            const query = `
+            SELECT social_group_name
+            FROM SocialGroup
+            WHERE user_id IN (${placeholders})
+            GROUP BY social_group_name
+            HAVING COUNT(DISTINCT user_id) = ?
+          `;
+        
+          // Execute query with dynamic group_ids
+          db.all(query, [...group_ids, group_ids.length], (err, results) => {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            }
+            resolve(results.map((row) => row.social_group_name) );
+          });
+        });
+    }
+
 };
 
 export default SocialGroupDao;

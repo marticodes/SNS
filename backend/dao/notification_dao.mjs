@@ -2,7 +2,7 @@ import db from '../db.mjs';
 import Notification from '../models/notification_model.mjs';
 
 const NotificationDAO = {
-    async addNotification(content, notif_type, sender_id, receiver_id, timestamp){
+    async addSingularNotification(content, notif_type, sender_id, receiver_id, timestamp){
         return new Promise((resolve, reject) => {
             try {
                 const sql = 'INSERT INTO Notification (content, notif_type, sender_id, receiver_id, timestamp) VALUES (?,?,?,?,?)';
@@ -20,6 +20,10 @@ const NotificationDAO = {
                 reject(error);
             }
         });
+    },
+
+    async addGroupNotification(){
+
     },
 
     async getNotificationByUserId(user_id){

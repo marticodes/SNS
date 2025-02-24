@@ -25,6 +25,42 @@ const fetchRelation = async (userId, relationType) => {
   }
 };
 
+const getRelationshipStatus = async (myUserId, targetUserId) => {
+  try {
+    // Case 1: Check if I follow them
+    let response = await fetch(`http://localhost:3001/api/relations/${myUserId}/${targetUserId}`);
+    let data = await response.json();
+    if (response.ok && Array.isArray(data) && data.length > 0) {
+      console.log("Data:", data);
+      return "Unfollow";
+    }    
+
+    // Case 2: Check if I requested them
+    response = await fetch(`http://localhost:3001/api/requests/${myUserId}`);
+    data = await response.json();
+    if (response.ok && Array.isArray(data) && data.includes(targetUserId)) {
+      console.log("Data:", data);
+      return "Requested";
+    }
+
+    // Case 3: Check if they follow me (invert user IDs)
+    response = await fetch(`http://localhost:3001/api/relations/${targetUserId}/${myUserId}`);
+    data = await response.json();
+    if (response.ok && Array.isArray(data) && data.length > 0) {
+      console.log("Data:", data);
+      return "Follow Back";
+    }
+
+    // Case 4: Default case
+    return "Follow";
+
+  } catch (error) {
+    console.error("Error fetching relationship status:", error);
+    return "Follow"; 
+  }
+};
+
+
 const UserPage = () => {
   const navigate = useNavigate();
   const { userId } = useParams();
@@ -34,13 +70,11 @@ const UserPage = () => {
     user_bio: "",
     profile_picture: "",
     isPrivate: 0,
-    relationship: "Follow", // Options: "Following", "Follow Back", "Follow", "Requested", "Unfollow"
+    relationship: "Not Found",
   });
   const [followersCount, setFollowersCount] = useState(0); // State for followers count
   const [followingCount, setFollowingCount] = useState(0); // State for following count
   const [loading, setLoading] = useState(true);
-
-  console.log("Relatioooon:", user.relationship);
 
   const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
   const myUserId = localStorage.getItem("userID");
@@ -61,7 +95,7 @@ const UserPage = () => {
           user_id: data.id_name,
           user_bio: data.user_bio,
           isPrivate: data.visibility,
-          relationship: "Requested", // Set the relationship here
+          relationship: "Not Found",
         });
 
         setLoading(false);
@@ -75,6 +109,17 @@ const UserPage = () => {
   }, [userId]);
 
   useEffect(() => {
+    const fetchStatus = async () => {
+      const status = await getRelationshipStatus(myUserId, userId);
+      setUser((prevUser) => ({ ...prevUser, relationship: status }));
+    };
+  
+    if (userId) {
+      fetchStatus();
+    }
+  }, [myUserId, userId]); 
+
+  useEffect(() => {
     // Fetch the follower count and following count
     const fetchCounts = async () => {
       const followers = await fetchRelation(userId, 2); // Followers count
@@ -85,6 +130,10 @@ const UserPage = () => {
 
     fetchCounts();
   }, [userId]);
+
+  console.log("Relatioooon:", user.relationship);
+  console.log("myid:", myUserId);
+  console.log("userid:", userId);
 
   const posts = [
     {
@@ -149,7 +198,7 @@ const UserPage = () => {
           />
 
           {/* User's Posts */}
-          {user.relationship === "Following" || !user.isPrivate || (myUserId === userId) ? (
+          {user.relationship === "Unfollow" || !user.isPrivate || (myUserId === userId) ? (
             <>
               <h2 style={feedTitleStyle}>Posts</h2>
               <Feed user={user} posts={posts} />
