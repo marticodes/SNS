@@ -167,13 +167,9 @@ const Simulation = {
 
         try {
             const sel_chat_id = await selectChatFromInbox(user_id);
-            console.log(sel_chat_id);
-
             if (!sel_chat_id) return;
 
-            const sel_messages =  await MessageDAO.getMessageContentByChatId(10);
-            console.log(sel_messages);
-
+            const sel_messages =  await MessageDAO.getMessageContentByChatId(sel_chat_id);
 
             let last_messages = "";
 
@@ -183,12 +179,7 @@ const Simulation = {
             
             else last_messages = sel_messages.slice(-10); // Get the last 10 messages (or fewer if not available)
 
-            console.log(last_messages);
-
-
-            let people = await ChatDAO.getChatMembers(10);
-
-            console.log(people);
+            let people = await ChatDAO.getChatMembers(sel_chat_id);
 
             let closeness_levels = await Promise.all(
                 people.map(async (person) => {
@@ -199,20 +190,16 @@ const Simulation = {
 
             let social_groups = await SocialGroupDao.getGroupsByIds(people);
 
-            console.log(social_groups);
-
             const user_prompt = `You are about to send a message in a conversation in a chatroom. The last messages in the chatroom were: "${last_messages}". 
             There are "${people.length}" people involved in the conversation. Your closeness levels to the people on a scale of 1 to 10 are "${closeness_levels}". 
             You belong to "${social_groups}" soial groups together. 
             Using the provided information as a premise to adopt a tone and style, generate a message to contribute to the ongoing conversation or start a new conversation as you see fit.`;
             
-            console.log(user_prompt);
             const message = await generateResponse(system_prompt, user_prompt);
-            console.log(message);
 
             const time = new Date().toISOString();
-            await MessageDAO.insertMessage("http://localhost:3001/api/messages/add", "POST", {
-                chat_id: 10,
+            await makeAPIRequest("http://localhost:3001/api/messages/add", "POST", {
+                chat_id: sel_chat_id,
                 sender_id: user_id,
                 reply_id: null,
                 content: message,
@@ -224,7 +211,34 @@ const Simulation = {
             console.error("Error adding message:", error);
         }
 
-    }
+    },
+
+    async generatePost(user_id, system_prompt) {
+        try {
+
+            const sel_messages =  await MessageDAO.getMessageContentByChatId(sel_chat_id);
+            
+            let last_messages = "";
+
+            if (!sel_messages || sel_messages.length === 0) {
+                last_messages = "No messages";
+            }
+            
+            else last_messages = sel_messages.slice(-10); // Get the last 10 messages (or fewer if not available)
+
+            let people = await ChatDAO.getChatMembers(sel_chat_id);
+
+            const prev_bio = await PostDAO.get(user_id).then(user => user.user_bio);
+            const user_prompt = `You are about to make a new post on social media. The contents of some of your previous posts are:${content}. Generate a new post to add to your page.`;
+            const new_bio = await generateResponse(system_prompt, user_prompt);
+            
+            await makeAPIRequest("http://localhost:3001/api/user/update/bio", "POST", { user_id, user_bio: new_bio });
+        } catch (error) {
+            console.error("Error updating user bio:", error);
+        }
+    },
+
+
 
 };
 export default Simulation;
