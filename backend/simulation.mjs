@@ -216,29 +216,121 @@ const Simulation = {
     async generatePost(user_id, system_prompt) {
         try {
 
-            const sel_messages =  await MessageDAO.getMessageContentByChatId(sel_chat_id);
-            
-            let last_messages = "";
+            const sel_posts =  await PostDAO.getAllPosts(user_id);
+            let last_posts = "";
 
-            if (!sel_messages || sel_messages.length === 0) {
-                last_messages = "No messages";
+            if (!sel_posts || sel_posts.length === 0) {
+                last_posts = "You have not made any posts so far. Make your first post.";
             }
-            
-            else last_messages = sel_messages.slice(-10); // Get the last 10 messages (or fewer if not available)
+            else {
+                last_posts = sel_posts.map(post => post.content).slice(-10);
+                console.log(last_posts); // This will be a list of post content
+            }
 
-            let people = await ChatDAO.getChatMembers(sel_chat_id);
+            const user_prompt = `You are about to make a new post on social media. While making a post ensure that:
+            1. The theme of the post is only one. 
+            2. Make sure that your new post is signficantly different in content and context to your old posts. 
+            3. **Structure the post clearly.** Avoid adding multiple unrelated ideas in a single post.  
+            The contents of some of your previous posts are:${last_posts}. 
+            Now, generate a new post that sticks to a single theme and maintains a coherent structure.`;
+            const new_post = await generateResponse(system_prompt, user_prompt);
 
-            const prev_bio = await PostDAO.get(user_id).then(user => user.user_bio);
-            const user_prompt = `You are about to make a new post on social media. The contents of some of your previous posts are:${content}. Generate a new post to add to your page.`;
-            const new_bio = await generateResponse(system_prompt, user_prompt);
+            console.log(new_post);
             
-            await makeAPIRequest("http://localhost:3001/api/user/update/bio", "POST", { user_id, user_bio: new_bio });
+            const time = new Date().toISOString();
+            await makeAPIRequest("http://localhost:3001/api/post/add", "POST", { 
+                parent_id: null,
+                user_id: user_id, 
+                content: new_post, 
+                topic: "", 
+                media_type: 0, 
+                media_url: "", 
+                timestamp: time, 
+                duration: null, 
+                visibility: await UserDAO.getUserInfo(user_id).then(user => user.visibility), 
+                comm_id: null});
         } catch (error) {
-            console.error("Error updating user bio:", error);
+            console.error("Error updating new post:", error);
         }
     },
 
+    async addAGReaction(user_id, system_prompt){
+        try {
+            const sel = Math.floor(Math.random() * 3) + 1;
+            let choice = "";
+            const sel_post = await selectPostFromFeed(user_id);
+            let link = "";
+            let post_id = null;
+            let chat_id = null;
+            let comment_id = null;
+            let message_id = null;
 
+            switch (sel) {
+                case 1:
+                    choice = sel_post;
+                    link = "http://localhost:3001/api/reactions/post/add";
+                    post_id = choice.post_id;
+                    break;
+                case 2:
+                    choice = await selectCommentOnPost(sel_post.post_id);
+                    comment_id =  choice.comment_id;
+                    link = "http://localhost:3001/api/reactions/comment/add"
+                    break;
+                case 3:
+                    let chat =  await selectChatFromInbox(user_id);
+                    chat_id = chat;
+                    link = "http://localhost:3001/api/reactions/message/add";
+                    const sel_messages =  await MessageDAO.getMessagesByChatId(chat_id);
+                    if (!sel_messages || sel_messages.length === 0) {
+                        return;
+                    }
+                    else {
+                        choice = sel_messages.slice(-1);
+                        message_id = choice.message_id;
+                    }
+                    break;
+                default:
+                    console.error("Unexpected value:", sel);
+            }
+
+            const user_prompt = `You find the following on your feed: ${choice.content}. You want to react to the conte. What reaction are you using. Respond using only one reaction and no text`;
+            const reaction_type = await generateResponse(system_prompt, user_prompt);
+
+            console.log(reaction_type);
+            
+            const time = new Date().toISOString();
+
+            await makeAPIRequest(link, "POST", { 
+                reaction_type: reaction_type, 
+                post_id: post_id, 
+                user_id: user_id, 
+                chat_id: chat_id,
+                message_id: message_id,
+                comment_id: comment_id, 
+                timestamp: time,
+            });
+        } catch (error) {
+            console.error("Error adding new reaction:", error);
+        }
+
+    },
+
+    async ViewAGStory(user_id, system_prompt){
+        try {
+            await makeAPIRequest("http://localhost:3001/api/viewers/post/add", "POST", { 
+                reaction_type: reaction_type, 
+                post_id: post_id, 
+                user_id: user_id, 
+                chat_id: chat_id,
+                message_id: message_id,
+                comment_id: comment_id, 
+                timestamp: time,
+            });
+        } catch (error) {
+            console.error("Error adding new reaction:", error);
+        }
+
+    }
 
 };
 export default Simulation;
