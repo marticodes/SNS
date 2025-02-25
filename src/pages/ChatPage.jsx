@@ -6,7 +6,7 @@ import MessageInput from "../components/DMs/message_input.jsx";
 import ChatHeader from "../components/DMs/chatheader.jsx";
 import NavBar from "../components/NavBar/Small.jsx";
 
-const caseNumb = 1; // Change this to test different cases
+const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
 
 const ProfilePics = {
   "Kim Namjoon": "https://via.placeholder.com/30/FF0000/FFFFFF?text=User",

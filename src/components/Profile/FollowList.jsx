@@ -17,9 +17,9 @@ const fetchRelation = async (userId, relationType) => {
   try {
     let response;
     if (relationType === 2) {
-      response = await fetch(`http://localhost:3001/api/relations/${userId}/2`);
-    } else {
       response = await fetch(`http://localhost:3001/api/with/relations/${userId}/2`);
+    } else {
+      response = await fetch(`http://localhost:3001/api/relations/${userId}/2`);
     }
     if (!response.ok) {
       throw new Error(`Error fetching relation for ${userId}`);
