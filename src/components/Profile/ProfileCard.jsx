@@ -41,7 +41,7 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
 
       switch (relationship) {
         case "Requested":
-          await fetch(`http://localhost:3001/api/requests/delete`, {
+          await fetch("http://localhost:3001/api/requests/delete", {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_id_1: myUserId, user_id_2: id }),
@@ -49,11 +49,6 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
 
           const notifIdResponse = await fetch(`http://localhost:3001/api/notifs/type/4/${id}`);
           const notifid = await notifIdResponse.json();
-          if (notifid.length > 0) {
-            return notifid[0].notif_id; 
-          } else {
-            console.log("No notification found.");
-          }
 
           await fetch(`http://localhost:3001/api/notifs/delete`, {
             method: "DELETE",
@@ -66,26 +61,26 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
         case "Follow Back":
         case "Follow":
           if (isPrivate === 1) {
-            await fetch(`http://localhost:3001/api/requests/add`, {
+            await fetch("http://localhost:3001/api/requests/add", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ user_id_1: myUserId, user_id_2: id }),
             });
 
-            await fetch(`http://localhost:3001/api/notifs/add`, {
+            await fetch("http://localhost:3001/api/notifs/add", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ notif_type: 4, sender_id: myUserId, reciever_id: id }),
             });
 
           } else {
-            await fetch(`http://localhost:3001/api/relations/add`, {
+            await fetch("http://localhost:3001/api/relations/add", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ user_id_1: myUserId, user_id_2: id, relation_type: 2 }),
             });
 
-            await fetch(`http://localhost:3001/api/notifs/add`, {
+            await fetch("http://localhost:3001/api/notifs/add", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ notif_type: 3, sender_id: myUserId, reciever_id: id }),
@@ -95,7 +90,7 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
           break;
 
         default: // "Unfollow"
-          await fetch(`http://localhost:3001/api/relations/delete`, {
+          await fetch("http://localhost:3001/api/relations/delete", {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_id_1: myUserId, user_id_2: id }),

@@ -122,8 +122,8 @@ const UserPage = () => {
   useEffect(() => {
     // Fetch the follower count and following count
     const fetchCounts = async () => {
-      const followers = await fetchRelation(userId, 2); // Followers count
-      const following = await fetchRelation(userId, 1); // Following count
+      const followers = await fetchRelation(userId, 1); // Followers count
+      const following = await fetchRelation(userId, 2); // Following count
       setFollowersCount(followers); // Set followers count
       setFollowingCount(following); // Set following count
     };
