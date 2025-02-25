@@ -215,6 +215,19 @@ const Simulation = {
 
     async generatePost(user_id, system_prompt) {
         try {
+
+            const sel_messages =  await MessageDAO.getMessageContentByChatId(sel_chat_id);
+            
+            let last_messages = "";
+
+            if (!sel_messages || sel_messages.length === 0) {
+                last_messages = "No messages";
+            }
+            
+            else last_messages = sel_messages.slice(-10); // Get the last 10 messages (or fewer if not available)
+
+            let people = await ChatDAO.getChatMembers(sel_chat_id);
+
             const prev_bio = await PostDAO.get(user_id).then(user => user.user_bio);
             const user_prompt = `You are about to make a new post on social media. The contents of some of your previous posts are:${content}. Generate a new post to add to your page.`;
             const new_bio = await generateResponse(system_prompt, user_prompt);

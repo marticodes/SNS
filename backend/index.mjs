@@ -785,7 +785,7 @@ app.get('/api/channels/info/:comm_id/',
 app.post('/api/notifs/add',
     async (req, res) => {
         try {
-          const ina = await notificationDao.addNotification(req.body.content, req.body.notif_type, req.body.sender_id, req.body.receiver_id, req.body.timestamp);
+          const ina = await notificationDao.addSingularNotification(req.body.content, req.body.notif_type, req.body.sender_id, req.body.receiver_id, req.body.timestamp);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error adding notification ${err}` });
