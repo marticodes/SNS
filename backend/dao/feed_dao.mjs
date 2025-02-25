@@ -7,10 +7,10 @@ const FeedDAO = {
             const sql = `
                 SELECT p.*
                 FROM Post p
-                JOIN Relation r 
-                    ON (p.user_id = r.user_id_1)
+                JOIN Relations r 
+                    ON (p.user_id = r.user_id_2)
                 WHERE 
-                    (r.user_id_2 = ?)  
+                    (r.user_id_1 = ?)  
                     AND r.relation_type IN (0, 1, 2)  
                     AND p.user_id != ?   
                 ORDER BY p.timestamp DESC
@@ -41,7 +41,7 @@ const FeedDAO = {
                                 WHEN r.user_id_1 = ? THEN r.user_id_2 
                                 ELSE r.user_id_1 
                             END 
-                        FROM Relation r 
+                        FROM Relations r 
                         WHERE (r.user_id_1 = ? OR r.user_id_2 = ?) 
                             AND r.relation_type IN (0, 1, 2)  
                     )

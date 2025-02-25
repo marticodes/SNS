@@ -2,7 +2,7 @@ import db from '../db.mjs';
 import Notification from '../models/notification_model.mjs';
 
 const NotificationDAO = {
-    async addNotification(content, notif_type, sender_id, receiver_id, timestamp){
+    async addSingularNotification(content, notif_type, sender_id, receiver_id, timestamp){
         return new Promise((resolve, reject) => {
             try {
                 const sql = 'INSERT INTO Notification (content, notif_type, sender_id, receiver_id, timestamp) VALUES (?,?,?,?,?)';
@@ -20,6 +20,10 @@ const NotificationDAO = {
                 reject(error);
             }
         });
+    },
+
+    async addGroupNotification(){
+
     },
 
     async getNotificationByUserId(user_id){
@@ -42,6 +46,19 @@ const NotificationDAO = {
         });
     },
 
+    async  getSpecificNotification(sender_id, notif_type, receiver_id) {
+        const sql = 'SELECT notif_id FROM Notification WHERE sender_id = ? AND notif_type = ? AND receiver_id = ?';
+    
+        return new Promise((resolve, reject) => {
+            db.all(sql, [sender_id, notif_type, receiver_id], (err, rows) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(rows.length > 0 ? rows.map(row => row.notif_id) : false);
+            });
+        });
+    },
+    
     async getNotificationByType(notif_type, receiver_id){
         return new Promise((resolve, reject) => {
             try {

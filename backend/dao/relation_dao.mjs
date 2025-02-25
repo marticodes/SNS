@@ -1,10 +1,11 @@
 import db from '../db.mjs';
+import Relations from '../models/relation_model.mjs'
 
 const RelationDAO = {
     async getUsersByRelation(user_id, relation_type){
         return new Promise((resolve, reject) => {
             try {         
-                const sql = 'SELECT user_id_2 FROM Relation WHERE user_id_1=? AND relation_type=?';
+                const sql = 'SELECT user_id_2 FROM Relations WHERE user_id_1=? AND relation_type=?';
                 db.all(sql, [user_id, relation_type], (err, rows) => {
                     if (err) {
                         reject(err);
@@ -22,10 +23,52 @@ const RelationDAO = {
 
     },
 
+    async getUsersWithRelation(user_id, relation_type){
+        return new Promise((resolve, reject) => {
+            try {         
+                const sql = 'SELECT user_id_1 FROM Relations WHERE user_id_2=? AND relation_type=?';
+                db.all(sql, [user_id, relation_type], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else if (rows.length === 0) {
+                        resolve([]);
+                    } else {
+                        const user_ids = rows.map(row => row.user_id_1);
+                        resolve(user_ids);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    },
+
+    async getRelation(user_id_1, user_id_2){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT * FROM Relations WHERE user_id_1 = ? AND user_id_2 = ?';
+                db.get(sql, [user_id_1, user_id_2], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve("No relation exists between users");
+                    } else {
+                        const user = new Relations(row.relation_id, row.user_id_1, row.user_id_2, row.relation_type, row.restricted, row.closeness);
+                        resolve(user);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    },
+
     async getRestrictedUsers(user_id){
         return new Promise((resolve, reject) => {
             try {         
-                const sql = 'SELECT user_id_2 FROM Relation WHERE user_id_1=? AND restricted=?';
+                const sql = 'SELECT user_id_2 FROM Relations WHERE user_id_1=? AND restricted=?';
                 db.all(sql, [user_id, 1], (err, rows) => {
                     if (err) {
                         reject(err);
@@ -40,14 +83,13 @@ const RelationDAO = {
                 reject(error);
             }
         });
-
     },
 
-    async addRelation(user_id_1, user_id_2, relation_type, restricted) {
+    async addRelation(user_id_1, user_id_2, relation_type, restricted, closeness) {
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO Relation (user_id_1, user_id_2, relation_type, restricted) VALUES (?,?,?,?)';
-                db.run(sql, [user_id_1, user_id_2, relation_type, restricted], function(err) { 
+                const sql = 'INSERT INTO Relations (user_id_1, user_id_2, relation_type, restricted, closeness) VALUES (?,?,?,?,?)';
+                db.run(sql, [user_id_1, user_id_2, relation_type, restricted, closeness], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
@@ -66,7 +108,7 @@ const RelationDAO = {
     async updateRelation(user_id_1, user_id_2, relation_type){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'UPDATE Relation SET relation_type=? WHERE user_id_1 = ? AND user_id_2=?';
+                const sql = 'UPDATE Relations SET relation_type=? WHERE user_id_1 = ? AND user_id_2=?';
                 db.run(sql, [relation_type, user_id_1, user_id_2], function (err) {
                     if (err) {
                       reject(err);
@@ -83,7 +125,7 @@ const RelationDAO = {
     async updateRestriction(user_id_1, user_id_2, restricted){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'UPDATE Relation SET restricted=? WHERE user_id_1=? AND user_id_2=?';
+                const sql = 'UPDATE Relations SET restricted=? WHERE user_id_1=? AND user_id_2=?';
                 db.run(sql, [restricted, user_id_1, user_id_2], function (err) {
                     if (err) {
                       reject(err);
@@ -102,8 +144,8 @@ const RelationDAO = {
             try {
                 const sql = `
                 SELECT r1.user_id_2
-                FROM Relation r1
-                JOIN Relation r2 ON r1.user_id_2 = r2.user_id_2
+                FROM Relations r1
+                JOIN Relations r2 ON r1.user_id_2 = r2.user_id_2
                 WHERE 
                     r1.user_id_1 = ? 
                     AND r2.user_id_1 = ? 
@@ -124,6 +166,39 @@ const RelationDAO = {
         }
     });
     },
+
+    async deleteRelation(user_id_1, user_id_2){
+        return new Promise((resolve, reject) => {
+            const sql = 'DELETE FROM Relations WHERE user_id_1=? AND user_id_2=?';
+            db.run(sql, [user_id_1, user_id_2], function (err) {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(this.changes > 0); 
+            });
+        });
+    },
+
+    async getCloseness(user_id_1, user_id_2){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT closeness FROM Relations WHERE user_id_1 = ? AND user_id_2 = ?';
+                db.get(sql, [user_id_1, user_id_2], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve("No relation exists between users");
+                    } else {
+                        const closeness = row.closeness;
+                        resolve(closeness);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    }
 
 };
 
