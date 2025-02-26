@@ -9,7 +9,7 @@ const fetchRelation = async (userId, relationType) => {
   try {
     let response;
     if (relationType === 2) {
-      response = await fetch(`http://localhost:3001/api/relations/${userId}/2`);
+      response = await fetch(`http://localhost:3001/api/relations/all/${userId}/2`);
     } else {
       response = await fetch(`http://localhost:3001/api/with/relations/${userId}/2`);
     }
@@ -32,22 +32,22 @@ const getRelationshipStatus = async (myUserId, targetUserId) => {
     // Case 1: Check if I follow them
     let response = await fetch(`http://localhost:3001/api/relations/${myUserId}/${targetUserId}`);
     let data = await response.json();
-    if (response.ok && Array.isArray(data) && data.length > 0) {
+    if (response.ok && data && data.relation_type === 2) {
       return "Unfollow";
     }    
 
     // Case 2: Check if I requested them
-    response = await fetch(`http://localhost:3001/api/requests/${myUserId}`);
+    response = await fetch(`http://localhost:3001/api/requests/${targetUserId}`);
     data = await response.json();
-    if (response.ok && Array.isArray(data) && data.includes(targetUserId)) {
+    console.log("Data:", data);
+    if (response.ok && Array.isArray(data) && data.some(item => String(item) === String(myUserId))) {
       return "Requested";
     }
 
     // Case 3: Check if they follow me (invert user IDs)
     response = await fetch(`http://localhost:3001/api/relations/${targetUserId}/${myUserId}`);
     data = await response.json();
-    console.log("Data:", data);
-    if (response.ok && Array.isArray(data) && data.length > 0) {
+    if (response.ok && data && data.relation_type === 2) {
       return "Follow Back";
     }
 

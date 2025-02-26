@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FaHome, FaEnvelope, FaBell, FaUser } from "react-icons/fa";
 import NotificationPanel from "../Notifications";
 import image from "../../assets/logo.png";
