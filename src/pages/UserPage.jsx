@@ -27,11 +27,12 @@ const fetchRelation = async (userId, relationType) => {
 
 const getRelationshipStatus = async (myUserId, targetUserId) => {
   try {
+    console.log("myUserId:", myUserId);
+    console.log("targetUserId:", targetUserId);
     // Case 1: Check if I follow them
     let response = await fetch(`http://localhost:3001/api/relations/${myUserId}/${targetUserId}`);
     let data = await response.json();
     if (response.ok && Array.isArray(data) && data.length > 0) {
-      console.log("Data:", data);
       return "Unfollow";
     }    
 
@@ -39,15 +40,14 @@ const getRelationshipStatus = async (myUserId, targetUserId) => {
     response = await fetch(`http://localhost:3001/api/requests/${myUserId}`);
     data = await response.json();
     if (response.ok && Array.isArray(data) && data.includes(targetUserId)) {
-      console.log("Data:", data);
       return "Requested";
     }
 
     // Case 3: Check if they follow me (invert user IDs)
     response = await fetch(`http://localhost:3001/api/relations/${targetUserId}/${myUserId}`);
     data = await response.json();
+    console.log("Data:", data);
     if (response.ok && Array.isArray(data) && data.length > 0) {
-      console.log("Data:", data);
       return "Follow Back";
     }
 
@@ -119,6 +119,11 @@ const UserPage = () => {
     }
   }, [myUserId, userId]); 
 
+  const updateRelationshipStatus = async () => {
+    const status = await getRelationshipStatus(myUserId, userId);
+    setUser((prevUser) => ({ ...prevUser, relationship: status }));
+  };
+
   useEffect(() => {
     // Fetch the follower count and following count
     const fetchCounts = async () => {
@@ -132,8 +137,6 @@ const UserPage = () => {
   }, [userId]);
 
   console.log("Relatioooon:", user.relationship);
-  console.log("myid:", myUserId);
-  console.log("userid:", userId);
 
   const posts = [
     {
@@ -195,6 +198,7 @@ const UserPage = () => {
             isPrivate={user.isPrivate}
             relationship={user.relationship}
             isMyProfile={myUserId === userId}
+            updateRelationshipStatus={updateRelationshipStatus}
           />
 
           {/* User's Posts */}

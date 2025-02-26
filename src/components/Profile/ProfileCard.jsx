@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import FollowingPopup from "./FollowList";
 import ProfileEdit from "./EditProfile";
 
-const ProfileCard = ({ username, id, userid, userPic, bio, followers, following, relationship, isMyProfile, isPrivate, onDMClick }) => {
+const ProfileCard = ({ username, id, userid, userPic, bio, followers, following, relationship, isMyProfile, isPrivate, onDMClick, updateRelationshipStatus}) => {
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [foll, setFoll] = useState(2); // 2 for followers, 0 for following
   const [isEditing, setIsEditing] = useState(false);
@@ -38,6 +38,8 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
 
   const handleClick = async () => {
     try {
+      console.log("myUserId:", myUserId, "id:", id);
+      const timestamp = new Date().toISOString();
 
       switch (relationship) {
         case "Requested":
@@ -47,7 +49,7 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
             body: JSON.stringify({ user_id_1: myUserId, user_id_2: id }),
           });
 
-          const notifIdResponse = await fetch(`http://localhost:3001/api/notifs/type/4/${id}`);
+          const notifIdResponse = await fetch(`http://localhost:3001/api/notifs/${myUserId}/4/${id}`);
           const notifid = await notifIdResponse.json();
 
           await fetch(`http://localhost:3001/api/notifs/delete`, {
@@ -70,22 +72,21 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
             await fetch("http://localhost:3001/api/notifs/add", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ notif_type: 4, sender_id: myUserId, reciever_id: id }),
+              body: JSON.stringify({ notif_type: 4, sender_id: myUserId, receiver_id: id, timestamp: timestamp }),
             });
 
           } else {
             await fetch("http://localhost:3001/api/relations/add", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ user_id_1: myUserId, user_id_2: id, relation_type: 2 }),
+              body: JSON.stringify({ relation_type: 2, user_id_1: myUserId, user_id_2: id }),
             });
 
             await fetch("http://localhost:3001/api/notifs/add", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ notif_type: 3, sender_id: myUserId, reciever_id: id }),
+              body: JSON.stringify({ notif_type: 3, sender_id: myUserId, receiver_id: id, timestamp: timestamp}),
             });
-
           }
           break;
 
