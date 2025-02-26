@@ -8,10 +8,29 @@ const UserId = parseInt(localStorage.getItem("userID"), 10);
 
 const NavBar = ({ caseId }) => {
   const [showNotifications, setShowNotifications] = useState(false);
-
-  const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
-  };
+    const [showProfile, setShowProfile] = useState(false);
+    const profileCardRef = useRef(null);
+  
+    const toggleNotifications = () => {
+      setShowNotifications(!showNotifications);
+    };
+  
+    const handleProfileClick = () => {
+      setShowProfile(!showProfile);
+    };
+  
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (profileCardRef.current && !profileCardRef.current.contains(event.target)) {
+          setShowProfile(false);
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
 
   const renderNavItems = () => {
     switch (caseId) {
@@ -45,7 +64,26 @@ const NavBar = ({ caseId }) => {
         return (
           <>
         <NavItem icon={<FaHome />} label="Home" link="/case/3" />
-        <NavItem icon={<FaUser />} label="Profile" link={`/user/${UserId}`}  />
+        <div> 
+            <NavItem
+              icon={<FaUser />}
+              label="Profile"
+              onClick={handleProfileClick}
+            />
+            {showProfile && (
+              <div ref={profileCardRef} style={profileCardContainerStyle}>
+              <ProfileCard
+                username="John Doe" // Replace with your data
+                id={24}
+                userPic="https://via.placeholder.com/150" // Replace with the actual image URL
+                bio="This is my bio"
+                onFollowClick={() => console.log("Follow button clicked")}
+                isFollowing={false}
+                onDMClick={() => console.log("DM button clicked")}
+              />
+            </div>
+            )}
+            </div>
         </>
         );
       case 4:
@@ -58,6 +96,26 @@ const NavBar = ({ caseId }) => {
               onClick={toggleNotifications}
             />
             <NavItem icon={<FaEnvelope />} label="Messages" link="/dms" />
+            <div> 
+            <NavItem
+              icon={<FaUser />}
+              label="Profile"
+              onClick={handleProfileClick}
+            />
+            {showProfile && (
+              <div ref={profileCardRef} style={profileCardContainerStyle}>
+              <ProfileCard
+                username="John Doe" // Replace with your data
+                id={24}
+                userPic="https://via.placeholder.com/150" // Replace with the actual image URL
+                bio="This is my bio"
+                onFollowClick={() => console.log("Follow button clicked")}
+                isFollowing={false}
+                onDMClick={() => console.log("DM button clicked")}
+              />
+            </div>
+            )}
+            </div>
           </>
         );
       default:
