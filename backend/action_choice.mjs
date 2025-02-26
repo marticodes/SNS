@@ -50,22 +50,21 @@ import Simulation from './simulation.mjs';
 
 //         // Perform other actions if still online
 //         const actions = [
-//             {action: "Update profile picture", weight: user_trait.updating_trait},
+//             {action: "Update profile picture", weight: user_trait.updating_trait}, 
 //             {action: "Remove profile picture", weight: user_trait.updating_trait},
-//             {action: "Update user bio", weight: user_trait.updating_trait},
+//             DONE {action: "Update user bio", weight: user_trait.updating_trait}, DONE
 //             {action: "Start new DM", weight: user_trait.comm_trait},
 //             {action: "Start new group chat", weight: user_trait.comm_trait},
-//             {action: "Add comment", weight: user_trait.commenting_trait},
+//             DONE {action: "Add comment", weight: user_trait.commenting_trait},
 //             {action: "Create new channel", weight: user_trait.comm_trait},
 //             {action: "Join new channel", weight: user_trait.comm_trait},
-//             {action: "Send message", weight: user_trait.messaging_trait},
+//             DONE {action: "Send message", weight: user_trait.messaging_trait},
 //             {action: "Clear notificiation", weight: user_trait.notification_trait},
-//             {action: "Add post", weight: user_trait.posting_trait},
+//             DONE {action: "Add post", weight: user_trait.posting_trait},
 //             {action: "Update post visibility", weight: user_trait.updating_trait},
-//             {action: "Update post", weight: user_trait.updating_trait},
-//             {action: "React to post", weight: user_trait.reacting_trait},
-//             {action: "React to comment", weight: user_trait.reacting_trait},
-//             {action: "React to message", weight: user_trait.reacting_trait},
+//             DONE {action: "React to post", weight: user_trait.reacting_trait},
+//             DONE{action: "React to comment", weight: user_trait.reacting_trait},
+//             DONE {action: "React to message", weight: user_trait.reacting_trait},
 //             {action: "Send friend request", weight: user_trait.comm_trait},
 //             {action: "Delete friend request", weight: user_trait.notification_trait},
 //             {action: "Update relation", weight: user_trait.updating_trait},
@@ -200,11 +199,13 @@ async function testUserBio(user_id = 1) {
     - Social identity: ${social_groups.join(", ")}
     - Personality traits: ${persona.join(", ")}
     - Interests: ${interests.join(", ")}
+
+    The above characteristics are simply used to describe who you are as a person and should not be repeated in every generation
     
     Your responses should reflect this background **naturally** without explicitly listing and without using all of the attributes. Instead, adopt a tone, style, and perspective that aligns with this persona. You SHOULD NOT mention every attribute—just let them subtly shape the way you respond.`
     
 
-    Simulation.insertAGMessage(user_id, system_prompt);
+    Simulation.addReaction(user_id, system_prompt);
 
 }
 

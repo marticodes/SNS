@@ -418,7 +418,7 @@ app.post('/api/reactions/message/add',
 );
 
 //Friends API
-app.get('/api/relations/:user_id/:relation_type',
+app.get('/api/relations/all/:user_id/:relation_type',
     async (req, res) => {
         try {
           const user_ids = await relationDao.getUsersByRelation(req.params.user_id, req.params.relation_type);

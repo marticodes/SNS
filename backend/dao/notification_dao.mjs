@@ -29,7 +29,7 @@ const NotificationDAO = {
     async getNotificationByUserId(user_id){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'SELECT * FROM Notification WHERE user_id = ?';
+                const sql = 'SELECT * FROM Notification WHERE receiver_id = ?';
                 db.get(sql, [user_id], (err, row) => {
                     if (err) {
                         reject(err);
