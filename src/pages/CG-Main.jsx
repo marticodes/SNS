@@ -6,58 +6,84 @@ import MessageInput from "../components/CG/message_input.jsx";
 import ChatHeader from "../components/CG/chatheader.jsx";
 import NavBar from "../components/NavBar/Small.jsx";
 
-const ProfilePics = {
-  "Community1": "https://via.placeholder.com/30/FF0000/FFFFFF?text=User",
-  "Community2": "https://via.placeholder.com/30?text=KS",
-  "Community3": "https://via.placeholder.com/30?text=MY",
-  "Community4": "https://via.placeholder.com/30?text=JH",
-  "Community5": "https://via.placeholder.com/30?text=PJ",
-};
-
 const CGPage = () => {
   const location = useLocation();
-  const [messages, setMessages] = useState({
-    "Community1": [
-      { text: "Hey, what's up?", sender: "Kim Namjoon", timestamp: "10:15 AM" },
-      { text: "Not much, just chilling. You?", sender: "Me", timestamp: "10:16 AM" },
-      { text: "Same here. Want to grab coffee later?", sender: "Kim Namjoon", timestamp: "10:17 AM" },
-    ],
-    "Kim Seokjin": [
-      { text: "How was your day?", sender: "Kim Seokjin", timestamp: "9:30 AM" },
-      { text: "Pretty good, thanks! How about you?", sender: "Me", timestamp: "9:31 AM" },
-      { text: "Busy as usual, but manageable.", sender: "Kim Seokjin", timestamp: "9:32 AM" },
-    ],
-    "Min Yoongi": [
-      { text: "Got any plans for the weekend?", sender: "Min Yoongi", timestamp: "5:00 PM" },
-      { text: "I was thinking about a movie night. You?", sender: "Me", timestamp: "5:01 PM" },
-      { text: "Sounds good. What movie?", sender: "Min Yoongi", timestamp: "5:02 PM" },
-    ],
-  });
+  const userId = localStorage.getItem("userID");
+  const [communities, setCommunities] = useState([]);
+  const [messages, setMessages] = useState({});
   const [currentUser, setCurrentUser] = useState("Me");
-  const [currentChatUser, setCurrentChatUser] = useState(null);
+  const [currentCommunity, setCurrentCommunity] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
+  //this one is to get all the communities
+
+  useEffect(() => {
+    const fetchCommunities = async () => {
+      try {
+        const res = await fetch(`http://localhost:3001/api/channels/${userId}/`);
+        const commIds = await res.json();
+        const commDetails = await Promise.all(
+          commIds.map(async (id) => {
+            const infoRes = await fetch(`http://localhost:3001/api/channels/info/${id}/`);
+            return infoRes.json();
+          })
+        );
+        console.log("Communities:", commDetails);
+        setCommunities(commDetails);
+      } catch (error) {
+        console.error("Error fetching communities:", error);
+      }
+    };
+    fetchCommunities();
+  }, [userId]);
+
+  useEffect(() => {
+    //console.log("Current Community:", currentCommunity);
+    if (currentCommunity) {
+      fetchMessages(currentCommunity.comm_id);
+    }
+  }, [currentCommunity]);
+
   useEffect(() => {
     if (location.state?.chatUser) {
-      setCurrentChatUser(location.state.chatUser);
+      setcurrentCommunity(location.state.chatUser);
     }
   }, [location.state]);
 
+  //this one is to get all the messages
+
+  const fetchMessages = async (commId) => {
+    try {
+      const res = await fetch(`http://localhost:3001/api/channels/post/${commId}/`);
+      const data = await res.json();
+      const formattedMessages = data.map((msg) => ({
+        text: msg.content,
+        sender: `User ${msg.user_id}`,
+        timestamp: msg.timestamp || "Unknown",
+        replyTo: msg.parent_id ? data.find((m) => m.post_id === msg.parent_id) : null,
+      }));
+      setMessages((prev) => ({ ...prev, [commId]: formattedMessages }));
+      setFilteredMessages(formattedMessages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
+  };
+
   useEffect(() => {
-    setFilteredMessages(messages[currentChatUser] || []);
-  }, [currentChatUser, messages]);
+    setFilteredMessages(messages[currentCommunity] || []);
+  }, [currentCommunity, messages]);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
     if (query) {
-      const filtered = (messages[currentChatUser] || []).filter((msg) =>
+      const filtered = (messages[currentCommunity] || []).filter((msg) =>
         msg.text.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredMessages(filtered);
     } else {
-      setFilteredMessages(messages[currentChatUser] || []);
+      setFilteredMessages(messages[currentCommunity] || []);
     }
   };
 
@@ -70,10 +96,10 @@ const CGPage = () => {
     };
 
     setMessages((prev) => {
-      const userMessages = prev[currentChatUser] || [];
+      const userMessages = prev[currentCommunity] || [];
       return {
         ...prev,
-        [currentChatUser]: [...userMessages, newMessage],
+        [currentCommunity]: [...userMessages, newMessage],
       };
     });
     setReplyTo(null); // Reset reply after sending the message
@@ -81,10 +107,6 @@ const CGPage = () => {
 
   const handleCancelReply = () => {
     setReplyTo(null); // Clear the replyTo state
-  };
-
-  const handleUserClick = (user) => {
-    setCurrentChatUser(user);
   };
 
   const handleMessageClick = (message) => {
@@ -101,9 +123,7 @@ const CGPage = () => {
 
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
-      {/* NavBar */}
         <NavBar caseId={4} />
-      {/* User List */}
       <div
         style={{
           width: "251px",
@@ -113,15 +133,13 @@ const CGPage = () => {
         }}
       >
         <UserList
-          users={[
-            "Community1",
-            "Community2",
-            "Community3",
-            "Community4",
-            "Community5",
-          ]}
-          onUserClick={handleUserClick}
-          ProfilePics={ProfilePics}
+          users={communities.map((c) => c.comm_name)}
+          onUserClick={(name) => {
+            const selectedCommunity = communities.find((c) => c.comm_name === name);
+            console.log("Selected Community:", selectedCommunity);
+            setCurrentCommunity(selectedCommunity);
+          }}
+          ProfilePics={Object.fromEntries(communities.map((c) => [c.comm_name, c.comm_image]))}
         />
       </div>
 
@@ -134,11 +152,11 @@ const CGPage = () => {
           flexDirection: "column",
         }}
       >
-        {currentChatUser && (
+        {currentCommunity && (
           <>
             <ChatHeader
-              currentChatUser={currentChatUser}
-              ProfilePics={ProfilePics}
+              currentCommunity={currentCommunity.comm_name}
+              ProfilePics={currentCommunity.comm_image}
               onSearch={handleSearch} // Pass onSearch function
             />
             <MessageList
