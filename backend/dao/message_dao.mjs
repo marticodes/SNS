@@ -20,7 +20,7 @@ const MessageDAO = {
             if (chat.group_chat === 0) {
                 // Private chat: Determine receiver_id
                 const receiver_id = (chat.user_id_1 === sender_id) ? chat.user_id_2 : chat.user_id_1;
-                receiver_ids = [receiver_id]; // Store as array for uniform handling
+                receiver_ids = [receiver_id]; 
             } else {
                 // Group chat: Get all members except sender
                 const groupQuery = 'SELECT user_id FROM GCMembership WHERE chat_id = ? AND user_id != ?';
@@ -89,7 +89,7 @@ const MessageDAO = {
     async getMessageContentByChatId(chat_id) {
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'SELECT * FROM Message WHERE chat_id = ? ORDER BY timestamp ASC';
+                const sql = 'SELECT content FROM Message WHERE chat_id = ? ORDER BY timestamp ASC';
     
                 db.all(sql, [chat_id], (err, rows) => {
                     if (err) {
