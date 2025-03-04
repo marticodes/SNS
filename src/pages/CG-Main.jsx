@@ -30,7 +30,6 @@ const CGPage = () => {
             return infoRes.json();
           })
         );
-        console.log("Communities:", commDetails);
         setCommunities(commDetails);
       } catch (error) {
         console.error("Error fetching communities:", error);
@@ -51,29 +50,56 @@ const CGPage = () => {
     }
   }, [location.state]);
 
+  //this one is to get user info and use it in the next function
+
+  const fetchUserInfo = async (userId) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/user/${userId}`);
+      if (!response.ok) throw new Error("Failed to fetch user");
+      const userData = await response.json();
+      return userData?.user_name || `User ${userId}`;
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      return `User ${userId}`;
+    }
+  };
+  
   //this one is to get all the messages
 
   const fetchMessages = async (commId) => {
     try {
       const res = await fetch(`http://localhost:3001/api/channels/post/${commId}/`);
       const data = await res.json();
-      const formattedMessages = data.map((msg) => ({
-        text: msg.content,
-        sender: `User ${msg.user_id}`,
-        timestamp: msg.timestamp || "Unknown",
-        replyTo: msg.parent_id
-          ? (() => {
-              const parentMsg = data.find((m) => m.post_id === msg.parent_id);
-              return parentMsg ? { sender: `User ${parentMsg.user_id}`, text: parentMsg.content } : null;
-            })()
-          : null,
-      }));
+      const formattedMessages = await Promise.all(
+        data.map(async (msg) => {
+          const senderName = await fetchUserInfo(msg.user_id);
+  
+          let replyTo = null;
+          if (msg.parent_id) {
+            const parentMsg = data.find((m) => m.post_id === msg.parent_id);
+            if (parentMsg) {
+              const parentSenderName = await fetchUserInfo(parentMsg.user_id);
+              replyTo = {
+                sender: parentSenderName,
+                text: parentMsg.content,
+              };
+            }
+          }
+          return {
+            text: msg.content,
+            sender: senderName,
+            timestamp: msg.timestamp || "Unknown",
+            replyTo,
+          };
+        })
+      );
       setMessages((prev) => ({ ...prev, [commId]: formattedMessages }));
       setFilteredMessages(formattedMessages);
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
   };
+  
 
   const handleSearch = (query) => {
     setSearchQuery(query);
