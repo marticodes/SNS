@@ -49,14 +49,14 @@ const ContentSection = ({ text, hashtags, images = [] }) => {
   return (
     <ContentDiv>
       {text && <Text>{text}</Text>}
-      {images.length > 0 && (
+      {Array.isArray(images) && images.length > 0 && (
         <ImageGrid>
           {images.map((img, index) => (
             <Image key={index} src={img} alt={`Post Image ${index}`} />
           ))}
         </ImageGrid>
       )}
-      {hashtags.length > 0 && (
+      {Array.isArray(hashtags) && hashtags.length > 0 && (
         <HashTagContainer>
           {hashtags.map((hashtag, index) => (
             <HashTag key={index}>#{hashtag}</HashTag>

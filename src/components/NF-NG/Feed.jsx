@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import axios from "axios";
 import Post from "./Post";
 
 // Styled Components
@@ -14,15 +15,24 @@ const FeedDiv = styled.div`
   background-color: #ffffff;
 `;
 
-const Feed = ({ user, posts, commentType = "nested" }) => {
+const Feed = ({commentType = "nested" }) => {
+  const [posts, setPosts] = useState([]);
+  const userID = parseInt(localStorage.getItem("userID"), 10);
+  useEffect(() => {
+    axios
+      .get(`http://localhost:3001/api/posts/all/${userID}`)
+      .then((response) => setPosts(response.data))
+      .catch((error) => console.error("Fetch Error:", error));
+  }, [userID]);
+
   return (
     <>
       {posts.length === 0 ? (
         <p>No results found.</p>
       ) : (
-        posts.map((post, index) => (
-          <FeedDiv key={index}>
-            <Post post={post} user={user} commentType={commentType} />
+        posts.map((post) => (
+          <FeedDiv key={post.post_id}>
+            <Post post={post} user={userID} commentType={commentType} />
           </FeedDiv>
         ))
       )}
