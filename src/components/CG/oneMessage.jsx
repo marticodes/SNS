@@ -12,7 +12,7 @@ const formatTimestamp = (timestamp) => {
   });
 };
 
-const SingleMessage = ({ message, onReply, onReact }) => {
+const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
   const [hovered, setHovered] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [reaction, setReaction] = useState(null);
@@ -231,6 +231,7 @@ const SingleMessage = ({ message, onReply, onReact }) => {
                 borderLeft: "2px solid #7CB9E8",
                 paddingLeft: "8px",
               }}
+              onClick={() => scrollToMessage(message.replyTo.post_id)}
             >
               Reply to {message.replyTo.sender}: {message.replyTo.text}
             </div>

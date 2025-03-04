@@ -40,7 +40,6 @@ const CGPage = () => {
   }, [userId]);
 
   useEffect(() => {
-    //console.log("Current Community:", currentCommunity);
     if (currentCommunity) {
       fetchMessages(currentCommunity.comm_id);
     }
@@ -62,7 +61,12 @@ const CGPage = () => {
         text: msg.content,
         sender: `User ${msg.user_id}`,
         timestamp: msg.timestamp || "Unknown",
-        replyTo: msg.parent_id ? data.find((m) => m.post_id === msg.parent_id) : null,
+        replyTo: msg.parent_id
+          ? (() => {
+              const parentMsg = data.find((m) => m.post_id === msg.parent_id);
+              return parentMsg ? { sender: `User ${parentMsg.user_id}`, text: parentMsg.content } : null;
+            })()
+          : null,
       }));
       setMessages((prev) => ({ ...prev, [commId]: formattedMessages }));
       setFilteredMessages(formattedMessages);
@@ -70,10 +74,6 @@ const CGPage = () => {
       console.error("Error fetching messages:", error);
     }
   };
-
-  useEffect(() => {
-    setFilteredMessages(messages[currentCommunity] || []);
-  }, [currentCommunity, messages]);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -96,7 +96,7 @@ const CGPage = () => {
     };
 
     setMessages((prev) => {
-      const userMessages = prev[currentCommunity] || [];
+      const userMessages = prev[currentCommunity.comm_id] || [];
       return {
         ...prev,
         [currentCommunity]: [...userMessages, newMessage],
@@ -136,7 +136,6 @@ const CGPage = () => {
           users={communities.map((c) => c.comm_name)}
           onUserClick={(name) => {
             const selectedCommunity = communities.find((c) => c.comm_name === name);
-            console.log("Selected Community:", selectedCommunity);
             setCurrentCommunity(selectedCommunity);
           }}
           ProfilePics={Object.fromEntries(communities.map((c) => [c.comm_name, c.comm_image]))}
