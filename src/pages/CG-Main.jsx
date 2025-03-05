@@ -86,6 +86,7 @@ const CGPage = () => {
             }
           }
           return {
+            post_id: msg.post_id,
             text: msg.content,
             sender: senderName,
             timestamp: msg.timestamp || "Unknown",
@@ -113,33 +114,68 @@ const CGPage = () => {
     }
   };
 
-  const handleSendMessage = (text) => {
+  const handleSendMessage = async (text) => {
+    if (!currentCommunity || !currentUser) return;
+  
     const newMessage = {
-      text,
-      sender: currentUser,
-      timestamp: new Date().toLocaleTimeString(),
-      replyTo: replyTo ? { sender: replyTo.sender, text: replyTo.text } : null, // Include reply information if there's a reply
+      parent_id: replyTo ? replyTo.post_id : null, // Only include if it's a reply
+      user_id: parseInt(userId, 10),
+      content: text,
+      timestamp: new Date().toISOString(),
+      comm_id: currentCommunity.comm_id,
+      topic: null,
+      media_type: 0,
+      media_url: null,
+      duration: null,
+      visibility: null,
+      hashtag: null,
     };
 
-    setMessages((prev) => {
-      const userMessages = prev[currentCommunity.comm_id] || [];
-      return {
-        ...prev,
-        [currentCommunity]: [...userMessages, newMessage],
-      };
-    });
-    setReplyTo(null); // Reset reply after sending the message
-  };
+    console.log(newMessage);
+  
+    try {
+      const res = await fetch("http://localhost:3001/api/post/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newMessage),
+      });
+  
+      if (!res.ok) throw new Error("Failed to send message");
+  
+      const { ina } = await res.json();
+      const senderName = await fetchUserInfo(newMessage.user_id);
+  
+      setMessages((prev) => {
+        const userMessages = prev[currentCommunity.comm_id] || [];
+        return {
+          ...prev,
+          [currentCommunity.comm_id]: [
+            ...userMessages,
+            {
+              post_id: ina,
+              text: newMessage.content,
+              sender: senderName,
+              timestamp: newMessage.timestamp,
+              replyTo: replyTo
+                ? { post_id: replyTo.post_id, sender: replyTo.sender, text: replyTo.text }
+                : null,
+            },
+          ],
+        };
+      });
+      fetchMessages(currentCommunity.comm_id); //use this one to get messages again immediately
+      setReplyTo(null);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  };  
 
   const handleCancelReply = () => {
     setReplyTo(null); // Clear the replyTo state
   };
 
-  const handleMessageClick = (message) => {
-    setReplyTo(message); // Set the message to reply to
-  };
-
   const handleMessageReply = (message) => {
+    console.log("Message to reply to:", message);
     setReplyTo(message); // Set the message to reply to
   };
   
@@ -182,10 +218,13 @@ const CGPage = () => {
             <ChatHeader
               currentCommunity={currentCommunity.comm_name}
               ProfilePics={currentCommunity.comm_image}
-              onSearch={handleSearch} // Pass onSearch function
+              onSearch={handleSearch}
             />
             <MessageList
-              messages={filteredMessages} // Use filteredMessages to display only relevant ones
+              messages={filteredMessages.map(msg => ({
+                ...msg,
+                post_id: msg.post_id || null,
+              }))}
               onReply={handleMessageReply}
               onReact={handleMessageReact}
             />
