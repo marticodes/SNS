@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 
+const caseId = localStorage.getItem("selectedCase");
+
 const ProfileEdit = ({
   userId,
   initialBio,
@@ -84,15 +86,17 @@ const ProfileEdit = ({
           <textarea value={bio} onChange={(e) => setBio(e.target.value)} />
         </div>
 
-        <div className="input-group toggle-group">
-          <label>Private Profile</label>
-          <div
-            className={`toggle ${privateProfile ? "active" : ""}`}
-            onClick={() => setPrivateProfile(!privateProfile)}
-          >
-            <div className="toggle-thumb"></div>
+        {[1, 2].includes(caseId) && (
+          <div className="input-group toggle-group">
+            <label>Private Profile</label>
+            <div
+              className={`toggle ${privateProfile ? "active" : ""}`}
+              onClick={() => setPrivateProfile(!privateProfile)}
+            >
+              <div className="toggle-thumb"></div>
+            </div>
           </div>
-        </div>
+        )}
 
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 

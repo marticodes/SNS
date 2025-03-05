@@ -40,11 +40,10 @@ const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
   const handleNameClick = (e) => {
     e.stopPropagation();
     const rect = e.target.getBoundingClientRect();
-    setProfilePosition({ x: rect.right + 10, y: rect.top });
+    setProfilePosition({ x: rect.right + 10, y: rect.top - 20 });
     setShowProfileCard((prev) => !prev);
   };
 
-  // Detect click outside the profile card to hide it
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileCardRef.current && !profileCardRef.current.contains(event.target)) {
@@ -188,11 +187,9 @@ const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
           >
             <ProfileCard
               username={message.sender}
-              id={24}
+              id={message.user_id}
               userPic={`https://i.pravatar.cc/120?u=${message.sender}`}
               bio = {`This is the bio of ${message.sender}`}
-              onFollowClick={() => alert("Follow button clicked")}     //CHANGE
-              isFollowing={false}
               onDMClick={() => alert("DM button clicked")}     //CHANGE
             />
           </div>

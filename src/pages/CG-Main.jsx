@@ -86,6 +86,7 @@ const CGPage = () => {
             }
           }
           return {
+            user_id: msg.user_id,
             post_id: msg.post_id,
             text: msg.content,
             sender: senderName,

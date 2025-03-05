@@ -9,7 +9,22 @@ const UserId = parseInt(localStorage.getItem("userID"), 10);
 const NavBar = ({ caseId }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
   const profileCardRef = useRef(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/api/user/${UserId}`);
+        const data = await response.json();
+        setUserInfo(data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
@@ -82,13 +97,11 @@ const NavBar = ({ caseId }) => {
             {showProfile && (
               <div ref={profileCardRef} style={profileCardContainerStyle}>
               <ProfileCard
-                username="John Doe" // Replace with your data
-                id={24}
-                userPic="https://via.placeholder.com/150" // Replace with the actual image URL
-                bio="This is my bio"
-                onFollowClick={() => console.log("Follow button clicked")}
-                isFollowing={false}
-                onDMClick={() => console.log("DM button clicked")}
+                username={userInfo.user_name}
+                id={UserId}
+                idname={userInfo.id_name}
+                userPic="https://via.placeholder.com/150" // CHANGE LETER IF WE HAVE IMAGES
+                bio={userInfo.user_bio}
               />
             </div>
             )}
@@ -114,13 +127,11 @@ const NavBar = ({ caseId }) => {
             {showProfile && (
               <div ref={profileCardRef} style={profileCardContainerStyle}>
               <ProfileCard
-                username="John Doe" // Replace with your data
-                id={24}
-                userPic="https://via.placeholder.com/150" // Replace with the actual image URL
-                bio="This is my bio"
-                onFollowClick={() => console.log("Follow button clicked")}
-                isFollowing={false}
-                onDMClick={() => console.log("DM button clicked")}
+                username={userInfo.user_name}
+                id={UserId}
+                idname={userInfo.id_name}
+                userPic="https://via.placeholder.com/150" // CHANGE LETER IF WE HAVE IMAGES
+                bio={userInfo.user_bio}
               />
             </div>
             )}
