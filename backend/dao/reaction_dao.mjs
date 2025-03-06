@@ -2,13 +2,13 @@ import db from '../db.mjs';
 import Reaction from '../models/reaction_model.mjs';
 
 const ReactionDAO = {
-     processReactions(rows) {
+    processReactions(rows) {
         const result = {
             likedUsers: [],
-            emojiReactions: [],
-            upvotes: [],
-            downvotes: [],
-            shares: []
+            emojiReactions: {},
+            upvotes: 0,
+            downvotes: 0,
+            shares: 0
         };
     
         rows.forEach(row => {
@@ -17,19 +17,28 @@ const ReactionDAO = {
                     result.likedUsers.push(row.user_id);
                     break;
                 case 1: // Upvote
-                    result.upvotes.push(row.user_id);
+                    result.upvotes++;
                     break;
                 case 2: // Downvote
-                    result.downvotes.push(row.user_id);
+                    result.downvotes++;
                     break;
                 case 3: // Share
-                    result.shares.push(row.user_id);
+                    result.shares++;
                     break;
                 case 4: // Emoji Reaction
-                    result.emojiReactions.push({ user_id: row.user_id, emote_type: row.emote_type });
+                    if (!result.emojiReactions[row.emote_type]) {
+                        result.emojiReactions[row.emote_type] = [];
+                    }
+                    result.emojiReactions[row.emote_type].push(row.user_id);
                     break;
             }
         });
+    
+        // Convert emojiReactions object to an array format
+        result.emojiReactions = Object.entries(result.emojiReactions).map(([emote_type, user_ids]) => ({
+            emote_type,
+            user_id: user_ids
+        }));
     
         return result;
     },
@@ -38,7 +47,7 @@ const ReactionDAO = {
         return new Promise((resolve, reject) => {
             try {
                 const sql = `
-                    SELECT reaction_type, user_id 
+                    SELECT reaction_type, user_id, emote_type 
                     FROM Reaction 
                     WHERE post_id = ?
                 `;
@@ -60,17 +69,16 @@ const ReactionDAO = {
         return new Promise((resolve, reject) => {
             try {
                 const sql = `
-                    SELECT reaction_type, COUNT(*) AS count 
-                    FROM Reaction
-                    WHERE comment_id = ? 
-                    GROUP BY reaction_type
+                    SELECT reaction_type, user_id, emote_type 
+                    FROM Reaction 
+                    WHERE comment_id = ?
                 `;
+                
                 db.all(sql, [comment_id], (err, rows) => {
                     if (err) {
                         reject(err);
                     } else {
-                        const reactions = rows.map(row => [row.reaction_type, row.count]);
-                        resolve(reactions);
+                        resolve(ReactionDAO.processReactions(rows));
                     }
                 });
             } catch (error) {
@@ -83,17 +91,16 @@ const ReactionDAO = {
         return new Promise((resolve, reject) => {
             try {
                 const sql = `
-                    SELECT reaction_type, COUNT(*) AS count 
+                    SELECT reaction_type, user_id, emote_type 
                     FROM Reaction 
-                    WHERE message_id = ? AND chat_id = ? 
-                    GROUP BY reaction_type
+                    WHERE chat_id = ? AND message_id = ?
                 `;
-                db.all(sql, [message_id, chat_id], (err, rows) => {
+                
+                db.all(sql, [chat_id, message_id], (err, rows) => {
                     if (err) {
                         reject(err);
                     } else {
-                        const reactions = rows.map(row => [row.reaction_type, row.count]);
-                        resolve(reactions);
+                        resolve(ReactionDAO.processReactions(rows));
                     }
                 });
             } catch (error) {
