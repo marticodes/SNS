@@ -14,6 +14,7 @@ const ChatPage = () => {
   const [messages, setMessages] = useState({});
   const [currentUser, setCurrentUser] = useState("Me");
   const [currentChatUser, setCurrentChatUser] = useState(null);
+  const [currentChatId, setCurrentChatId] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredMessages, setFilteredMessages] = useState([]);
@@ -31,21 +32,34 @@ const ChatPage = () => {
       .then(async (chats) => {
         const updatedChatList = await Promise.all(
           chats.map(async (chat) => {
+            let displayName;
+            let chatimg;
             if (chat.group_chat === 0) {
               const otherUserId = chat.user_id_1 === userId ? chat.user_id_2 : chat.user_id_1;
               const userResponse = await fetch(`http://localhost:3001/api/user/${otherUserId}`);
               const userData = await userResponse.json();
-              return userData.name;
+              displayName = userData.id_name; // Single user name
+              chatimg = userData.profile_picture;
             } else {
               const groupResponse = await fetch(`http://localhost:3001/api/members/chat/${chat.chat_id}`);
               const groupData = await groupResponse.json();
-              return groupData.map((member) => member.name).join(", ");
+              const groupNames = await Promise.all(
+                groupData.map(async (member) => {
+                  const userResponse = await fetch(`http://localhost:3001/api/user/${member}`);
+                  const userData = await userResponse.json();
+                  return userData.id_name;
+                })
+              );
+              displayName = groupNames.join(", "); // Group member names
+              chatimg = "https://via.placeholder.com/30";
             }
+            return { chat_id: chat.chat_id, name: displayName, image: chatimg }; // Include chat_id with the name
           })
         );
+        console.log(updatedChatList);
         setchatList(updatedChatList);
       });
-  }, []);
+  }, []);  
 
   const handleSendMessage = (text) => {
     const newMessage = {
@@ -85,8 +99,9 @@ const ChatPage = () => {
     setReplyTo(null); // Clear the replyTo state
   };
 
-  const handleUserClick = (user) => {
-    setCurrentChatUser(user);
+  const handleUserClick = (chat) => {
+    setCurrentChatUser(chat.name);
+    setCurrentChatId(chat.chat_id); 
   };
 
   const handleMessageReply = (message) => {
@@ -142,6 +157,7 @@ const ChatPage = () => {
           <>
             <ChatHeader
               currentChatUser={currentChatUser}
+              ProfilePics={chatList.find((chat) => chat.name === currentChatUser)?.image}
               onSearch={handleSearch} // Pass onSearch function
             />
             <MessageList
