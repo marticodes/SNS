@@ -14,7 +14,7 @@ const ChatHeader = ({ currentChatUser, ProfilePics, onSearch }) => {
     <div style={{ display: "flex", padding: "10px 20px", backgroundColor: "#fff", borderBottom: "0.1px solid #B0BEC5" }}>
       {currentChatUser && (
         <img
-          src={ProfilePics[currentChatUser]}
+          src={ProfilePics} // Use the dummy image URL based on user name
           style={{
             width: "30px",
             height: "30px",

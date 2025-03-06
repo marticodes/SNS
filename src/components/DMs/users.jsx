@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MdOutlineAddComment } from "react-icons/md";
 import NewChat from "../newChat"; // Import the component properly
 
-let globalCaseType = 1; // Global variable for caseType
+let globalCaseType = parseInt(localStorage.getItem("selectedCase"), 10);
 
-const UserList = ({ users, onUserClick, ProfilePics }) => {
-  const [userList, setUserList] = useState(users);
+const UserList = ({ users, onUserClick}) => {
   const [showNewChat, setShowNewChat] = useState(false); // State to control visibility of the newChat component
 
   const userss = [
@@ -87,9 +86,9 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
 
       {/* Render the user list */}
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-        {userList.map((user, index) => (
+        {users.map((chat) => (
           <li
-            key={index}
+            key={chat.chat_id}
             style={{
               display: "flex",
               alignItems: "center",
@@ -100,12 +99,11 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
               borderRadius: "3px",
               color: "#000000",
             }}
-            onClick={() => onUserClick(user)} // Call the function when the user is clicked
+            onClick={() => onUserClick(chat)} // Call the function when the user is clicked
           >
             {/* Display user profile picture */}
             <img
-              src={ProfilePics[user] || "https://via.placeholder.com/30"} // Use the dummy image URL based on user name
-              alt={user}
+              src={chat.image} // Use the dummy image URL based on user name
               style={{
                 width: "30px",
                 height: "30px",
@@ -113,7 +111,7 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
                 marginRight: "10px",
               }}
             />
-            {user}
+            {chat.name}
           </li>
         ))}
       </ul>
@@ -123,7 +121,7 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
 
 export default UserList;
 
-/* Styles for modal */
+
 const styles = {
   modalBackdrop: {
     position: "fixed",
@@ -141,6 +139,6 @@ const styles = {
     borderRadius: "8px",
     padding: "20px",
     width: "400px",
-    position: "relative", // Needed for positioning the close button
+    position: "relative",
   },
 };
