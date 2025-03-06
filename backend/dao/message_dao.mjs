@@ -1,5 +1,5 @@
 import db from '../db.mjs';
-import Message from '../models/chat_model.mjs';
+import Message from '../models/message_model.mjs';
 
 const MessageDAO = {
 

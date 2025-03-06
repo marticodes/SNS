@@ -643,7 +643,7 @@ app.post('/api/chats/group/add',
     }
 );
 
-app.get('/api/messages/all/:chat_id',
+app.get('/api/user/messages/all/:chat_id',
     async (req, res) => {
         try {
           const messages = await messageDao.getMessagesByChatId(req.params.chat_id);
