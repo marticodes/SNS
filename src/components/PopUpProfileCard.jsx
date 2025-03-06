@@ -1,10 +1,102 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ProfileEdit from "./Profile/EditProfile";
 
-const myID = 24;
+const myID = parseInt(localStorage.getItem("userID"), 10);
 
-const ProfileCard = ({ username, id, userPic, bio, onFollowClick, isFollowing, onDMClick }) => {
-  const [isEditing, setIsEditing] = useState(false);  //to come out the editing popup
+const ProfileCard = ({ idname, username, id, userPic, bio, onDMClick }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [relationship, setRelationship] = useState("Loading...");
+
+  useEffect(() => {
+    const fetchRelationship = async () => {
+      const status = await getRelationshipStatus(myID, id);
+      setRelationship(status);
+    };
+
+    if (id !== myID) {
+      fetchRelationship();
+    }
+  }, [id]);
+
+  const getRelationshipStatus = async (myID, targetUserId) => {
+    try {
+      console.log("myID:", myID);
+      console.log("targetUserId:", targetUserId);
+      // Case 1: Check if I follow them
+      let response = await fetch(`http://localhost:3001/api/relations/${myID}/${targetUserId}`);
+      let data = await response.json();
+      if (response.ok && data && data.relation_type === 2) {
+        return "Unfriend";
+      }    
+  
+      // Case 2: Check if I requested them
+      response = await fetch(`http://localhost:3001/api/requests/${targetUserId}`);
+      data = await response.json();
+      console.log("Data:", data);
+      if (response.ok && Array.isArray(data) && data.some(item => String(item) === String(myID))) {
+        return "Requested";
+      }
+
+      return "Add Friend";
+  
+    } catch (error) {
+      console.error("Error fetching relationship status:", error);
+      return "Add Friend"; 
+    }
+  };
+
+  const handleClick = async () => {
+    try {
+      const timestamp = new Date().toISOString();
+
+      switch (relationship) {
+        case "Requested":
+          await fetch("http://localhost:3001/api/requests/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id_1: myID, user_id_2: id }),
+          });
+
+          const notifIdResponse = await fetch(`http://localhost:3001/api/notifs/${myID}/4/${id}`);
+          const notifid = await notifIdResponse.json();
+
+          await fetch(`http://localhost:3001/api/notifs/delete`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ notif_id: notifid }), 
+          });
+          setRelationship("Add Friend");
+          break;
+        
+        case "Add Friend":
+            await fetch("http://localhost:3001/api/requests/add", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ user_id_1: myID, user_id_2: id }),
+            });
+
+            await fetch("http://localhost:3001/api/notifs/add", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ notif_type: 4, sender_id: myID, receiver_id: id, timestamp: timestamp }),
+            });
+          setRelationship("Requested");
+          break;
+
+        default: // "Unfriend"
+          await fetch("http://localhost:3001/api/relations/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id_1: myID, user_id_2: id }),
+          });
+          
+          setRelationship("Add Friend");
+          break;
+      }
+    } catch (error) {
+      console.error("Error in handleFollowClick:", error);
+    }
+  };
 
   const handleClose = () => {
     setIsEditing(false);
@@ -13,7 +105,6 @@ const ProfileCard = ({ username, id, userPic, bio, onFollowClick, isFollowing, o
   const handleSaveChanges = (updatedData) => {
     console.log("Updated data:", updatedData);
     setIsEditing(false);
-    // Update the profile data here if needed
   };
 
   if (isEditing) {
@@ -22,7 +113,7 @@ const ProfileCard = ({ username, id, userPic, bio, onFollowClick, isFollowing, o
         initialName={username}
         initialBio={bio}
         initialImage={userPic}
-        initialPrivateProfile={false} // Update based on your data
+        initialPrivateProfile={false}
         onSave={handleSaveChanges}
         onClose={handleClose}
       />
@@ -33,12 +124,12 @@ const ProfileCard = ({ username, id, userPic, bio, onFollowClick, isFollowing, o
     <div style={profileCardStyle}>
       <img src={userPic} style={profilePicStyle} alt="User Profile" />
       <h2 style={usernameStyle}>{username}</h2>
-      <h2 style={idStyle}>{id}</h2>
+      <h2 style={idStyle}>{idname}</h2>
       <p style={bioStyle}>{bio}</p>
       {id !== myID ? (
         <div style={buttonContainerStyle}>
-          <button onClick={onFollowClick} style={followButtonStyle}>
-            {isFollowing ? "Unfollow" : "Follow"}
+          <button onClick={handleClick} style={followButtonStyle}>
+            {relationship}
           </button>
           <button onClick={onDMClick} style={dmButtonStyle}>
             Direct Message
@@ -70,22 +161,21 @@ const profileCardStyle = {
 
 const profilePicStyle = {
   borderRadius: "50%",
-  width: "120px",
-  height: "120px",
-  marginBottom: "15px",
+  width: "60px",
+  height: "60px",
   border: "1px solid #7CB9E8",
   objectFit: "cover",
 };
 
 const usernameStyle = {
-  margin: "10px 0",
+  margin: "1px 0",
   fontSize: "20px",
   fontWeight: "bold",
   color: "#333",
 };
 
 const idStyle = {
-  margin: "2px 0",
+  margin: "1px 0",
   fontSize: "12px",
   fontWeight: "bold",
   color: "#333",
@@ -95,13 +185,13 @@ const buttonContainerStyle = {
   display: "flex",
   justifyContent: "space-between",
   gap: "10px",
-  marginTop: "20px",
+  marginTop: "10px",
 };
 
 const buttonEditStyle = {
   justifyContent: "center",
   gap: "10px",
-  marginTop: "20px",
+  marginTop: "10px",
   backgroundColor : "#7CB9E8",
 
 };
