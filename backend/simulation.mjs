@@ -215,7 +215,7 @@ const Simulation = {
             }
             else {
                 last_posts = sel_posts.map(post => post.content).slice(-10);
-                console.log(last_posts); // This will be a list of post content
+                // console.log(last_posts); // This will be a list of post content
             }
 
             const user_prompt = `You are about to make a new post on social media. While making a post ensure that:
@@ -288,7 +288,8 @@ const Simulation = {
             const time = new Date().toISOString();
 
             await makeAPIRequest(link, "POST", { 
-                reaction_type: reaction_type, 
+                reaction_type: 4, 
+                emote_type: reaction_type,
                 post_id: post_id, 
                 user_id: user_id, 
                 chat_id: chat_id,

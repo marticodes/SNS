@@ -36,7 +36,7 @@ const NotificationDAO = {
                     } else if (row.length === 0) {
                         resolve(false);
                     } else {
-                        const notif = new Notification(row.content, row.notif_type, row.sender_id, row.receiver_id, row.timestamp);
+                        const notif = new Notification(row.notif_id, row.content, row.notif_type, row.sender_id, row.receiver_id, row.timestamp);
                         resolve(notif);
                     }
                 });

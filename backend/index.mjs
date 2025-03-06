@@ -387,7 +387,7 @@ app.get('/api/reactions/messages/:chat_id/:message_id',
 app.post('/api/reactions/post/add',
     async (req, res) => {
         try {
-          const ina = await reactionDao.insertPostReaction(req.body.reaction_type, req.body.post_id, req.body.user_id, req.body.timestamp);
+          const ina = await reactionDao.insertPostReaction(req.body.reaction_type, req.body.emote_type, req.body.post_id, req.body.user_id, req.body.timestamp);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error inserting post reaction ${err}` });
@@ -398,7 +398,7 @@ app.post('/api/reactions/post/add',
 app.post('/api/reactions/comment/add',
     async (req, res) => {
         try {
-          const ina = await reactionDao.insertCommentReaction(req.body.reaction_type, req.body.comment_id, req.body.user_id, req.body.timestamp);
+          const ina = await reactionDao.insertCommentReaction(req.body.reaction_type, req.body.emote_type, req.body.comment_id, req.body.user_id, req.body.timestamp);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error inserting comment reaction ${err}` });
@@ -409,7 +409,7 @@ app.post('/api/reactions/comment/add',
 app.post('/api/reactions/message/add',
     async (req, res) => {
         try {
-          const ina = await reactionDao.insertMessageReaction(req.body.reaction_type, req.body.chat_id, req.body.message_id, req.body.user_id, req.body.timestamp);
+          const ina = await reactionDao.insertMessageReaction(req.body.reaction_type, req.body.emote_type, req.body.chat_id, req.body.message_id, req.body.user_id, req.body.timestamp);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error inserting message reaction ${err}` });

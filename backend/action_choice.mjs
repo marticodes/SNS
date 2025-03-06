@@ -159,12 +159,27 @@ const ActionChoice = {
 };
 
 
-async function testUserBio(user_id = 1) {
-    Simulation.readAGMessages(user_id, system_prompt);
+async function testUserBio(user_id = 2) {
+    
+    const user_trait = await TraitDAO.getUserTraits(user_id);
+        const persona = await PersonaDAO.getUserPersona(user_id);
+        const social_groups = await SocialGroupDao.getUserSocialGroups(user_id);
+        const interests = await UserInterestDAO.getUserInterests(user_id);
+
+
+        const system_prompt = `You are a social media user with the following characteristics:
+        - Social identity: ${social_groups.join(", ")}
+        - Personality traits: ${persona.join(", ")}
+        - Interests: ${interests.join(", ")}
+
+        The above characteristics are simply used to describe who you are as a person and should not be repeated in every generation
+        
+        Your responses should reflect this background **naturally** without explicitly listing and without using all of the attributes. Instead, adopt a tone, style, and perspective that aligns with this persona. You SHOULD NOT mention every attribute—just let them subtly shape the way you respond.`
+    Simulation.generatePost(user_id, system_prompt);
 }
 
 testUserBio();
 
 
 
-// export default ActionChoice;
+export default ActionChoice;
