@@ -43,7 +43,7 @@ const NewPostButton = styled.button`
   }
 `;
 
-const FeedMain = ({ user, posts }) => {
+const FeedMain = ({ user, posts}) => {
   const [filteredPosts, setFilteredPosts] = useState(posts);
   const navigate = useNavigate(); 
 

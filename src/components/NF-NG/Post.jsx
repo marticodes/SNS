@@ -41,8 +41,9 @@ const countTotalComments = (comments) => {
     }, 0);
   };
 
-const Post = ({ user, post, commentType = 'flat' }) => {
-    const {user_name, profile_picture} = user;
+const Post = ({ userID, post, commentType = 'flat' }) => {
+    const user_name = post.userName; 
+    const profile_picture = post.profileImg;
     const { profileImg, userName, postDate, text, hashtags, images, reactions: initialReactions, comments } = post;
   
     const [reactions, setReactions] = useState(initialReactions);
@@ -50,20 +51,27 @@ const Post = ({ user, post, commentType = 'flat' }) => {
     const [isSharePopupOpen, setSharePopupOpen] = useState(false);
     const [selectedEmoji, setSelectedEmoji] = useState(null);
   
-    const likes = reactions.likedUsers.length;
-    const upvotes = Number(reactions.upvotedUsers) || 0;
-    const downvotes = Number(reactions.downvotedUsers) || 0;
+    const likes = post.likedUsers;
+    const upvotes = Number(post.upvotedUsers) || 0;
+    const downvotes = Number(post.downvotedUsers) || 0;
     const votes = upvotes - downvotes;
     const totalComments = countTotalComments(comments);
 
-    const isOwner = user.user_name === post.userName; 
-
-    const handleLike = (updatedLikedUsers) => {
-        setReactions((prev) => ({
-          ...prev,
-          likedUsers: updatedLikedUsers,
-        }));
-      };
+    const isOwner = post.user_name === post.userName; 
+    
+    const handleLike = () => {
+      axios.post(`http://localhost:3001/api/posts/like`, { post_id: post.post_id, user_id: userID })
+        .then(() => {
+          setPosts((prevPosts) =>
+            prevPosts.map((p) =>
+              p.post_id === post.post_id
+                ? { ...p, reactions: { ...p.reactions, likedUsers: [...p.reactions.likedUsers, userID] } }
+                : p
+            )
+          );
+        })
+        .catch((error) => console.error("❌ Like Error:", error));
+    };
   
     const handleUpvote = (change) => {
     setReactions((prev) => ({
@@ -100,7 +108,7 @@ const Post = ({ user, post, commentType = 'flat' }) => {
         profileImg={profileImg} 
         userName={userName} 
         postDate={postDate} 
-        isOwner={user.user_name === post.userName}
+        isOwner={post.user_name === post.userName}
         post={post}
         variant="default" />
         
@@ -109,12 +117,12 @@ const Post = ({ user, post, commentType = 'flat' }) => {
         likes={likes}
         votes={votes}
         comments={totalComments}
-        shares={reactions.shares}
+        shares={post.shares}
         reactions={reactions}
         />
 
       <Reaction
-        user={user}
+        user={userID}
         originalPost={post} 
         userProfile={profile_picture}
         userName={user_name}

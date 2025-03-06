@@ -139,9 +139,9 @@ const NFPage = () => {
 </div>
     <AppContainer>
       <Routes>
-        <Route path="/" element={<FeedMain user={userInfo} posts={posts} />} />
-        <Route path="new-post" element={<NewPost user={userInfo} addNewPost={addNewPost} />} />
-        <Route path="edit-post/:postId" element={<EditPost user={userInfo} posts={posts} updatePost={updatePost} />} />
+        <Route path="/" element={<FeedMain user={userInfo} posts={posts} setPosts={setPosts}/>} />
+        <Route path="new-post" element={<NewPost user={userInfo} addNewPost={addNewPost} setPosts={setPosts}/>} />
+        <Route path="edit-post/:postId" element={<EditPost user={userInfo} updatePost={updatePost} />} />
       </Routes>
     </AppContainer>
     </>

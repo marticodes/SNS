@@ -99,11 +99,9 @@ const UserProfile = ({ profileImg, userName, postDate, isOwner, post, variant = 
     };
   }, []);
 
-  const handleMenuClick = (action) => {
-    if (action === "edit" && post) {
-      navigate(`/case/1/edit-post/${post.id}`, { state: { post } });
-    } else if (action === "edit") {
-      console.error("Post data is missing in UserProfile.jsx!");
+  const handleMenuClick = (action, postId) => {
+    if (action === "edit") {
+      navigate(`/case/1/edit-post/${postId}`);
     }
     setMenuOpen(false);
   };

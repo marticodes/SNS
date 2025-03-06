@@ -11,18 +11,18 @@ const notifications = [
   { id: 4, type: "request", user: "user_w", timestamp: "2025-02-06 09:15 AM" },
 ];
 
-const caseNumb = 3; // Change this to test different cases
+const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
 
 export default function NotificationPanel({ onClose }) {
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate(); 
   const [selectedUser, setSelectedUser] = useState(null);
-  const profileCardRef = useRef(null); // Create a ref for ProfileCard
+  const profileCardRef = useRef(null); 
+  const [buttonStates, setButtonStates] = useState({});
 
-  // Close ProfileCard when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileCardRef.current && !profileCardRef.current.contains(event.target)) {
-        setSelectedUser(null); // Close ProfileCard when click is outside
+        setSelectedUser(null);
       }
     };
 
@@ -52,65 +52,100 @@ export default function NotificationPanel({ onClose }) {
     navigate(`/post/${postId}`); // Navigate to post page
   };
 
-  const renderNotification = (notification) => {
-    switch (notification.type) {
-      case "reaction":
-        return (
-          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
-            <p style={textStyle}>
-              <strong>{notification.user}</strong> reacted to your post.
-            </p>
-            <p style={timestampStyle}>{notification.timestamp}</p>
-          </div>
-        );
-      case "like":
-        return (
-          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
-            <p style={textStyle}>
-              <strong>{notification.user}</strong> liked your post.
-            </p>
-            <p style={timestampStyle}>{notification.timestamp}</p>
-          </div>
-        );
-      case "comment":
-        return (
-          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
-            <p style={textStyle}>
-              <strong>{notification.user}</strong> commented on your post.
-            </p>
-            <p style={timestampStyle}>{notification.timestamp}</p>
-          </div>
-        );
-      case "follow":
-        return (
-          <div style={notificationItemStyle}>
-            <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
-              <p style={textStyle}>
-                <strong>{notification.user}</strong> started following you.
-              </p>
-              <p style={timestampStyle}>{notification.timestamp}</p>
-            </div>
-            <button style={followButtonStyle}>Follow</button>
-          </div>
-        );
-      case "request":
-        return (
-          <div style={notificationItemStyle}>
-            <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
-              <p style={textStyle}>
-                <strong>{notification.user}</strong> requested to follow you.
-              </p>
-              <p style={timestampStyle}>{notification.timestamp}</p>
-            </div>
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button style={{ ...actionButtonStyle, backgroundColor: "green" }}>Accept</button>
-              <button style={{ ...actionButtonStyle, backgroundColor: "red" }}>Decline</button>
-            </div>
-          </div>
-        );
-      default:
-        return null;
+  const handleFollowClick = async (isPrivate, myUserId, id) => {
+    console.log("Follow button clicked");
+    console.log("myUserId:", myUserId, "id:", id);
+    if (isPrivate === 1) {
+      await fetch("http://localhost:3001/api/requests/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id_1: myUserId, user_id_2: id }),
+      });
+
+      await fetch("http://localhost:3001/api/notifs/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notif_type: 4, sender_id: myUserId, receiver_id: id, timestamp: timestamp }),
+      });
+
+      setButtonStates((prevState) => ({
+        ...prevState,
+        [`follow-${id}`]: "Requested",
+  
+      }));
+
+    } else {
+      await fetch("http://localhost:3001/api/relations/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ relation_type: 2, user_id_1: myUserId, user_id_2: id }),
+      });
+
+      await fetch("http://localhost:3001/api/notifs/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notif_type: 3, sender_id: myUserId, receiver_id: id, timestamp: timestamp}),
+      });
+
+      setButtonStates((prevState) => ({
+        ...prevState,
+        [`follow-${id}`]: "Following",
+  
+      }));
     }
+  };
+
+  const handleAcceptClick = async (id, myUserId) => {
+    console.log("Accept button clicked");
+    await fetch("http://localhost:3001/api/requests/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id_1: id, user_id_2: myUserId }),
+    });
+
+    await fetch("http://localhost:3001/api/relations/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ relation_type: 2, user_id_1: id, user_id_2: myUserId }),
+    });
+
+    const notifIdResponse = await fetch(`http://localhost:3001/api/notifs/${myUserId}/4/${id}`);
+    const notifid = await notifIdResponse.json();
+
+    await fetch(`http://localhost:3001/api/notifs/delete`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notif_id: notifid}),
+    });
+
+    setButtonStates((prevState) => ({
+      ...prevState,
+      [`request-${id}`]: "Accepted",
+    }));
+
+  };
+
+  const handleDeclineClick = async (id, myUserId) => {
+    console.log("Decline button clicked");
+    await fetch("http://localhost:3001/api/requests/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id_1: id, user_id_2: myUserId }),
+    });
+  
+    const notifIdResponse = await fetch(`http://localhost:3001/api/notifs/${myUserId}/4/${id}`);
+          const notifid = await notifIdResponse.json();
+
+    await fetch(`http://localhost:3001/api/notifs/delete`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notif_id: notifid }), 
+    });
+    setButtonStates((prevState) => ({
+      ...prevState,
+      [`request-${id}`]: "Declined",
+    }));
+  
   };
 
   const panelStyle = {
@@ -181,6 +216,84 @@ export default function NotificationPanel({ onClose }) {
   const timestampStyle = {
     color: "#9e9e9e",
     fontSize: "10px",
+  };
+  
+
+  const renderNotification = (notification) => {
+
+    const followLabel = buttonStates[`follow-${notification.id}`] || "Follow";
+    const requestLabel = buttonStates[`request-${notification.id}`] || null;
+
+    switch (notification.type) {
+      case "reaction":
+        return (
+          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
+            <p style={textStyle}>
+              <strong>{notification.user}</strong> reacted to your post.
+            </p>
+            <p style={timestampStyle}>{notification.timestamp}</p>
+          </div>
+        );
+      case "like":
+        return (
+          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
+            <p style={textStyle}>
+              <strong>{notification.user}</strong> liked your post.
+            </p>
+            <p style={timestampStyle}>{notification.timestamp}</p>
+          </div>
+        );
+      case "comment":
+        return (
+          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
+            <p style={textStyle}>
+              <strong>{notification.user}</strong> commented on your post.
+            </p>
+            <p style={timestampStyle}>{notification.timestamp}</p>
+          </div>
+        );
+      case "follow":
+        return (
+          <div style={notificationItemStyle}>
+            <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
+              <p style={textStyle}>
+                <strong>{notification.user}</strong> started following you.
+              </p>
+              <p style={timestampStyle}>{notification.timestamp}</p>
+            </div>
+            <button
+              style={followButtonStyle}
+              onClick={() => handleFollowClick(notification.isPrivate, notification.myUserId, notification.id)}
+            >
+              {followLabel}
+            </button>
+          </div>
+        );
+      case "request":
+        return (
+          <div style={notificationItemStyle}>
+            <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
+              <p style={textStyle}>
+                <strong>{notification.user}</strong> requested to follow you.
+              </p>
+              <p style={timestampStyle}>{notification.timestamp}</p>
+            </div>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button style={{ ...actionButtonStyle, backgroundColor: "green" }}
+                onClick={() => handleAcceptClick(notification.id, notification.myUserId)}>
+                {requestLabel === "Accepted" ? "Accepted" : "Accept"} 
+              </button>
+              <button
+                style={{ ...actionButtonStyle, backgroundColor: "red" }}
+                onClick={() => handleDeclineClick(notification.id, notification.myUserId)}>
+                {requestLabel === "Declined" ? "Declined" : "Decline"}
+              </button>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (

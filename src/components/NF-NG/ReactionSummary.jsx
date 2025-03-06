@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import styled from "styled-components";
 import { BiSolidLike, BiUpvote, BiDownvote } from "react-icons/bi";
 
@@ -115,9 +116,52 @@ const EmojiSpan = styled.span`
 
 
 // Component
-const ReactionSummary = ({ likes, votes, comments, reactions }) => {
-  const [popupOpen, setPopupOpen] = useState(null); 
+const ReactionSummary = ({ post_id, likes, votes, comments }) => {
+  const [popupOpen, setPopupOpen] = useState(null);
   const [selectedEmoji, setSelectedEmoji] = useState(null);
+  const [reactions, setReactions] = useState({
+    likedUsers: [],
+    emojiReactions: [],
+    shares: 0,
+  });
+
+  useEffect(() => {
+    if (!post_id) {
+        console.error("❌ No post_id provided");
+        return;
+    }
+
+    axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`)
+        .then((response) => {
+            console.log("✅ Raw Backend Response:", response.data); // Log raw response
+
+            const parsedReactions = {
+                likes: 0,
+                upvotes: 0,
+                downvotes: 0,
+                shares: 0,
+                emojiReactions: [],
+            };
+
+            response.data.forEach(([reactionType, count]) => {
+                if (reactionType === 0) parsedReactions.likes = count; // Like
+                else if (reactionType === 1) parsedReactions.upvotes = count; // Upvote
+                else if (reactionType === 2) parsedReactions.downvotes = count; // Downvote
+                else if (reactionType === 3) parsedReactions.shares = count; // Share
+                else {
+                    // Assume reactions > 3 are emoji reactions
+                    parsedReactions.emojiReactions.push({
+                        emoji: "😂", // 🔹 Replace with actual emoji mapping if needed
+                        count: count,
+                    });
+                }
+            });
+
+            console.log("✅ Parsed Reactions:", parsedReactions);
+            setReactions(parsedReactions);
+        })
+        .catch((error) => console.error("❌ Error fetching reactions:", error));
+}, [post_id]);
 
   useEffect(() => {
     if (!reactions.emojiReactions || reactions.emojiReactions.length === 0) {
@@ -136,7 +180,6 @@ const ReactionSummary = ({ likes, votes, comments, reactions }) => {
     }
   }, [reactions.emojiReactions]);
 
-
   return (
     <ReactionSummaryContainer>
       <ReactionDiv>
@@ -154,21 +197,21 @@ const ReactionSummary = ({ likes, votes, comments, reactions }) => {
         {selectedEmoji && (
           <ReactionItem>
             {reactions.emojiReactions.length > 0 && (
-            <SelectedEmoji onClick={() => setPopupOpen("emoji")}>
-              {selectedEmoji || reactions.emojiReactions[0].emoji} +{reactions.emojiReactions.length}
-            </SelectedEmoji>
-          )}
+              <SelectedEmoji onClick={() => setPopupOpen("emoji")}>
+                {selectedEmoji || reactions.emojiReactions[0].emoji} +{reactions.emojiReactions.length}
+              </SelectedEmoji>
+            )}
           </ReactionItem>
         )}
       </ReactionDiv>
 
       <ReactionDiv>
-      <ReactionItem>
-        <ReactionNum>{comments}</ReactionNum> comments
-      </ReactionItem>
-      <ReactionItem>
-        <ReactionNum>{reactions.shares}</ReactionNum> shares
-      </ReactionItem>
+        <ReactionItem>
+          <ReactionNum>{comments}</ReactionNum> comments
+        </ReactionItem>
+        <ReactionItem>
+          <ReactionNum>{reactions.shares}</ReactionNum> shares
+        </ReactionItem>
       </ReactionDiv>
 
       {popupOpen && (
