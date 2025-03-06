@@ -14,6 +14,28 @@ const ReceiptsDAO = {
             });
         });
     },
+
+    async getUnreadChats(user_id){
+
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT chat_id
+                FROM ReadReceipts
+                WHERE user_id = ?
+            `;
+    
+            db.all(sql, [user_id], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    const chats = rows.map(row => row.chat_id);
+                    resolve(chats);
+                }
+            });
+        }); 
+
+    }
+
 };
 
 export default ReceiptsDAO;

@@ -90,15 +90,6 @@ async function selectChatFromInbox(user_id) {
     return feed[Math.floor(Math.random() * feed.length)];
 }
 
-async function closeness(){
-
-}
-
-async function socialGroups(){
-
-}
-
-
 
 const Simulation = {
     async updateAGUserBio(user_id, system_prompt) {
@@ -234,8 +225,6 @@ const Simulation = {
             The contents of some of your previous posts are:${last_posts}. 
             Now, generate a new post that sticks to a single theme and maintains a coherent structure.`;
             const new_post = await generateResponse(system_prompt, user_prompt);
-
-            console.log(new_post);
             
             const time = new Date().toISOString();
             await makeAPIRequest("http://localhost:3001/api/post/add", "POST", { 
@@ -250,7 +239,7 @@ const Simulation = {
                 visibility: await UserDAO.getUserInfo(user_id).then(user => user.visibility), 
                 comm_id: null});
         } catch (error) {
-            console.error("Error updating new post:", error);
+            console.error("Error adding new post:", error);
         }
     },
 
@@ -295,8 +284,6 @@ const Simulation = {
 
             const user_prompt = `You find the following on your feed: ${choice.content}. You want to react to the conte. What reaction are you using. Respond using only one reaction and no text`;
             const reaction_type = await generateResponse(system_prompt, user_prompt);
-
-            console.log(reaction_type);
             
             const time = new Date().toISOString();
 
@@ -315,22 +302,224 @@ const Simulation = {
 
     },
 
-    async ViewAGStory(user_id, system_prompt){
+    async viewAGStory(user_id){
+        let feed = await FeedDAO.getEphemeralPosts(user_id);
+        if (!feed || feed.length === 0) {
+            console.error("No stories found");
+            return null;
+        }
+    
+        let sel_post =  feed[Math.floor(Math.random() * feed.length)];
+
         try {
             await makeAPIRequest("http://localhost:3001/api/viewers/post/add", "POST", { 
-                reaction_type: reaction_type, 
-                post_id: post_id, 
-                user_id: user_id, 
-                chat_id: chat_id,
-                message_id: message_id,
-                comment_id: comment_id, 
-                timestamp: time,
+                post_id: sel_post.post_id,
+                user_id: user_id
             });
         } catch (error) {
-            console.error("Error adding new reaction:", error);
+            console.error("Error viewing story:", error);
+        }
+
+    },
+
+    async updateAGPostVisibility(user_id){
+        let feed = await PostDAO.getAllPosts(user_id);
+        if (!feed || feed.length === 0) {
+            console.error("No posts found.");
+            return null;
+        }
+
+        let sel_post = feed[Math.floor(Math.random() * feed.length)];
+
+        try {
+            await makeAPIRequest("http://localhost:3001/api/posts/visibility", "POST", { 
+                post_id: sel_post.post_id,
+                visibility: Math.floor(Math.random() * 4),
+            });
+        } catch (error) {
+            console.error("Error updating visibility:", error);
+        }
+
+    },
+
+    async updateAGRelation(user_id){
+        let relation_type = Math.floor(Math.random() * 4);
+        let frens = await RelationDAO.getUsersByRelation(user_id, relation_type);
+
+        if (!frens || frens.length === 0) {
+            console.error("No users found.");
+            return null;
+        }
+
+        let sel_fren = frens[Math.floor(Math.random() * frens.length)];
+
+        try {
+            await makeAPIRequest("http://localhost:3001/api/relations/update", "POST", { 
+                user_id_1: user_id,
+                user_id_2: sel_fren,
+                relation_type: Math.floor(Math.random() * 4),
+            });
+        } catch (error) {
+            console.error("Error updating relation:", error);
+        }
+
+    },
+
+    async deleteAGRestriction(user_id){
+        let frens = await RelationDAO.getRestrictedUsers(user_id);
+        if (!frens || frens.length === 0) {
+            console.error("No users found.");
+            return null;
+        }
+        let sel_fren = frens[Math.floor(Math.random() * frens.length)];
+        try {
+            await makeAPIRequest("http://localhost:3001/api/relations/delete/", "DELETE", { 
+                user_id_1: user_id,
+                user_id_2: sel_fren,
+            });
+        } catch (error) {
+            console.error("Error deleting restriction:", error);
+        }
+    },
+
+    async deleteAGRelation(user_id){
+
+        let relation_type = Math.floor(Math.random() * 4);
+        let frens = await RelationDAO.getUsersByRelation(user_id, relation_type);
+        if (!frens || frens.length === 0) {
+            console.error("No users found.");
+            return null;
+        }
+
+        let sel_fren = frens[Math.floor(Math.random() * frens.length)];
+
+        try {
+            await makeAPIRequest("http://localhost:3001/api/relations/delete/", "DELETE", { 
+                user_id_1: user_id,
+                user_id_2: sel_fren,
+            });
+        } catch (error) {
+            console.error("Error deleting relation:", error);
+        }
+    },
+
+    async startAGDM(user_id){
+        let frens = await RelationDAO.getUsersByRelation(user_id, 2);
+        if (!frens || frens.length === 0) {
+            console.error("No users found.");
+            return null;
+        }
+
+        let sel_fren = frens[Math.floor(Math.random() * frens.length)];
+        let chat = await ChatDAO.checkExistingChat(user_id, sel_fren);
+
+        if (!chat) {
+            console.log("No existing chat found. Creating a new one...");
+            let user_info = await UserDAO.getUserInfo(sel_fren);
+            try {
+                await makeAPIRequest("http://localhost:3001/api/chats/add", "POST", { 
+                    user_id_1: user_id,
+                    user_id_2: sel_fren,
+                    chat_name: user_info.id_name, 
+                    chat_image: user_info.profile_picture,
+                });
+            } catch (error) {
+                console.error("Error adding new chat", error);
+            }
+        
+        }
+
+    },
+
+    async startAGGroupChat(user_id, system_prompt){
+        let frens = await RelationDAO.getUsersByRelation(user_id, 2);
+        if (!frens || frens.length === 0) {
+            console.error("No users found.");
+            return null;
+        }
+
+        let sel_fren = frens.sort(() => Math.random() - 0.5).slice(0, 3);
+        let closeness_levels = await Promise.all(
+            sel_fren.map(async (person) => {
+                let closeness = await RelationDAO.getCloseness(user_id, person);
+                return closeness;
+            })
+        );
+
+        let social_groups = await SocialGroupDao.getGroupsByIds(sel_fren);
+        const user_prompt = `You are about to create a group chat with "${sel_fren.length}" people. 
+        Your closeness levels to the people on a scale of 1 to 10 are "${closeness_levels}". 
+        You belong to "${social_groups}" soial groups together. 
+        Using the provided information as a premise, generate a name for the group chat. Be straightforward and reply with just the name`;
+        
+        const name = await generateResponse(system_prompt, user_prompt);
+        try {
+            await makeAPIRequest("http://localhost:3001/api/chats/group/add", "POST", { 
+                user_ids: sel_fren,
+                chat_name: name,
+                chat_image: null
+            });
+        } catch (error) {
+            console.error("Error adding new chat", error);
+        }
+
+    },
+
+    async createAGChannel(user_id, system_prompt){
+        let user_prompt = `You are about to create a new community channel.
+        Using the provided information as a premise, generate a name for the community channel. Be straightforward and reply with just the name`;
+        let name = await generateResponse(system_prompt, user_prompt);
+        user_prompt = `You just created a channel ${name}. Now create a bio for this channel`;        
+        let bio = await generateResponse(system_prompt, user_prompt);
+        try {
+            let id = await makeAPIRequest("http://localhost:3001/api/channels/create", "POST", { 
+                comm_name: name,
+                comm_bio: bio,
+                comm_image: null
+            });
+            await makeAPIRequest("http://localhost:3001/api/channels/add", "POST", { 
+                user_id: user_id,
+                comm_id: id,
+            });
+        } catch (error) {
+            console.error("Error adding new channel", error);
+        }
+    },
+
+    async readAGMessages(user_id){
+        let unread = await ReceiptsDAO.getUnreadChats(user_id);
+        if(!unread) return;
+        let sel = unread[Math.floor(Math.random() * unread.length)];
+        
+        try {
+            await makeAPIRequest("http://localhost:3001/api/read/receipts/delete", "DELETE", { 
+                chat_id: sel,
+                user_id: user_id,
+            });
+        } catch (error) {
+            console.error("Error reading message:", error);
+        }
+    },
+
+    async sendRequest(user_id){
+        let frens = await RelationDAO.getRecommendedFriends(user_id);
+        if (!frens || frens.length === 0) {
+            console.error("No users found.");
+            return null;
+        }
+        let sel_fren = frens[Math.floor(Math.random() * frens.length)];
+        try {
+            await makeAPIRequest("http://localhost:3001/api/requests/add", "POST", { 
+                user_id_1: user_id,
+                user_id_2: sel_fren
+            });
+        } catch (error) {
+            console.error("Error reading message:", error);
         }
 
     }
+
+    
 
 };
 export default Simulation;

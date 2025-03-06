@@ -558,7 +558,7 @@ app.delete('/api/requests/delete',
 app.delete('/api/read/receipts/delete',
   async (req, res) => {
       try {
-        const ina = await requestDao.deleteReceipts(req.body.chat_id, req.body.user_id);
+        const ina = await receiptsDAO.deleteReceipts(req.body.chat_id, req.body.user_id);
         res.status(200).json({ina});
       } catch (err) {
         res.status(503).json({ error: `BE: Error deleting read receipts ${err}` });
@@ -702,7 +702,7 @@ app.get('/api/recomm/friends/interests/:user_id',
 app.get('/api/recomm/feed/friends/:user_id/',
     async (req, res) => {
         try {
-          const posts = await feedDao.getFeedFromFriends(req.params.user_id, req.params.limit, req.params.offset);
+          const posts = await feedDao.getFeedFromFriends(req.params.user_id);
           res.status(200).json(posts);
         } catch (err) {
           res.status(500).json({ error: `BE: Error populating feed (friends) ${err}` });
@@ -713,7 +713,7 @@ app.get('/api/recomm/feed/friends/:user_id/',
 app.get('/api/recomm/feed/interests/:user_id/',
     async (req, res) => {
         try {
-          const posts = await feedDao.getInterestBasedFeed(req.params.user_id, req.params.limit, req.params.offset);
+          const posts = await feedDao.getInterestBasedFeed(req.params.user_id);
           res.status(200).json(posts);
         } catch (err) {
           res.status(500).json({ error: `BE: Error populating feed (interests) ${err}` });
