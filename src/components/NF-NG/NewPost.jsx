@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import UserProfile from "./UserProfile";
 import NavBar from "../NavBar/Small"
 import { BsSignTurnLeft } from "react-icons/bs";
+import axios from "axios";
 
 // Styled Components
 const NewPostContainer = styled.div`
@@ -155,28 +156,42 @@ const NewPost = ({ user, addNewPost }) => {
   };
 
   const handlePost = () => {
-    if (!postText.trim() && mediaFiles.length === 0) {
-      alert("Post cannot be empty!");
+    const userID = parseInt(localStorage.getItem("userID"), 10); 
+    if (!userID) {
+      alert("User not logged in!");
       return;
     }
-
+  
     const newPost = {
-      id: Date.now(),
-      profileImg: user.profile_picture,
-      userName: user.user_name,
-      postDate: new Date().toISOString().split("T")[0],
-      text: postText,
-      images: mediaFiles.length > 0 ? mediaFiles : [],
-      reactions: { likedUsers: [], upvotedUsers: 0, downvotedUsers: 0, emojiReactions: [], shares: 0 },
-      comments: [],
+      parent_id: null,
+      user_id: userID,
+      content: postText,
+      topic: null,
+      media_type: mediaFiles.length > 0 ? "image" : null,
+      media_url: mediaFiles.length > 0 ? mediaFiles : [],
+      timestamp: new Date().toISOString(),
+      duration: null,
+      visibility: "public",
+      comm_id: null,
     };
+  
+    axios.post("http://localhost:3001/api/post/add", newPost)
+      .then((response) => {
+        console.log("✅ Post created:", response.data);
 
-    addNewPost(newPost);
-    navigate("/case/1");
+        axios.get(`http://localhost:3001/api/posts/all/${userID}`)
+          .then((res) => setPosts(res.data))
+          .catch((error) => console.error("❌ Fetch Error:", error));
+  
+          setPosts((prevPosts) => [response.data, ...prevPosts]);
+          navigate("/case/1");
+      })
+      .catch((error) => console.error("❌ Post Error:", error));
   };
 
   const handleCancel = () => {
-    navigate("/case/1");
+    console.log("🚀 Canceling post creation...");
+    navigate("/case/1"); // ✅ Redirect back to the feed
   };
 
   return (

@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import UserProfile from "./UserProfile";
 import NavBar from "../NavBar/Small"
+import axios from "axios";
 
 // Styled Components
 const EditPostContainer = styled.div`
@@ -138,6 +139,7 @@ const Button = styled.button`
 const EditPost = ({ posts, updatePost }) => {
   const navigate = useNavigate();
   const { postId } = useParams();
+  const userID = parseInt(localStorage.getItem("userID"), 10);
 
   const location = useLocation();
   const originalPost = posts.find((post) => post.id === parseInt(postId));
@@ -165,17 +167,21 @@ const EditPost = ({ posts, updatePost }) => {
   };
 
   const handleSave = () => {
-    if (!postText.trim() && mediaFiles.length === 0) {
-      alert("Post cannot be empty!");
+    if (!userID) {
+      alert("User not logged in!");
       return;
     }
-
-    updatePost(originalPost.id, {
-      text: postText,
-      images: mediaFiles,
-    });
-
-    navigate("/case/1");
+  
+    axios.post(`http://localhost:3001/api/posts/content`, {
+      post_id: postId,
+      content: postText,
+      user_id: userID,
+    })
+    .then(() => {
+      console.log("✅ Post updated successfully");
+      navigate("/case/1");
+    })
+    .catch((error) => console.error("❌ Update Error:", error));
   };
 
   const handleCancel = () => {
