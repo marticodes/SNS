@@ -43,6 +43,15 @@ const MessageDAO = {
                     resolve(this.lastID); // Get inserted message ID
                 });
             });
+
+            //Update chat time
+            await new Promise((resolve, reject) => { 
+                const chatTimeUpdate = 'UPDATE Chat SET timestamp=? WHERE chat_id=?';
+                db.run(chatTimeUpdate, [timestamp, chat_id], function (err) {
+                    if (err) return reject(err);
+                    resolve(this.changes > 0); 
+                });
+            });
     
             // Insert read receipts for all receivers
             const receiptQuery = 'INSERT INTO ReadReceipts (chat_id, user_id) VALUES (?, ?)';
