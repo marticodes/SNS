@@ -127,6 +127,26 @@ const MessageDAO = {
         });
     },
 
+    async getMessageByMessageId(message_id){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT * FROM Message WHERE message_id = ?';
+    
+                db.get(sql, [message_id], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (row.length === 0) {
+                        resolve([]);
+                    } else {
+                        resolve(new Message(row.message_id, row.chat_id, row.sender_id, row.reply_id, row.content, row.media_type, row.media_url, row.timestamp));
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
 };
 
 export default MessageDAO;
