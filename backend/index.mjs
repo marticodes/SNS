@@ -654,6 +654,17 @@ app.get('/api/user/messages/all/:chat_id',
       }
 );
 
+app.get('/api/user/message/id/:message_id',
+  async (req, res) => {
+      try {
+        const messages = await messageDao.getMessageByMessageId(req.params.message_id);
+        res.status(200).json(messages);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining messages ${err}` });
+      }
+    }
+);
+
 app.get('/api/messages/sender/:message_id',
     async (req, res) => {
         try {
