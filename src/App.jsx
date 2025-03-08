@@ -20,7 +20,7 @@ const App = () => {
           <Route
             path="/"
             element={
-              <div style={{ textAlign: "center" }}>
+              <div style={{ textAlign: "center", color: "#34495e" }}>
                 <h1>Welcome</h1>
                 <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                   <Link to="/login" style={navButtonStyle} onClick={() => handleClick(1)}>

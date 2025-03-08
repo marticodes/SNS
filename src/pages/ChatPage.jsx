@@ -38,7 +38,7 @@ const ChatPage = () => {
               const otherUserId = chat.user_id_1 === userId ? chat.user_id_2 : chat.user_id_1;
               const userResponse = await fetch(`http://localhost:3001/api/user/${otherUserId}`);
               const userData = await userResponse.json();
-              displayName = userData.id_name; // Single user name
+              displayName = userData.id_name;
               chatimg = userData.profile_picture;
             } else {
               const groupResponse = await fetch(`http://localhost:3001/api/members/chat/${chat.chat_id}`);
@@ -53,50 +53,90 @@ const ChatPage = () => {
               displayName = groupNames.join(", "); // Group member names
               chatimg = "https://via.placeholder.com/30";
             }
-            return { chat_id: chat.chat_id, name: displayName, image: chatimg }; // Include chat_id with the name
+            return { chat_id: chat.chat_id, name: displayName, image: chatimg };
           })
         );
-        console.log(updatedChatList);
         setchatList(updatedChatList);
       });
-  }, []);  
-
-  const handleSendMessage = (text) => {
-    const newMessage = {
-      text,
-      sender: currentUser,
-      timestamp: new Date().toLocaleTimeString(),
-      replyTo: replyTo ? { sender: replyTo.sender, text: replyTo.text } : null, // Include reply information if there's a reply
-    };
-
-    setMessages((prev) => {
-      const userMessages = prev[currentChatUser] || [];
-      return {
-        ...prev,
-        [currentChatUser]: [...userMessages, newMessage],
-      };
-    });
-    setReplyTo(null); // Reset reply after sending the message
-  };
+  }, []);
 
   useEffect(() => {
-      setFilteredMessages(messages[currentChatUser] || []);
-    }, [currentChatUser, messages]);
+    if (currentChatId) {
+      const intervalId = setInterval(() => {
+        fetch(`http://localhost:3001/api/user/messages/all/${currentChatId}`)
+          .then((response) => response.json())
+          .then((fetchedMessages) => {
+            const transformedMessages = fetchedMessages.map((msg) => ({
+              text: msg.content,
+              sender: msg.sender_id === userId ? "Me" : msg.sender_id,
+              timestamp: msg.timestamp || "N/A",
+              replyTo: msg.reply_id, 
+            }));
+            setMessages((prev) => ({
+              ...prev,
+              [currentChatId]: transformedMessages, 
+            }));
+          })
+          .catch((error) => {
+            console.error("Error fetching messages:", error);
+          });
+      }, 500); //update chat every 0.5 seconds SO THAT I CAN GET MESSAGES FROM THE DATABASE CONSTANTLY 
+      //Is there a better way to do this? because it might be really costly...
+  
+      return () => clearInterval(intervalId);
+    }
+  }, [currentChatId]);
+  
+
+  useEffect(() => {
+    setFilteredMessages(messages[currentChatId] || []);
+  }, [currentChatId, messages]);
+
+  const handleSendMessage = async (text) => {
+  
+    try {
+      const response = await fetch('http://localhost:3001/api/messages/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: currentChatId,
+          sender_id: userId,
+          reply_id: replyTo?.sender || null, 
+          content: text,
+          media_type: null, // Modify as needed
+          media_url: null, // Modify as needed
+          timestamp: new Date().toLocaleTimeString(),
+        }),
+      });
+      console.log("repluTo", replyTo);
+  
+      if (!response.ok) {
+        throw new Error(`Failed to send message: ${response.statusText}`);
+      }
+      console.log('Message sent:', response);
+      setReplyTo(null);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+  
 
   const handleSearch = (query) => {
     setSearchQuery(query);
     if (query) {
-      const filtered = (messages[currentChatUser] || []).filter((msg) =>
+      const filtered = (messages[currentChatId] || []).filter((msg) =>
         msg.text.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredMessages(filtered);
     } else {
-      setFilteredMessages(messages[currentChatUser] || []);
+      setFilteredMessages(messages[currentChatId] || []);
     }
   };
 
   const handleCancelReply = () => {
-    setReplyTo(null); // Clear the replyTo state
+    setReplyTo(null);
   };
 
   const handleUserClick = (chat) => {
@@ -105,20 +145,18 @@ const ChatPage = () => {
   };
 
   const handleMessageReply = (message) => {
-    setReplyTo(message); // Set the message to reply to
-  };
-  
-  const handleMessageReact = (message, emoji) => {
-     // CHANGE THIS WITH POST REQUEST
+    setReplyTo(message);
+    console.log(message);
   };
 
   const handlechatListUpdate = (newChat) => {
-    setchatList((prevList) => [...prevList, newChat.name]); // Add the new chat to the list
+    setchatList((prevList) => [...prevList, { chat_id: newChat.id, name: newChat.name, image: "https://via.placeholder.com/30" }]);
     setMessages((prev) => ({
       ...prev,
-      [newChat.name]: [], // Initialize an empty message list for the new chat
+      [newChat.id]: [], // Initialize an empty message list for the new chat
     }));
-    setCurrentChatUser(newChat.name); // Navigate to the new chat
+    setCurrentChatUser(newChat.name);
+    setCurrentChatId(newChat.id);
   };
 
   return (
@@ -158,18 +196,17 @@ const ChatPage = () => {
             <ChatHeader
               currentChatUser={currentChatUser}
               ProfilePics={chatList.find((chat) => chat.name === currentChatUser)?.image}
-              onSearch={handleSearch} // Pass onSearch function
+              onSearch={handleSearch}
             />
             <MessageList
               messages={filteredMessages}
               currentUser={currentUser}
               onReply={handleMessageReply}
-              onReact={handleMessageReact}
             />
             <MessageInput
               onSendMessage={handleSendMessage}
-              replyTo={replyTo} // Show the message being replied to
-              onCancelReply={handleCancelReply} // Handle cancel reply
+              replyTo={replyTo}
+              onCancelReply={handleCancelReply}
             />
           </>
         )}
@@ -179,4 +216,3 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
-

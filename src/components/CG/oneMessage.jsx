@@ -18,7 +18,7 @@ const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
   const [reaction, setReaction] = useState(null);
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [profilePosition, setProfilePosition] = useState({ x: 0, y: 0 });
-  const profileCardRef = useRef(null); // Ref for the profile card
+  const profileCardRef = useRef(null);
   const timeoutRef = useRef(null);
 
   const handleEmojiClick = (emoji) => {

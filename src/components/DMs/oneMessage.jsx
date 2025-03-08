@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { MdOutlineReply, MdOutlineEmojiEmotions } from "react-icons/md";
 import EmojiPicker from "emoji-picker-react";
 
-const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
+const SingleMessage = ({ message, isCurrentUser, onReply, onReact, scrollToMessage }) => {
   const [hovered, setHovered] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [reaction, setReaction] = useState(null);
@@ -113,8 +113,9 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
               marginBottom: "5px",
               fontSize: "14px",
             }}
+            onClick={() => scrollToMessage(message.replyTo.post_id)}
           >
-            Reply to {message.replyTo.sender}: {message.replyTo.text}
+            Reply to: {message.replyTo.text}
           </div>
         )}
 
@@ -156,12 +157,3 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact }) => {
 };
 
 export default SingleMessage;
-
-
-
-
-
-
-
-
-
