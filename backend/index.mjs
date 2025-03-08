@@ -687,6 +687,17 @@ app.post('/api/messages/add',
       }
 );
 
+app.post('/api/user/update/chat/time',
+  async (req, res) => {
+      try {
+        const set = await chatDao.updateChatTime(req.body.chat_id, req.body.timestamp);
+        res.status(201).json({set});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error updating chat time ${err}` });
+      }
+    }
+);
+
 //Interests and Recommendations
 app.get('/api/interests/:user_id/',
     async (req, res) => {
