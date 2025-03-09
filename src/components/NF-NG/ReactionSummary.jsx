@@ -123,60 +123,30 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
     likedUsers: [],
     emojiReactions: [],
     shares: 0,
+    upvotes: 0,
+    downvotes: 0,
   });
 
   useEffect(() => {
-    if (!post_id) {
-        console.error("❌ No post_id provided");
-        return;
-    }
+    if (!post_id) return;
 
-    axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`)
-        .then((response) => {
-            console.log("✅ Raw Backend Response:", response.data); // Log raw response
-
-            const parsedReactions = {
-                likes: 0,
-                upvotes: 0,
-                downvotes: 0,
-                shares: 0,
-                emojiReactions: [],
-            };
-
-            response.data.forEach(([reactionType, count]) => {
-                if (reactionType === 0) parsedReactions.likes = count; // Like
-                else if (reactionType === 1) parsedReactions.upvotes = count; // Upvote
-                else if (reactionType === 2) parsedReactions.downvotes = count; // Downvote
-                else if (reactionType === 3) parsedReactions.shares = count; // Share
-                else {
-                    // Assume reactions > 3 are emoji reactions
-                    parsedReactions.emojiReactions.push({
-                        emoji: "😂", // 🔹 Replace with actual emoji mapping if needed
-                        count: count,
-                    });
-                }
-            });
-
-            console.log("✅ Parsed Reactions:", parsedReactions);
-            setReactions(parsedReactions);
-        })
-        .catch((error) => console.error("❌ Error fetching reactions:", error));
-}, [post_id]);
+    axios.get(`http://localhost:3001/api/posts/all/${post_id}`)
+      .then(({ data }) => {
+        setReactions(data);
+      })
+      .catch((error) => console.error("Error fetching reactions:", error));
+  }, [post_id]);
 
   useEffect(() => {
     if (!reactions.emojiReactions || reactions.emojiReactions.length === 0) {
       setSelectedEmoji(null);
     } else {
-      const emojiCounts = {};
-      reactions.emojiReactions.forEach((reaction) => {
-        emojiCounts[reaction.emoji] = (emojiCounts[reaction.emoji] || 0) + 1;
+      // Find the emoji with the highest number of users
+      const mostFrequent = reactions.emojiReactions.reduce((prev, current) => {
+        return (prev.user_id.length > current.user_id.length) ? prev : current;
       });
-
-      const mostFrequentEmoji = Object.keys(emojiCounts).reduce((a, b) =>
-        emojiCounts[a] > emojiCounts[b] ? a : b
-      );
-
-      setSelectedEmoji(mostFrequentEmoji);
+  
+      setSelectedEmoji(mostFrequent.emote_type);
     }
   }, [reactions.emojiReactions]);
 
@@ -187,7 +157,7 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
           <LikeSpan onClick={() => setPopupOpen("like")}>
             <BiSolidLike />
           </LikeSpan>
-          <span>{likes}</span>
+          <span>{reactions.likedUsers.length}</span>
         </ReactionItem>
         <ReactionItem>
           <BiUpvote />
@@ -196,11 +166,9 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
         </ReactionItem>
         {selectedEmoji && (
           <ReactionItem>
-            {reactions.emojiReactions.length > 0 && (
-              <SelectedEmoji onClick={() => setPopupOpen("emoji")}>
-                {selectedEmoji || reactions.emojiReactions[0].emoji} +{reactions.emojiReactions.length}
-              </SelectedEmoji>
-            )}
+            <SelectedEmoji onClick={() => setPopupOpen("emoji")}>
+              {selectedEmoji} +{reactions.emojiReactions.reduce((acc, curr) => acc + curr.user_id.length, 0)}
+            </SelectedEmoji>
           </ReactionItem>
         )}
       </ReactionDiv>
@@ -217,28 +185,33 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
       {popupOpen && (
         <PopupContainer>
           <CloseButton onClick={() => setPopupOpen(null)}>&times;</CloseButton>
-          {popupOpen === "like" ? (
+          {popupOpen === "like" && (
             <>
               <PopupTitle>People who liked this post</PopupTitle>
               <UserList>
-                {reactions.likedUsers.map((user, index) => (
+                {reactions.likedUsers.map((userId, index) => (
                   <UserItem key={index}>
-                    <ProfileImage src={user.profileImg} alt={user.userName} />
-                    {user.userName}
+                    <ProfileImage src={`/api/users/${userId}/profile_picture`} />
+                    User ID: {userId}
                   </UserItem>
                 ))}
               </UserList>
             </>
-          ) : (
+          )}
+          {popupOpen === "emoji" && (
             <>
               <PopupTitle>Emoji Reactions</PopupTitle>
               <UserList>
                 {reactions.emojiReactions.map((reaction, index) => (
-                  <UserItem key={index}>
-                    <ProfileImage src={reaction.profileImg} alt={reaction.userName} />
-                    {reaction.userName}
-                    <EmojiSpan>{reaction.emoji}</EmojiSpan>
-                  </UserItem>
+                  <div key={index}>
+                    <h4>{reaction.emote_type}</h4>
+                    {reaction.user_id.map((userId, idx) => (
+                      <UserItem key={idx}>
+                        <ProfileImage src={`/api/users/${userId}/profile_picture`} />
+                        User ID: {userId}
+                      </UserItem>
+                    ))}
+                  </div>
                 ))}
               </UserList>
             </>
