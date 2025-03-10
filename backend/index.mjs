@@ -738,7 +738,7 @@ app.get('/api/recomm/friends/interests/:user_id',
           const user_ids = await uiDao.getUsersWithSimilarInterest(req.params.user_id);
           res.status(200).json(user_ids);
         } catch (err) {
-          res.status(500).json({ error: `BE: Error obtaining friend recommendations 1 ${err}` });
+          res.status(500).json({ error: `BE: Error obtaining friend recommendations ${err}` });
         }
       }
 );
@@ -752,6 +752,17 @@ app.get('/api/recomm/feed/friends/:user_id/',
           res.status(500).json({ error: `BE: Error populating feed (friends) ${err}` });
         }
       }
+);
+
+app.get('/api/recomm/feed/combined/:user_id/',
+  async (req, res) => {
+      try {
+        const posts = await feedDao.getcombinedFeed(req.params.user_id);
+        res.status(200).json(posts);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error populating feed combined ${err}` });
+      }
+    }
 );
 
 app.get('/api/recomm/feed/interests/:user_id/',
