@@ -566,6 +566,17 @@ app.delete('/api/read/receipts/delete',
     }
 );
 
+app.get('/api/chats/unread/all/:user_id',
+  async (req, res) => {
+      try {
+        const chats = await receiptsDAO.getUnreadChats(req.params.user_id);
+        res.status(200).json(chats);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining chats ${err}` });
+      }
+    }
+);
+
 app.get('/api/chats/all/:user_id',
     async (req, res) => {
         try {
