@@ -13,6 +13,7 @@ const FeedDAO = {
                     (r.user_id_1 = ?)  
                     AND r.relation_type IN (0, 1, 2)  
                     AND p.user_id != ?   
+                    AND p.duration IS NULL
                 ORDER BY p.timestamp DESC;
             `;
     
@@ -45,6 +46,7 @@ const FeedDAO = {
                             AND r.relation_type IN (0, 1, 2)  
                     )
                     AND p.visibility = 2
+                    AND p.duration IS NULL
                 ORDER BY p.timestamp DESC;
             `;
     
@@ -57,6 +59,20 @@ const FeedDAO = {
                 }
             });
         });
+    },
+
+    async getcombinedFeed(userId){
+        try {
+            const [friendsFeed, interestFeed] = await Promise.all([
+                this.getFeedFromFriends(userId),
+                this.getInterestBasedFeed(userId)
+            ]);
+            const combinedFeed = [...friendsFeed, ...interestFeed];
+            combinedFeed.sort((a, b) => b.timestamp - a.timestamp);
+            return combinedFeed;
+        } catch (err) {
+            throw err;
+        }
     },
     
     async  getEphemeralPosts(userId){
