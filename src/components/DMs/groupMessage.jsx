@@ -149,6 +149,11 @@ const GroupMessage = ({ message, isCurrentUser, onReply, onReact }) => {
           fontSize: "14px",
         }}
       >
+        <img src={userInfo
+          ? userInfo.profile_picture
+          : "https://www.gravatar.com/avatar/?d=identicon"} 
+          alt="Profile" style={{ width: "100%", height: "100%", borderRadius: "50%" }} />  
+
       </div>
 
       {/* Message Content */}
