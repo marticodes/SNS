@@ -1,9 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import SingleMessage from "./oneMessage";
 
-//change to add also group messages
-
-const MessageList = ({ messages, currentUser, onReply, onReact }) => {
+const myID = parseInt(localStorage.getItem("userID"), 10);
+const MessageList = ({ messages, onReply, onReact }) => {
   const messageListRef = useRef(null); 
 
   useEffect(() => {
@@ -22,13 +21,12 @@ const MessageList = ({ messages, currentUser, onReply, onReact }) => {
         backgroundColor: "#fff",
       }}
     >
-      {messages.map((message, index) => (
+      {messages.map((message) => (
         <SingleMessage
-          key={index}
           message={message}
-          isCurrentUser={message.sender === currentUser}
-          onReply={onReply} 
-          onReact={onReact} 
+          isCurrentUser={message.sender === Number(myID)}
+          onReply={(msg) => onReply(msg)} 
+          onReact={onReact}
         />
       ))}
     </div>

@@ -1,49 +1,65 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import UserList from "../components/DMs/users.jsx";
+import ChatList from "../components/DMs/users.jsx";
 import MessageList from "../components/DMs/messages.jsx";
 import MessageInput from "../components/DMs/message_input.jsx";
 import ChatHeader from "../components/DMs/chatheader.jsx";
 import NavBar from "../components/NavBar/Small.jsx";
 
-const ProfilePics = {
-  "Kim Namjoon": "https://via.placeholder.com/30/FF0000/FFFFFF?text=User",
-  "Kim Seokjin": "https://via.placeholder.com/30?text=KS",
-  "Min Yoongi": "https://via.placeholder.com/30?text=MY",
-  "Jung Hoseok": "https://via.placeholder.com/30?text=JH",
-  "Park Jimin": "https://via.placeholder.com/30?text=PJ",
-};
+const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
+const userId = localStorage.getItem("userID");
 
 const CFPage = () => {
   const location = useLocation();
-  const [messages, setMessages] = useState({
-    "Kim Namjoon": [
-      { text: "Hey, what's up?", sender: "Kim Namjoon", timestamp: "10:15 AM" },
-      { text: "Not much, just chilling. You?", sender: "Me", timestamp: "10:16 AM" },
-      { text: "Same here. Want to grab coffee later?", sender: "Kim Namjoon", timestamp: "10:17 AM" },
-    ],
-    "Kim Seokjin": [
-      { text: "How was your day?", sender: "Kim Seokjin", timestamp: "9:30 AM" },
-      { text: "Pretty good, thanks! How about you?", sender: "Me", timestamp: "9:31 AM" },
-      { text: "Busy as usual, but manageable.", sender: "Kim Seokjin", timestamp: "9:32 AM" },
-    ],
-    "Min Yoongi": [
-      { text: "Got any plans for the weekend?", sender: "Min Yoongi", timestamp: "5:00 PM" },
-      { text: "I was thinking about a movie night. You?", sender: "Me", timestamp: "5:01 PM" },
-      { text: "Sounds good. What movie?", sender: "Min Yoongi", timestamp: "5:02 PM" },
-    ],
-  });
+  const [messages, setMessages] = useState({});
   const [currentUser, setCurrentUser] = useState("Me");
   const [currentChatUser, setCurrentChatUser] = useState(null);
+  const [currentChatId, setCurrentChatId] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredMessages, setFilteredMessages] = useState([]);
+  const [chatList, setchatList] = useState([]);
 
   useEffect(() => {
     if (location.state?.chatUser) {
       setCurrentChatUser(location.state.chatUser);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    fetch(`http://localhost:3001/api/chats/all/${userId}`)
+      .then((response) => response.json())
+      .then(async (chats) => {
+        const updatedChatList = await Promise.all(
+          chats.map(async (chat) => {
+            let displayName;
+            let chatimg;
+            if (chat.group_chat === 0) {
+              const otherUserId = chat.user_id_1 === userId ? chat.user_id_2 : chat.user_id_1;
+              const userResponse = await fetch(`http://localhost:3001/api/user/${otherUserId}`);
+              const userData = await userResponse.json();
+              displayName = userData.id_name; // Single user name
+              chatimg = userData.profile_picture;
+            } else {
+              const groupResponse = await fetch(`http://localhost:3001/api/members/chat/${chat.chat_id}`);
+              const groupData = await groupResponse.json();
+              const groupNames = await Promise.all(
+                groupData.map(async (member) => {
+                  const userResponse = await fetch(`http://localhost:3001/api/user/${member}`);
+                  const userData = await userResponse.json();
+                  return userData.id_name;
+                })
+              );
+              displayName = groupNames.join(", "); // Group member names
+              chatimg = "https://via.placeholder.com/30";
+            }
+            return { chat_id: chat.chat_id, name: displayName, image: chatimg }; // Include chat_id with the name
+          })
+        );
+        console.log(updatedChatList);
+        setchatList(updatedChatList);
+      });
+  }, []);  
 
   const handleSendMessage = (text) => {
     const newMessage = {
@@ -83,8 +99,9 @@ const CFPage = () => {
     setReplyTo(null); // Clear the replyTo state
   };
 
-  const handleUserClick = (user) => {
-    setCurrentChatUser(user);
+  const handleUserClick = (chat) => {
+    setCurrentChatUser(chat.name);
+    setCurrentChatId(chat.chat_id); 
   };
 
   const handleMessageReply = (message) => {
@@ -95,10 +112,22 @@ const CFPage = () => {
      // CHANGE THIS WITH POST REQUEST
   };
 
+  const handlechatListUpdate = (newChat) => {
+    setchatList((prevList) => [...prevList, newChat.name]); // Add the new chat to the list
+    setMessages((prev) => ({
+      ...prev,
+      [newChat.name]: [], // Initialize an empty message list for the new chat
+    }));
+    setCurrentChatUser(newChat.name); // Navigate to the new chat
+  };
+
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
       {/* NavBar */}
-        <NavBar caseId={3} />
+      <div style={{ width: "70px", height: "100%", backgroundColor: "#34495e" }}>
+      <NavBar caseId={caseNumb}/>
+      </div>
+
       {/* User List */}
       <div
         style={{
@@ -108,16 +137,10 @@ const CFPage = () => {
           overflowY: "auto",
         }}
       >
-        <UserList
-          users={[
-            "Kim Namjoon",
-            "Kim Seokjin",
-            "Min Yoongi",
-            "Jung Hoseok",
-            "Park Jimin",
-          ]}
+        <ChatList
+          users={chatList}
           onUserClick={handleUserClick}
-          ProfilePics={ProfilePics}
+          onchatListUpdate={handlechatListUpdate} // Pass the function to update the user list
         />
       </div>
 
@@ -134,7 +157,7 @@ const CFPage = () => {
           <>
             <ChatHeader
               currentChatUser={currentChatUser}
-              ProfilePics={ProfilePics}
+              ProfilePics={chatList.find((chat) => chat.name === currentChatUser)?.image}
               onSearch={handleSearch} // Pass onSearch function
             />
             <MessageList
