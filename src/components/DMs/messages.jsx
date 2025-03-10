@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import SingleMessage from "./oneMessage";
+import GroupMessage from "./groupMessage";
 
 const myID = parseInt(localStorage.getItem("userID"), 10);
-const MessageList = ({ messages, onReply, onReact }) => {
+
+const MessageList = ({ messages, onReply, onReact, isGroup }) => {
   const messageListRef = useRef(null); 
 
   useEffect(() => {
@@ -13,7 +15,7 @@ const MessageList = ({ messages, onReply, onReact }) => {
 
   return (
     <div
-      ref={messageListRef} 
+      ref={messageListRef}
       style={{
         flex: 1,
         overflowY: "auto",
@@ -21,14 +23,23 @@ const MessageList = ({ messages, onReply, onReact }) => {
         backgroundColor: "#fff",
       }}
     >
-      {messages.map((message) => (
-        <SingleMessage
-          message={message}
-          isCurrentUser={message.sender === Number(myID)}
-          onReply={(msg) => onReply(msg)} 
-          onReact={onReact}
-        />
-      ))}
+      {isGroup
+        ? messages.map((message) => (
+            <GroupMessage
+              message={message}
+              isCurrentUser={message.sender === Number(myID)}
+              onReply={(msg) => onReply(msg)}
+              onReact={onReact}
+            />
+          ))
+        : messages.map((message) => (
+            <SingleMessage
+              message={message}
+              isCurrentUser={message.sender === Number(myID)}
+              onReply={(msg) => onReply(msg)}
+              onReact={onReact}
+            />
+          ))}
     </div>
   );
 };

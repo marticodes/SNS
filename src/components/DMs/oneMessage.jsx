@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MdOutlineReply, MdOutlineEmojiEmotions } from "react-icons/md";
 import EmojiPicker from "emoji-picker-react";
 
@@ -6,16 +6,38 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact, scrollToMessa
   const [hovered, setHovered] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [reaction, setReaction] = useState(null);
+  const [replyMessage, setReplyMessage] = useState(null);
 
   const handleEmojiClick = (emoji) => {
-    setReaction(emoji.emoji); // Update the reaction state
-    onReact(message, emoji.emoji); // Call the provided `onReact` callback
-    setShowEmojiPicker(false); // Hide the emoji picker after selection
+    setReaction(emoji.emoji); 
+    onReact(message, emoji.emoji); 
+    setShowEmojiPicker(false);
   };
 
   const toggleEmojiPicker = () => {
     setShowEmojiPicker((prev) => !prev);
   };
+
+  useEffect(() => {
+    const fetchReplyMessage = async () => {
+      if (message.replyTo) {
+        try {
+          const response = await fetch(`http://localhost:3001/api/user/message/id/${message.replyTo}`);
+          if (response.ok) {
+            const data = await response.json();
+            setReplyMessage(data.content);
+          } else {
+            console.error("Failed to fetch the reply message.");
+          }
+        } catch (error) {
+          console.error("Error fetching reply message:", error);
+        }
+      }
+    };
+
+    fetchReplyMessage();
+  }, [message.replyTo]);
+
 
   const iconContainer = (
     <div
@@ -43,7 +65,6 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact, scrollToMessa
         <MdOutlineReply />
       </button>
 
-      {/* Wrap the emoji button and picker in a relative container */}
       <div style={{ position: "relative", display: "inline-block" }}>
         <button
           style={{
@@ -87,7 +108,7 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact, scrollToMessa
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => {
         setHovered(false);
-        setShowEmojiPicker(false); // Hide emoji picker when not hovering
+        setShowEmojiPicker(false);
       }}
     >
       {isCurrentUser && iconContainer}
@@ -107,15 +128,17 @@ const SingleMessage = ({ message, isCurrentUser, onReply, onReact, scrollToMessa
         {/* Reply Section */}
         {message.replyTo && (
           <div
-            style={{
-              fontStyle: "italic",
-              color: isCurrentUser ? "#fff" : "#333",
-              marginBottom: "5px",
-              fontSize: "14px",
-            }}
+          style={{
+            fontStyle: "italic",
+            color: isCurrentUser ? "#fff" : "#000",
+            marginBottom: "5px",
+            fontSize: "14px",
+            borderLeft: isCurrentUser ? "2px solid rgb(255, 255, 255)" : "2px solid #7CB9E8",
+            paddingLeft: "8px",
+          }}
             onClick={() => scrollToMessage(message.replyTo.post_id)}
           >
-            Reply to: {message.replyTo.text}
+            Reply to: {replyMessage}
           </div>
         )}
 

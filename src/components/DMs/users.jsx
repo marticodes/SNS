@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { MdOutlineAddComment } from "react-icons/md";
-import NewChat from "../newChat"; // Import the component properly
+import { MdOutlineAddComment, MdGroups2 } from "react-icons/md";
+import NewChat from "../newChat";
 
 let globalCaseType = parseInt(localStorage.getItem("selectedCase"), 10);
 
 const UserList = ({ users, onUserClick}) => {
-  const [showNewChat, setShowNewChat] = useState(false); // State to control visibility of the newChat component
+  const [showNewChat, setShowNewChat] = useState(false);
 
   const userss = [
     { id: 1, name: "Alice Johnson", image: "https://via.placeholder.com/30" },
@@ -21,27 +21,27 @@ const UserList = ({ users, onUserClick}) => {
   ];
 
   const handleOpenNewChat = () => {
-    setShowNewChat(true); // Show the newChat component
+    setShowNewChat(true);
   };
 
   const handleCloseNewChat = () => {
-    setShowNewChat(false); // Hide the newChat component
+    setShowNewChat(false); 
   };
 
   const handleUserListUpdate = (newChat) => {
-    setUserList((prevList) => [...prevList, newChat]); // Add the new chat to the list
+    setUserList((prevList) => [...prevList, newChat]); 
   };
 
   return (
     <div
       style={{
-        height: "100vh", // Ensures the sidebar stretches to full page height
+        height: "100vh", 
         backgroundColor: "#ffffff",
         color: "#fff",
         padding: "10px",
-        overflowY: "auto", // Allows scrolling if there are too many users
+        overflowY: "auto", 
         borderRight: "0.1px solid #B0BEC5",
-        position: "relative", // Required for stacking NewChat box
+        position: "relative",
       }}
     >
       <h2
@@ -51,20 +51,20 @@ const UserList = ({ users, onUserClick}) => {
           textAlign: "center",
           paddingBottom: "10px",
           borderBottom: "0.1px solid #B0BEC5",
-          display: "flex", // Using flex to align items horizontally
-          justifyContent: "center", // Center the content
-          alignItems: "center", // Vertically align items
+          display: "flex", 
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
         Messages
         <span
           style={{
-            marginLeft: "80px", // Space between the text and icon
-            marginTop: "5px", // Center the icon vertically
-            marginBottom: "-5px", // Center the icon vertically
-            cursor: "pointer", // Make it clickable
+            marginLeft: "80px", 
+            marginTop: "5px",
+            marginBottom: "-5px", 
+            cursor: "pointer", 
           }}
-          onClick={handleOpenNewChat} // Call the handler
+          onClick={handleOpenNewChat} 
         >
           <MdOutlineAddComment size={20} />
         </span>
@@ -102,15 +102,26 @@ const UserList = ({ users, onUserClick}) => {
             onClick={() => onUserClick(chat)} // Call the function when the user is clicked
           >
             {/* Display user profile picture */}
-            <img
-              src={chat.image} // Use the dummy image URL based on user name
-              style={{
-                width: "30px",
-                height: "30px",
-                borderRadius: "50%",
-                marginRight: "10px",
-              }}
-            />
+            {chat.image ? (
+              <img
+                src={chat.image}
+                alt="Chat"
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  borderRadius: "50%",
+                  marginRight: "10px",
+                }}
+              />
+            ) : (
+              <MdGroups2
+                size={30}
+                style={{
+                  marginRight: "10px",
+                  color: "#032F50",
+                }}
+              />
+            )}
             {chat.name}
           </li>
         ))}

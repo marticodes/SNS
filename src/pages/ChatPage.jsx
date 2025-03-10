@@ -51,14 +51,16 @@ const ChatPage = () => {
                 })
               );
               displayName = groupNames.join(", "); // Group member names
-              chatimg = "https://via.placeholder.com/30";
+              chatimg = null;
             }
-            return { chat_id: chat.chat_id, name: displayName, image: chatimg };
+            return { chat_id: chat.chat_id, name: displayName, image: chatimg, group_chat: chat.group_chat };
           })
         );
         setchatList(updatedChatList);
       });
   }, []);
+
+  const isGroup = chatList.find(chat => chat.chat_id === currentChatId)?.group_chat || 0;
 
   useEffect(() => {
     if (currentChatId) {
@@ -67,8 +69,9 @@ const ChatPage = () => {
           .then((response) => response.json())
           .then((fetchedMessages) => {
             const transformedMessages = fetchedMessages.map((msg) => ({
+              id: msg.message_id,
               text: msg.content,
-              sender: msg.sender_id === userId ? "Me" : msg.sender_id,
+              sender: msg.sender_id,
               timestamp: msg.timestamp || "N/A",
               replyTo: msg.reply_id, 
             }));
@@ -80,7 +83,7 @@ const ChatPage = () => {
           .catch((error) => {
             console.error("Error fetching messages:", error);
           });
-      }, 500); //update chat every 0.5 seconds SO THAT I CAN GET MESSAGES FROM THE DATABASE CONSTANTLY 
+      }, 10000); //update chat every 0.5 seconds SO THAT I CAN GET MESSAGES FROM THE DATABASE CONSTANTLY 
       //Is there a better way to do this? because it might be really costly...
   
       return () => clearInterval(intervalId);
@@ -103,19 +106,17 @@ const ChatPage = () => {
         body: JSON.stringify({
           chat_id: currentChatId,
           sender_id: userId,
-          reply_id: replyTo?.sender || null, 
+          reply_id: replyTo?.id || null,     //THIS IS WRONG MUST CHANGE???? but with what...
           content: text,
           media_type: null, // Modify as needed
           media_url: null, // Modify as needed
           timestamp: new Date().toLocaleTimeString(),
         }),
       });
-      console.log("repluTo", replyTo);
   
       if (!response.ok) {
         throw new Error(`Failed to send message: ${response.statusText}`);
       }
-      console.log('Message sent:', response);
       setReplyTo(null);
     } catch (error) {
       console.error('Error sending message:', error);
@@ -146,7 +147,6 @@ const ChatPage = () => {
 
   const handleMessageReply = (message) => {
     setReplyTo(message);
-    console.log(message);
   };
 
   const handlechatListUpdate = (newChat) => {
@@ -202,6 +202,7 @@ const ChatPage = () => {
               messages={filteredMessages}
               currentUser={currentUser}
               onReply={handleMessageReply}
+              isGroup={isGroup}
             />
             <MessageInput
               onSendMessage={handleSendMessage}
