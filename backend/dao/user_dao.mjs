@@ -43,6 +43,26 @@ const UserDAO = {
         });
     },
 
+    async getActiveUsersInfo() {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT * FROM User WHERE status = ?';
+                db.all(sql, [1], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else if (rows.length === 0) {
+                        resolve(false);
+                    } else {
+                        const users = rows.map(row => new User(row.user_id, row.id_name, row.user_name, row.email, row.password, row.user_bio, row.profile_picture, row.status, row.visibility, row.activity_level));
+                        resolve(users);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
     async getActivityLevel(user_id){
         return new Promise((resolve, reject) => {
             try {

@@ -99,6 +99,17 @@ app.get('/api/users/active',
     } 
 );
 
+app.get('/api/users/active/info',
+  async (req, res) => {
+      try {
+        const user = await userDao.getActiveUsersInfo();
+        res.status(200).json(user);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error getting user info ${err}` });
+      }
+  } 
+);
+
 app.get('/api/is/user/active/:user_id',
   async (req, res) => {
       try {
