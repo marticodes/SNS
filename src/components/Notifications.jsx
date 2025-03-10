@@ -2,15 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { IoMdClose } from "react-icons/io";
 import ProfileCard from "../components/PopUpProfileCard";
+import { use } from "react";
 
-const notifications = [
-  { id: 0, type: "reaction", user: "user_a", postId: 103, reactionType: "love", timestamp: "2025-02-06 10:15 AM" },
-  { id: 1, type: "like", user: "user_x", postId: 101, timestamp: "2025-02-06 10:00 AM" },
-  { id: 2, type: "comment", user: "user_y", postId: 102, timestamp: "2025-02-06 09:45 AM" },
-  { id: 3, type: "follow", user: "user_z", timestamp: "2025-02-06 09:30 AM" },
-  { id: 4, type: "request", user: "user_w", timestamp: "2025-02-06 09:15 AM" },
-];
-
+const userId = localStorage.getItem("userID");
 const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
 
 export default function NotificationPanel({ onClose }) {
@@ -18,6 +12,32 @@ export default function NotificationPanel({ onClose }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const profileCardRef = useRef(null); 
   const [buttonStates, setButtonStates] = useState({});
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/api/notifs/id/${userId}`);
+        const data = await response.json();
+
+        const mappedNotifications = data.map((notif) => ({
+          notif_type: notif.notif_type,
+          user: `user_${notif.sender_id}`,
+          postId: notif.postId || null,
+          timestamp: notif.timestamp,
+          id: notif.notif_id,
+          myUserId: userId,
+        }));
+
+        setNotifications(mappedNotifications);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+    fetchNotifications();
+  }, []);
+
+  console.log(notifications);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -224,8 +244,8 @@ export default function NotificationPanel({ onClose }) {
     const followLabel = buttonStates[`follow-${notification.id}`] || "Follow";
     const requestLabel = buttonStates[`request-${notification.id}`] || null;
 
-    switch (notification.type) {
-      case "reaction":
+    switch (notification.notif_type) {
+      case 0:
         return (
           <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
             <p style={textStyle}>
@@ -234,7 +254,7 @@ export default function NotificationPanel({ onClose }) {
             <p style={timestampStyle}>{notification.timestamp}</p>
           </div>
         );
-      case "like":
+      case 1:
         return (
           <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
             <p style={textStyle}>
@@ -243,7 +263,7 @@ export default function NotificationPanel({ onClose }) {
             <p style={timestampStyle}>{notification.timestamp}</p>
           </div>
         );
-      case "comment":
+      case 2:
         return (
           <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
             <p style={textStyle}>
@@ -252,7 +272,7 @@ export default function NotificationPanel({ onClose }) {
             <p style={timestampStyle}>{notification.timestamp}</p>
           </div>
         );
-      case "follow":
+      case 3:
         return (
           <div style={notificationItemStyle}>
             <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
@@ -269,7 +289,7 @@ export default function NotificationPanel({ onClose }) {
             </button>
           </div>
         );
-      case "request":
+      case 4:
         return (
           <div style={notificationItemStyle}>
             <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
