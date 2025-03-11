@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
 import ProfileCard from "../components/PopUpProfileCard";
-import { use } from "react";
 
 const userId = localStorage.getItem("userID");
 const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
@@ -13,6 +12,9 @@ export default function NotificationPanel({ onClose }) {
   const profileCardRef = useRef(null); 
   const [buttonStates, setButtonStates] = useState({});
   const [notifications, setNotifications] = useState([]);
+  const [clickedButton, setClickedButton] = useState(null);
+  const [sender, setSender] = useState(null);
+  const [relationship, setRelationship] = useState("Loading...");
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -22,11 +24,12 @@ export default function NotificationPanel({ onClose }) {
 
         const mappedNotifications = data.map((notif) => ({
           notif_type: notif.notif_type,
-          user: `user_${notif.sender_id}`,
+          user: notif.sender_id,
           postId: notif.postId || null,
           timestamp: notif.timestamp,
           id: notif.notif_id,
           myUserId: userId,
+          sender_id: notif.sender_id,
         }));
 
         setNotifications(mappedNotifications);
@@ -37,7 +40,72 @@ export default function NotificationPanel({ onClose }) {
     fetchNotifications();
   }, []);
 
-  console.log(notifications);
+  useEffect(() => {
+    const fetchSenderInfo = async () => {
+      try {
+        const senderPromises = notifications.map(async (notification) => {
+          const response = await fetch(`http://localhost:3001/api/user/${notification.sender_id}`);
+          return response.json();
+        });
+  
+        const senderData = await Promise.all(senderPromises);
+        setSender(senderData);
+      } catch (error) {
+        console.error("Failed to fetch sender information:", error);
+      }
+    };
+  
+    if (notifications.length > 0) {
+      fetchSenderInfo();
+    }
+  }, [notifications]);  
+
+
+  const getRelationshipStatus = async (myUserId, targetUserId) => {
+    try {
+      console.log("myUserId:", myUserId);
+      console.log("targetUserId:", targetUserId);
+      // Case 1: Check if I follow them
+      let response = await fetch(`http://localhost:3001/api/relations/${myUserId}/${targetUserId}`);
+      let data = await response.json();
+      if (response.ok && data && data.relation_type === 2) {
+        return "Unfollow";
+      }    
+
+      // Case 2: Check if I requested them
+      response = await fetch(`http://localhost:3001/api/requests/${targetUserId}`);
+      data = await response.json();
+      console.log("Data:", data);
+      if (response.ok && Array.isArray(data) && data.some(item => String(item) === String(myUserId))) {
+        return "Requested";
+      }
+
+      // Case 3: Check if they follow me (invert user IDs)
+      response = await fetch(`http://localhost:3001/api/relations/${targetUserId}/${myUserId}`);
+      data = await response.json();
+      if (response.ok && data && data.relation_type === 2) {
+        return "Follow Back";
+      }
+
+      // Case 4: Default case
+      return "Follow";
+
+    } catch (error) {
+      console.error("Error fetching relationship status:", error);
+      return "Follow"; 
+    }
+  };
+
+  useEffect(() => {
+    const fetchRelationship = async () => {
+      if (selectedUser) {
+        const status = await getRelationshipStatus(userId, selectedUser);
+        setRelationship(status);
+      }
+    };
+
+    fetchRelationship();
+  }, [selectedUser, userId]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -73,8 +141,6 @@ export default function NotificationPanel({ onClose }) {
   };
 
   const handleFollowClick = async (isPrivate, myUserId, id) => {
-    console.log("Follow button clicked");
-    console.log("myUserId:", myUserId, "id:", id);
     if (isPrivate === 1) {
       await fetch("http://localhost:3001/api/requests/add", {
         method: "POST",
@@ -85,7 +151,7 @@ export default function NotificationPanel({ onClose }) {
       await fetch("http://localhost:3001/api/notifs/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notif_type: 4, sender_id: myUserId, receiver_id: id, timestamp: timestamp }),
+        body: JSON.stringify({ notif_type: 4, sender_id: myUserId, receiver_id: id, timestamp: new Date().toLocaleString() }),
       });
 
       setButtonStates((prevState) => ({
@@ -104,7 +170,7 @@ export default function NotificationPanel({ onClose }) {
       await fetch("http://localhost:3001/api/notifs/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notif_type: 3, sender_id: myUserId, receiver_id: id, timestamp: timestamp}),
+        body: JSON.stringify({ notif_type: 3, sender_id: myUserId, receiver_id: id, timestamp: new Date().toLocaleString() }),
       });
 
       setButtonStates((prevState) => ({
@@ -135,7 +201,7 @@ export default function NotificationPanel({ onClose }) {
     await fetch(`http://localhost:3001/api/notifs/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ notif_id: notifid}),
+      body: JSON.stringify({ notif_id:  parseInt(notifid,10)}),
     });
 
     setButtonStates((prevState) => ({
@@ -143,6 +209,7 @@ export default function NotificationPanel({ onClose }) {
       [`request-${id}`]: "Accepted",
     }));
 
+    //fetchNotifications();   i think i dont need this
   };
 
   const handleDeclineClick = async (id, myUserId) => {
@@ -153,19 +220,30 @@ export default function NotificationPanel({ onClose }) {
       body: JSON.stringify({ user_id_1: id, user_id_2: myUserId }),
     });
   
-    const notifIdResponse = await fetch(`http://localhost:3001/api/notifs/${myUserId}/4/${id}`);
-          const notifid = await notifIdResponse.json();
+    const notifIdResponse = await fetch(`http://localhost:3001/api/notifs/${id}/4/${myUserId}`);
+    const notifid = await notifIdResponse.json();
 
     await fetch(`http://localhost:3001/api/notifs/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ notif_id: notifid }), 
+      body: JSON.stringify({ notif_id: parseInt(notifid,10) }), 
     });
+
     setButtonStates((prevState) => ({
       ...prevState,
       [`request-${id}`]: "Declined",
     }));
-  
+
+    //fetchNotifications();
+  };
+
+  const handleButtonClick = (action, notification) => {
+    setClickedButton(action);
+    if (action === "Accept") {
+      handleAcceptClick(notification.sender_id, notification.myUserId);
+    } else if (action === "Decline") {
+      handleDeclineClick(notification.sender_id, notification.myUserId);
+    }
   };
 
   const panelStyle = {
@@ -283,7 +361,7 @@ export default function NotificationPanel({ onClose }) {
             </div>
             <button
               style={followButtonStyle}
-              onClick={() => handleFollowClick(notification.isPrivate, notification.myUserId, notification.id)}
+              onClick={() => handleFollowClick(notification.isPrivate, notification.myUserId, notification.sender_id)}   //FIX IS PRIVATE HERE
             >
               {followLabel}
             </button>
@@ -299,15 +377,22 @@ export default function NotificationPanel({ onClose }) {
               <p style={timestampStyle}>{notification.timestamp}</p>
             </div>
             <div style={{ display: "flex", gap: "10px" }}>
-              <button style={{ ...actionButtonStyle, backgroundColor: "green" }}
-                onClick={() => handleAcceptClick(notification.id, notification.myUserId)}>
-                {requestLabel === "Accepted" ? "Accepted" : "Accept"} 
-              </button>
-              <button
-                style={{ ...actionButtonStyle, backgroundColor: "red" }}
-                onClick={() => handleDeclineClick(notification.id, notification.myUserId)}>
-                {requestLabel === "Declined" ? "Declined" : "Decline"}
-              </button>
+              {clickedButton !== "Decline" && (
+                <button
+                  style={{ ...actionButtonStyle, backgroundColor: "green" }}
+                  onClick={() => handleButtonClick("Accept", notification)}
+                >
+                  {clickedButton === "Accept" ? "Accepted" : "Accept"}
+                </button>
+              )}
+              {clickedButton !== "Accept" && (
+                <button
+                  style={{ ...actionButtonStyle, backgroundColor: "red" }}
+                  onClick={() => handleButtonClick("Decline", notification)}
+                >
+                  {clickedButton === "Decline" ? "Declined" : "Decline"}
+                </button>
+              )}
             </div>
           </div>
         );
@@ -332,32 +417,40 @@ export default function NotificationPanel({ onClose }) {
       </div>
 
       {selectedUser && (
-        <div
-          ref={profileCardRef} // Assign ref to ProfileCard container
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 100,
-            backgroundColor: "rgba(255, 255, 255, 1)",
-            borderRadius: "10px",
-            padding: "20px",
-          }}
-        >
-          <ProfileCard
-            id={1}
-            username={selectedUser}
-            userid="@janedoe"
-            userPic={"profile_picture_url"}
-            bio="Photographer & Nature Lover"
-            onDMClick={handleDMClick}
-            relationship={"follower"}
-            isMyProfile={false}
-            onClose={handleCloseProfileCard} // Close button callback
-          />
-        </div>
-      )}
+  <div
+    ref={profileCardRef} // Assign ref to ProfileCard container
+    style={{
+      position: "fixed",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      zIndex: 100,
+      backgroundColor: "rgba(255, 255, 255, 1)",
+      borderRadius: "10px",
+      padding: "20px",
+    }}
+  >
+    <ProfileCard
+      id={selectedUser} // Pass the selected user's ID
+      username={
+        sender.find((user) => user.user_id === selectedUser)?.user_name || "Unknown"
+      }
+      userid={sender.find((user) => user.user_id === selectedUser)?.id_name || "unknown"}
+      userPic={
+        sender.find((user) => user.user_id === selectedUser)?.profile_picture || ""
+      }
+      bio={
+        sender.find((user) => user.user_id === selectedUser)?.user_bio ||
+        "No bio available."
+      }
+      onDMClick={handleDMClick}
+      relationship={relationship}
+      isMyProfile={false}
+      onClose={handleCloseProfileCard}
+    />
+  </div>
+)}
+
     </div>
   );
 }
