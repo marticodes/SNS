@@ -841,7 +841,10 @@ app.get('/api/notifs/:sender_id/:notif_type/:receiver_id/',
 app.listen(port, ()=> {
     console.log(`API server started at http://localhost:${port}`);
 });
-
+(async () => {
+  await Simulation.startSimulation();
+})();
+import Simulation from './simulation.mjs';
 
 
 
