@@ -732,6 +732,17 @@ app.get('/api/interests/:user_id/',
       }
 );
 
+app.post('/api/interest/add',
+  async (req, res) => {
+      try {
+        const ina = await uiDao.insertUserInterest(req.body.interest_name, req.body.user_id);
+        res.status(201).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error inserting user ${err}` });
+      }
+    }
+);
+
 app.get('/api/recomm/friends/interests/:user_id',
     async (req, res) => {
         try {
