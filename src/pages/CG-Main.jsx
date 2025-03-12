@@ -220,6 +220,7 @@ const CGPage = () => {
               currentCommunity={currentCommunity.comm_name}
               ProfilePics={currentCommunity.comm_image}
               onSearch={handleSearch}
+              bio={currentCommunity.comm_bio}
             />
             <MessageList
               messages={filteredMessages.map(msg => ({

@@ -20,8 +20,6 @@ const ProfileCard = ({ idname, username, id, userPic, bio, onDMClick }) => {
 
   const getRelationshipStatus = async (myID, targetUserId) => {
     try {
-      console.log("myID:", myID);
-      console.log("targetUserId:", targetUserId);
       // Case 1: Check if I follow them
       let response = await fetch(`http://localhost:3001/api/relations/${myID}/${targetUserId}`);
       let data = await response.json();
@@ -32,7 +30,6 @@ const ProfileCard = ({ idname, username, id, userPic, bio, onDMClick }) => {
       // Case 2: Check if I requested them
       response = await fetch(`http://localhost:3001/api/requests/${targetUserId}`);
       data = await response.json();
-      console.log("Data:", data);
       if (response.ok && Array.isArray(data) && data.some(item => String(item) === String(myID))) {
         return "Requested";
       }

@@ -58,13 +58,10 @@ export default function NotificationPanel({ onClose }) {
     if (notifications.length > 0) {
       fetchSenderInfo();
     }
-  }, [notifications]);  
-
+  }, [notifications]);
 
   const getRelationshipStatus = async (myUserId, targetUserId) => {
     try {
-      console.log("myUserId:", myUserId);
-      console.log("targetUserId:", targetUserId);
       // Case 1: Check if I follow them
       let response = await fetch(`http://localhost:3001/api/relations/${myUserId}/${targetUserId}`);
       let data = await response.json();
@@ -75,7 +72,6 @@ export default function NotificationPanel({ onClose }) {
       // Case 2: Check if I requested them
       response = await fetch(`http://localhost:3001/api/requests/${targetUserId}`);
       data = await response.json();
-      console.log("Data:", data);
       if (response.ok && Array.isArray(data) && data.some(item => String(item) === String(myUserId))) {
         return "Requested";
       }
@@ -195,7 +191,7 @@ export default function NotificationPanel({ onClose }) {
       body: JSON.stringify({ relation_type: 2, user_id_1: id, user_id_2: myUserId }),
     });
 
-    const notifIdResponse = await fetch(`http://localhost:3001/api/notifs/${myUserId}/4/${id}`);
+    const notifIdResponse = await fetch(`http://localhost:3001/api/notifs/${id}/4/${myUserId}`);
     const notifid = await notifIdResponse.json();
 
     await fetch(`http://localhost:3001/api/notifs/delete`, {
@@ -320,14 +316,14 @@ export default function NotificationPanel({ onClose }) {
   const renderNotification = (notification) => {
 
     const followLabel = buttonStates[`follow-${notification.id}`] || "Follow";
-    const requestLabel = buttonStates[`request-${notification.id}`] || null;
-
+    const senderName = sender?.find((user) => user.user_id === notification.sender_id)?.user_name || "Loading...";
+    
     switch (notification.notif_type) {
       case 0:
         return (
           <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
             <p style={textStyle}>
-              <strong>{notification.user}</strong> reacted to your post.
+              <strong>{senderName}</strong> reacted to your post.
             </p>
             <p style={timestampStyle}>{notification.timestamp}</p>
           </div>
@@ -345,7 +341,7 @@ export default function NotificationPanel({ onClose }) {
         return (
           <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
             <p style={textStyle}>
-              <strong>{notification.user}</strong> commented on your post.
+              <strong>{senderName}</strong> commented on your post.
             </p>
             <p style={timestampStyle}>{notification.timestamp}</p>
           </div>
@@ -355,7 +351,7 @@ export default function NotificationPanel({ onClose }) {
           <div style={notificationItemStyle}>
             <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
               <p style={textStyle}>
-                <strong>{notification.user}</strong> started following you.
+                <strong>{senderName}</strong> started following you.
               </p>
               <p style={timestampStyle}>{notification.timestamp}</p>
             </div>
@@ -372,7 +368,7 @@ export default function NotificationPanel({ onClose }) {
           <div style={notificationItemStyle}>
             <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
               <p style={textStyle}>
-                <strong>{notification.user}</strong> requested to follow you.
+                <strong>{senderName}</strong> requested to follow you.
               </p>
               <p style={timestampStyle}>{notification.timestamp}</p>
             </div>

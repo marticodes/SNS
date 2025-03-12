@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MdOutlineReply, MdOutlineEmojiEmotions } from "react-icons/md";
 import EmojiPicker from "emoji-picker-react";
+import ProfileCard from "../PopUpProfileCard";
 
 const GroupMessage = ({ message, isCurrentUser, onReply, onReact }) => {
   const [hovered, setHovered] = useState(false);
@@ -8,6 +9,9 @@ const GroupMessage = ({ message, isCurrentUser, onReply, onReact }) => {
   const [reaction, setReaction] = useState(null);
   const [replyMessage, setReplyMessage] = useState(null);
   const [userInfo, setUserInfo] = useState({ user_name: "", profile_picture: "" });
+  const [showProfileCard, setShowProfileCard] = useState(false);
+  const [profilePosition, setProfilePosition] = useState({ x: 0, y: 0 });
+  const profileCardRef = useRef(null);
 
   const handleEmojiClick = (emoji) => {
       setReaction(emoji.emoji); 
@@ -18,6 +22,25 @@ const GroupMessage = ({ message, isCurrentUser, onReply, onReact }) => {
     const toggleEmojiPicker = () => {
       setShowEmojiPicker((prev) => !prev);
     };
+
+    const handleNameClick = (e) => {
+      e.stopPropagation();
+      const rect = e.target.getBoundingClientRect();
+      setProfilePosition({ x: rect.right + 10, y: rect.top - 20 });
+      setShowProfileCard((prev) => !prev);
+    };
+  
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (profileCardRef.current && !profileCardRef.current.contains(event.target)) {
+          setShowProfileCard(false);
+        }
+      };
+        document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
 
     useEffect(() => {
       const fetchUserInfo = async () => {
@@ -152,7 +175,9 @@ const GroupMessage = ({ message, isCurrentUser, onReply, onReact }) => {
         <img src={userInfo
           ? userInfo.profile_picture
           : "https://www.gravatar.com/avatar/?d=identicon"} 
-          alt="Profile" style={{ width: "100%", height: "100%", borderRadius: "50%" }} />  
+          alt="Profile" style={{ width: "100%", height: "100%", borderRadius: "50%" }} 
+          onClick={handleNameClick}
+          />  
 
       </div>
 
@@ -167,6 +192,7 @@ const GroupMessage = ({ message, isCurrentUser, onReply, onReact }) => {
             color: isCurrentUser ? "#7CB9E8" : "#555",
             marginBottom: "3px",
           }}
+          onClick={handleNameClick}
         >
           {userInfo.user_name}{" "}
           <span style={{ fontSize: "12px", color: "#999", marginLeft: "5px" }}>
@@ -174,6 +200,28 @@ const GroupMessage = ({ message, isCurrentUser, onReply, onReact }) => {
           </span>
         </div>
         {!isCurrentUser && iconContainer}
+
+        {showProfileCard && (
+          <div
+            ref={profileCardRef}
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              zIndex: 1000,
+            }}
+          >
+
+          <ProfileCard
+            username={userInfo.user_name}
+            id={message.sender}
+            userPic={userInfo.profile_picture}
+            bio={userInfo.user_bio}
+            onDMClick={() => alert("DM button clicked")}
+          />
+        </div>
+
+)}
         
         {/* Message Bubble */}
         <div
