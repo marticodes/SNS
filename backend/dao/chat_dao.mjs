@@ -189,6 +189,21 @@ const ChatDAO = {
                 }
             });
         });
+    },
+
+    async deleteChat(chat_id){
+
+        return new Promise((resolve, reject) => {
+            const sql = 'DELETE FROM Chat WHERE chat_id=?';
+            db.run(sql, [chat_id], function (err) {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(this.changes > 0); 
+            });
+        });
+
+
     }
     
     

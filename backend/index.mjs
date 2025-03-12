@@ -577,6 +577,17 @@ app.delete('/api/read/receipts/delete',
     }
 );
 
+app.delete('/api/chat/delete/',
+  async (req, res) => {
+      try {
+        const ina = await chatDao.deleteChat(req.body.chat_id);
+        res.status(200).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error deleting chat ${err}` });
+      }
+    }
+);
+
 app.get('/api/chats/unread/all/:user_id',
   async (req, res) => {
       try {
