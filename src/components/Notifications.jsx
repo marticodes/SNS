@@ -147,7 +147,7 @@ export default function NotificationPanel({ onClose }) {
       await fetch("http://localhost:3001/api/notifs/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notif_type: 4, sender_id: myUserId, receiver_id: id, timestamp: new Date().toLocaleString() }),
+        body: JSON.stringify({ notif_type: 4, sender_id: myUserId, receiver_id: id, timestamp: new Date().toISOString() }),
       });
 
       setButtonStates((prevState) => ({
@@ -166,7 +166,7 @@ export default function NotificationPanel({ onClose }) {
       await fetch("http://localhost:3001/api/notifs/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notif_type: 3, sender_id: myUserId, receiver_id: id, timestamp: new Date().toLocaleString() }),
+        body: JSON.stringify({ notif_type: 3, sender_id: myUserId, receiver_id: id, timestamp: new Date().toISOString() }),
       });
 
       setButtonStates((prevState) => ({

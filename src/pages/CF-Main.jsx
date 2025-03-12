@@ -65,7 +65,7 @@ const CFPage = () => {
     const newMessage = {
       text,
       sender: currentUser,
-      timestamp: new Date().toLocaleTimeString(),
+      timestamp: new Date().toISOString(),
       replyTo: replyTo ? { sender: replyTo.sender, text: replyTo.text } : null, // Include reply information if there's a reply
     };
 

@@ -110,7 +110,7 @@ const ChatPage = () => {
           content: text,
           media_type: null, // Modify as needed
           media_url: null, // Modify as needed
-          timestamp: new Date().toLocaleTimeString(),
+          timestamp: new Date().toISOString(),
         }),
       });
   
