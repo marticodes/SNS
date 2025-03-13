@@ -191,6 +191,27 @@ const ChatDAO = {
         });
     },
 
+    async isExistingChat(user_id_1, user_id_2) {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT 1 
+                FROM Chat 
+                WHERE 
+                    (user_id_1 = ? AND user_id_2 = ?) 
+                    OR (user_id_1 = ? AND user_id_2 = ?)
+                    AND group_chat = 0;
+            `;
+    
+            db.get(sql, [user_id_1, user_id_2, user_id_2, user_id_1], (err, row) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(!!row);
+                }
+            });
+        });
+    },
+
     async deleteChat(chat_id){
 
         return new Promise((resolve, reject) => {
