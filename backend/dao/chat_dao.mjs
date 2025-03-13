@@ -7,7 +7,7 @@ const ChatDAO = {
     async insertDM(user_id_1, user_id_2, chat_name, chat_image) {
         return new Promise((resolve, reject) => {
             try {
-                timestamp = new Date().toISOString();
+                const timestamp = new Date().toISOString();
                 const sql = 'INSERT INTO Chat (user_id_1, user_id_2, group_chat, chat_name, chat_image, timestamp) VALUES (?,?,?,?,?,?)';
                 db.run(sql, [user_id_1, user_id_2, 0, chat_name, chat_image, timestamp], function(err) {
                     if (err) {
@@ -46,7 +46,7 @@ const ChatDAO = {
         return new Promise((resolve, reject) => {
             try {
                 db.run('BEGIN TRANSACTION'); // Start a transaction
-                timestamp = new Date().toISOString();
+                const timestamp = new Date().toISOString();
                 // Insert into Chat table (user_id_1 and user_id_2 are NULL for group chats)
                 const sqlChat = 'INSERT INTO Chat (user_id_1, user_id_2, group_chat, chat_name, chat_image, timestamp) VALUES (NULL, NULL, 1, ?, ?, ?)';
                 db.run(sqlChat, [chat_name, chat_image, timestamp], function (err) {
