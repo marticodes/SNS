@@ -1,52 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import UserList from "../components/DMs/users.jsx";
+import ChatList from "../components/DMs/users.jsx";
 import MessageList from "../components/DMs/messages.jsx";
 import MessageInput from "../components/DMs/message_input.jsx";
 import ChatHeader from "../components/DMs/chatheader.jsx";
 import NavBar from "../components/NavBar/Small.jsx";
 
-const caseNumb = 1; // Change this to test different cases
-
-const ProfilePics = {
-  "Kim Namjoon": "https://via.placeholder.com/30/FF0000/FFFFFF?text=User",
-  "Kim Seokjin": "https://via.placeholder.com/30?text=KS",
-  "Min Yoongi": "https://via.placeholder.com/30?text=MY",
-  "Jung Hoseok": "https://via.placeholder.com/30?text=JH",
-  "Park Jimin": "https://via.placeholder.com/30?text=PJ",
-};
+const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
+const userId = localStorage.getItem("userID");
 
 const ChatPage = () => {
   const location = useLocation();
-  const [messages, setMessages] = useState({
-    "Kim Namjoon": [
-      { text: "Hey, what's up?", sender: "Kim Namjoon", timestamp: "10:15 AM" },
-      { text: "Not much, just chilling. You?", sender: "Me", timestamp: "10:16 AM" },
-      { text: "Same here. Want to grab coffee later?", sender: "Kim Namjoon", timestamp: "10:17 AM" },
-    ],
-    "Kim Seokjin": [
-      { text: "How was your day?", sender: "Kim Seokjin", timestamp: "9:30 AM" },
-      { text: "Pretty good, thanks! How about you?", sender: "Me", timestamp: "9:31 AM" },
-      { text: "Busy as usual, but manageable.", sender: "Kim Seokjin", timestamp: "9:32 AM" },
-    ],
-    "Min Yoongi": [
-      { text: "Got any plans for the weekend?", sender: "Min Yoongi", timestamp: "5:00 PM" },
-      { text: "I was thinking about a movie night. You?", sender: "Me", timestamp: "5:01 PM" },
-      { text: "Sounds good. What movie?", sender: "Min Yoongi", timestamp: "5:02 PM" },
-    ],
-  });
+  const [messages, setMessages] = useState({});
   const [currentUser, setCurrentUser] = useState("Me");
   const [currentChatUser, setCurrentChatUser] = useState(null);
+  const [currentChatId, setCurrentChatId] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredMessages, setFilteredMessages] = useState([]);
-  const [userList, setUserList] = useState([
-    "Kim Namjoon",
-    "Kim Seokjin",
-    "Min Yoongi",
-    "Jung Hoseok",
-    "Park Jimin",
-  ]);
+  const [chatList, setchatList] = useState([]);
 
   useEffect(() => {
     if (location.state?.chatUser) {
@@ -54,63 +26,137 @@ const ChatPage = () => {
     }
   }, [location.state]);
 
-  const handleSendMessage = (text) => {
-    const newMessage = {
-      text,
-      sender: currentUser,
-      timestamp: new Date().toLocaleTimeString(),
-      replyTo: replyTo ? { sender: replyTo.sender, text: replyTo.text } : null, // Include reply information if there's a reply
-    };
+  useEffect(() => {
+    fetch(`http://localhost:3001/api/chats/all/${userId}`)
+      .then((response) => response.json())
+      .then(async (chats) => {
+        const updatedChatList = await Promise.all(
+          chats.map(async (chat) => {
+            let displayName;
+            let chatimg;
+            if (chat.group_chat === 0) {
+              const otherUserId = chat.user_id_1 === userId ? chat.user_id_2 : chat.user_id_1;
+              const userResponse = await fetch(`http://localhost:3001/api/user/${otherUserId}`);
+              const userData = await userResponse.json();
+              displayName = userData.id_name;
+              chatimg = userData.profile_picture;
+            } else {
+              const groupResponse = await fetch(`http://localhost:3001/api/members/chat/${chat.chat_id}`);
+              const groupData = await groupResponse.json();
+              const groupNames = await Promise.all(
+                groupData.map(async (member) => {
+                  const userResponse = await fetch(`http://localhost:3001/api/user/${member}`);
+                  const userData = await userResponse.json();
+                  return userData.id_name;
+                })
+              );
+              displayName = groupNames.join(", "); // Group member names
+              chatimg = null;
+            }
+            return { chat_id: chat.chat_id, name: displayName, image: chatimg, group_chat: chat.group_chat };
+          })
+        );
+        setchatList(updatedChatList);
+      });
+  }, []);
 
-    setMessages((prev) => {
-      const userMessages = prev[currentChatUser] || [];
-      return {
-        ...prev,
-        [currentChatUser]: [...userMessages, newMessage],
-      };
-    });
-    setReplyTo(null); // Reset reply after sending the message
-  };
+  const isGroup = chatList.find(chat => chat.chat_id === currentChatId)?.group_chat || 0;
 
   useEffect(() => {
-      setFilteredMessages(messages[currentChatUser] || []);
-    }, [currentChatUser, messages]);
+    if (currentChatId) {
+      const intervalId = setInterval(() => {
+        fetch(`http://localhost:3001/api/user/messages/all/${currentChatId}`)
+          .then((response) => response.json())
+          .then((fetchedMessages) => {
+            const transformedMessages = fetchedMessages.map((msg) => ({
+              id: msg.message_id,
+              text: msg.content,
+              sender: msg.sender_id,
+              timestamp: msg.timestamp || "N/A",
+              replyTo: msg.reply_id, 
+            }));
+            setMessages((prev) => ({
+              ...prev,
+              [currentChatId]: transformedMessages, 
+            }));
+          })
+          .catch((error) => {
+            console.error("Error fetching messages:", error);
+          });
+      }, 10000); //update chat every 0.5 seconds SO THAT I CAN GET MESSAGES FROM THE DATABASE CONSTANTLY 
+      //Is there a better way to do this? because it might be really costly...
+  
+      return () => clearInterval(intervalId);
+    }
+  }, [currentChatId]);
+  
+
+  useEffect(() => {
+    setFilteredMessages(messages[currentChatId] || []);
+  }, [currentChatId, messages]);
+
+  const handleSendMessage = async (text) => {
+  
+    try {
+      const response = await fetch('http://localhost:3001/api/messages/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: currentChatId,
+          sender_id: userId,
+          reply_id: replyTo?.id || null,     //THIS IS WRONG MUST CHANGE???? but with what...
+          content: text,
+          media_type: null, // Modify as needed
+          media_url: null, // Modify as needed
+          timestamp: new Date().toLocaleTimeString(),
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to send message: ${response.statusText}`);
+      }
+      setReplyTo(null);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+  
 
   const handleSearch = (query) => {
     setSearchQuery(query);
     if (query) {
-      const filtered = (messages[currentChatUser] || []).filter((msg) =>
+      const filtered = (messages[currentChatId] || []).filter((msg) =>
         msg.text.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredMessages(filtered);
     } else {
-      setFilteredMessages(messages[currentChatUser] || []);
+      setFilteredMessages(messages[currentChatId] || []);
     }
   };
 
   const handleCancelReply = () => {
-    setReplyTo(null); // Clear the replyTo state
+    setReplyTo(null);
   };
 
-  const handleUserClick = (user) => {
-    setCurrentChatUser(user);
+  const handleUserClick = (chat) => {
+    setCurrentChatUser(chat.name);
+    setCurrentChatId(chat.chat_id); 
   };
 
   const handleMessageReply = (message) => {
-    setReplyTo(message); // Set the message to reply to
-  };
-  
-  const handleMessageReact = (message, emoji) => {
-     // CHANGE THIS WITH POST REQUEST
+    setReplyTo(message);
   };
 
-  const handleUserListUpdate = (newChat) => {
-    setUserList((prevList) => [...prevList, newChat.name]); // Add the new chat to the list
+  const handlechatListUpdate = (newChat) => {
+    setchatList((prevList) => [...prevList, { chat_id: newChat.id, name: newChat.name, image: "https://via.placeholder.com/30" }]);
     setMessages((prev) => ({
       ...prev,
-      [newChat.name]: [], // Initialize an empty message list for the new chat
+      [newChat.id]: [], // Initialize an empty message list for the new chat
     }));
-    setCurrentChatUser(newChat.name); // Navigate to the new chat
+    setCurrentChatUser(newChat.name);
+    setCurrentChatId(newChat.id);
   };
 
   return (
@@ -129,11 +175,10 @@ const ChatPage = () => {
           overflowY: "auto",
         }}
       >
-        <UserList
-          users={userList}
+        <ChatList
+          users={chatList}
           onUserClick={handleUserClick}
-          ProfilePics={ProfilePics}
-          onUserListUpdate={handleUserListUpdate} // Pass the function to update the user list
+          onchatListUpdate={handlechatListUpdate} // Pass the function to update the user list
         />
       </div>
 
@@ -150,19 +195,19 @@ const ChatPage = () => {
           <>
             <ChatHeader
               currentChatUser={currentChatUser}
-              ProfilePics={ProfilePics}
-              onSearch={handleSearch} // Pass onSearch function
+              ProfilePics={chatList.find((chat) => chat.name === currentChatUser)?.image}
+              onSearch={handleSearch}
             />
             <MessageList
               messages={filteredMessages}
               currentUser={currentUser}
               onReply={handleMessageReply}
-              onReact={handleMessageReact}
+              isGroup={isGroup}
             />
             <MessageInput
               onSendMessage={handleSendMessage}
-              replyTo={replyTo} // Show the message being replied to
-              onCancelReply={handleCancelReply} // Handle cancel reply
+              replyTo={replyTo}
+              onCancelReply={handleCancelReply}
             />
           </>
         )}
@@ -172,4 +217,3 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
-

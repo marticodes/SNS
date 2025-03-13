@@ -1,14 +1,15 @@
 import React, { useState, useRef } from "react";
 
+const caseId = localStorage.getItem("selectedCase");
+
 const ProfileEdit = ({
-  initialName,
+  userId,
   initialBio,
   initialImage,
   initialPrivateProfile,
   onSave,
   onClose,
 }) => {
-  const [name, setName] = useState(initialName || "");
   const [bio, setBio] = useState(initialBio || "");
   const [privateProfile, setPrivateProfile] = useState(initialPrivateProfile || false);
   const [profileImage, setProfileImage] = useState(initialImage || "https://via.placeholder.com/150");
@@ -16,9 +17,25 @@ const ProfileEdit = ({
 
   const fileInputRef = useRef(null);
 
-  const handleConfirmChanges = () => {
+ const handleConfirmChanges = async () => {
     setErrorMessage("");
-    onSave({ name, bio, privateProfile, profileImage });
+    try {
+      await fetch("http://localhost:3001/api/user/update/bio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, user_bio: bio }),
+      }) ;
+
+      await fetch("http://localhost:3001/api/user/update/picture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, profile_picture: profileImage }),
+      });
+
+      onSave({ bio, privateProfile, profileImage });
+    } catch (error) {
+      setErrorMessage("Error saving changes. Please try again.");
+    }
   };
 
   const handleEditImage = () => {
@@ -65,28 +82,21 @@ const ProfileEdit = ({
         </div>
 
         <div className="input-group">
-          <label>Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-
-        <div className="input-group">
           <label>Bio</label>
           <textarea value={bio} onChange={(e) => setBio(e.target.value)} />
         </div>
 
-        <div className="input-group toggle-group">
-          <label>Private Profile</label>
-          <div
-            className={`toggle ${privateProfile ? "active" : ""}`}
-            onClick={() => setPrivateProfile(!privateProfile)}
-          >
-            <div className="toggle-thumb"></div>
+        {[1, 2].includes(caseId) && (
+          <div className="input-group toggle-group">
+            <label>Private Profile</label>
+            <div
+              className={`toggle ${privateProfile ? "active" : ""}`}
+              onClick={() => setPrivateProfile(!privateProfile)}
+            >
+              <div className="toggle-thumb"></div>
+            </div>
           </div>
-        </div>
+        )}
 
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
@@ -131,8 +141,8 @@ const ProfileEdit = ({
         .profile-image {
           width: 100px;
           height: 100px;
-          background: #f0f0f0;
           border-radius: 50%;
+          border: 1px solid #7CB9E8;
           overflow: hidden;
           margin: 0 auto;
           display: flex;

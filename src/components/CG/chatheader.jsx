@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const ChatHeader = ({ currentChatUser, ProfilePics, onSearch }) => {
+const ChatHeader = ({ currentCommunity, ProfilePics, onSearch }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e) => {
@@ -21,10 +21,10 @@ const ChatHeader = ({ currentChatUser, ProfilePics, onSearch }) => {
       }}
     >
       <div style={{ display: "flex", alignItems: "center" }}>
-        {currentChatUser && (
+        {currentCommunity && (
           <img
-            src={ProfilePics[currentChatUser]}
-            alt={`${currentChatUser}'s avatar`}
+            src={ProfilePics}
+            alt={`${currentCommunity}'s avatar`}
             style={{
               width: "30px",
               height: "30px",
@@ -34,7 +34,7 @@ const ChatHeader = ({ currentChatUser, ProfilePics, onSearch }) => {
           />
         )}
         <h2 style={{ margin: 0, color: "#032F50" }}>
-          {currentChatUser || "."}
+          {currentCommunity || "."}
         </h2>
       </div>
       <input

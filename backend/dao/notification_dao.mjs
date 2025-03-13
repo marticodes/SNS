@@ -2,7 +2,7 @@ import db from '../db.mjs';
 import Notification from '../models/notification_model.mjs';
 
 const NotificationDAO = {
-    async addNotification(content, notif_type, sender_id, receiver_id, timestamp){
+    async addSingularNotification(content, notif_type, sender_id, receiver_id, timestamp){
         return new Promise((resolve, reject) => {
             try {
                 const sql = 'INSERT INTO Notification (content, notif_type, sender_id, receiver_id, timestamp) VALUES (?,?,?,?,?)';
@@ -22,18 +22,22 @@ const NotificationDAO = {
         });
     },
 
+    async addGroupNotification(){
+
+    },
+
     async getNotificationByUserId(user_id){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'SELECT * FROM Notification WHERE user_id = ?';
-                db.get(sql, [user_id], (err, row) => {
+                const sql = 'SELECT * FROM Notification WHERE receiver_id = ?';
+                db.all(sql, [user_id], (err, rows) => {
                     if (err) {
                         reject(err);
-                    } else if (row.length === 0) {
+                    } else if (rows.length === 0) {
                         resolve(false);
                     } else {
-                        const notif = new Notification(row.content, row.notif_type, row.sender_id, row.receiver_id, row.timestamp);
-                        resolve(notif);
+                        const notifs = rows.map(row => new Notification(row.notif_id, row.content, row.notif_type, row.sender_id, row.receiver_id, row.timestamp));
+                        resolve(notifs);
                     }
                 });
             } catch (error) {
@@ -42,6 +46,19 @@ const NotificationDAO = {
         });
     },
 
+    async  getSpecificNotification(sender_id, notif_type, receiver_id) {
+        const sql = 'SELECT notif_id FROM Notification WHERE sender_id = ? AND notif_type = ? AND receiver_id = ?';
+    
+        return new Promise((resolve, reject) => {
+            db.all(sql, [sender_id, notif_type, receiver_id], (err, rows) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(rows.length > 0 ? rows.map(row => row.notif_id) : false);
+            });
+        });
+    },
+    
     async getNotificationByType(notif_type, receiver_id){
         return new Promise((resolve, reject) => {
             try {

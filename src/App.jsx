@@ -20,7 +20,7 @@ const App = () => {
           <Route
             path="/"
             element={
-              <div style={{ textAlign: "center" }}>
+              <div style={{ textAlign: "center", color: "#34495e" }}>
                 <h1>Welcome</h1>
                 <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                   <Link to="/login" style={navButtonStyle} onClick={() => handleClick(1)}>
@@ -43,7 +43,7 @@ const App = () => {
           <Route path="/case/2" element={<NCPage />} />
           <Route path="/case/3" element={<CFPage />} />
           <Route path="/case/4" element={<CGPage />} />
-          <Route path="/user" element={<UserPage />} />
+          <Route path="/user/:userId" element={<UserPage />} />
           <Route path="/dms" element={<ChatPage />} />+
           <Route path="/login" element={<LogIn />} />
         </Routes>

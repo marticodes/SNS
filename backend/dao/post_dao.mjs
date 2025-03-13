@@ -5,7 +5,7 @@ const PostDAO = {
     async getAllPosts(user_id){
         return new Promise((resolve, reject) => {
             try {         
-                const sql = 'SELECT * FROM Post WHERE user_id=?';
+                const sql = 'SELECT * FROM Post WHERE user_id=? ORDER BY timestamp DESC';
                 db.all(sql, [user_id], (err, rows) => {
                     if (err) {
                         reject(err);
@@ -41,6 +41,28 @@ const PostDAO = {
             }
         });
     },
+
+    async getPostContent(chat_id) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT * FROM Message WHERE chat_id = ? ORDER BY timestamp ASC';
+    
+                db.all(sql, [chat_id], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else if (rows.length === 0) {
+                        resolve([]);
+                    } else {
+                        const messages= rows.map(row => row.content);
+                        resolve(messages);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
 
     async searchPostByTopic(topic){
         return new Promise((resolve, reject) => {
@@ -126,7 +148,6 @@ const PostDAO = {
 
     async updatePost(post_id, content) {
         return new Promise((resolve, reject) => {
-            //TODO: Change topic as well.
             try {
                 const hashtagMatch = content.match(/#(\w+)/);
                 const hashtag = hashtagMatch ? hashtagMatch[1] : null;

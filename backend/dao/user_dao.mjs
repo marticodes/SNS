@@ -2,6 +2,7 @@ import db from '../db.mjs';
 import User from '../models/user_model.mjs';
 
 const UserDAO = {
+
     async getUserInfo(user_id) {
         return new Promise((resolve, reject) => {
             try {
@@ -12,7 +13,7 @@ const UserDAO = {
                     } else if (!row) {
                         resolve(false);
                     } else {
-                        const user = new User(row.user_id, row.id_name, row.user_name, row.email, row.password, row.user_bio, row.profile_picture, row.status, row.visibility);
+                        const user = new User(row.user_id, row.id_name, row.user_name, row.email, row.password, row.user_bio, row.profile_picture, row.status, row.visibility, row.activity_level);
                         resolve(user);
                     }
                 });
@@ -42,6 +43,66 @@ const UserDAO = {
         });
     },
 
+    async getActiveUsersInfo() {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT * FROM User WHERE status = ?';
+                db.all(sql, [1], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else if (rows.length === 0) {
+                        resolve(false);
+                    } else {
+                        const users = rows.map(row => new User(row.user_id, row.id_name, row.user_name, row.email, row.password, row.user_bio, row.profile_picture, row.status, row.visibility, row.activity_level));
+                        resolve(users);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async getActivityLevel(user_id){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT activity_level FROM User WHERE user_id = ?';
+                db.get(sql, [user_id], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve(false);
+                    } else {
+                        const activity_level = row.activity_level;
+                        resolve(activity_level);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async isActiveUser(user_id) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT status FROM User WHERE user_id = ?';
+                db.get(sql, [user_id], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve(false);
+                    } else {
+                        const status = row.status;
+                        resolve(status);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
     async updateUserStatus(user_id, status){
         return new Promise((resolve, reject) => {
             try {
@@ -62,8 +123,8 @@ const UserDAO = {
     async insertUser(id_name, user_name, email, password, user_bio, profile_picture) {
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO User (id_name, user_name, email, password, user_bio, profile_picture, status, visibility) VALUES (?,?,?,?,?,?,?,?)';
-                db.run(sql, [id_name, user_name, email, password, user_bio, profile_picture, 1, 1], function(err) { 
+                const sql = 'INSERT INTO User (id_name, user_name, email, password, user_bio, profile_picture, status, visibility, activity_level) VALUES (?,?,?,?,?,?,?,?,?)';
+                db.run(sql, [id_name, user_name, email, password, user_bio, profile_picture, 1, 1, 7], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 

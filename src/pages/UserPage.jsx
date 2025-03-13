@@ -1,24 +1,142 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useParams } from 'react-router-dom';
 import ProfileCard from "../components/Profile/ProfileCard";
 import NavBar from "../components/NavBar/Full";
 import Feed from "../components/NF-NG/Feed";
 
+const fetchRelation = async (userId, relationType) => {
+  try {
+    let response;
+    if (relationType === 2) {
+      response = await fetch(`http://localhost:3001/api/relations/all/${userId}/2`);
+    } else {
+      response = await fetch(`http://localhost:3001/api/with/relations/${userId}/2`);
+    }
+    if (!response.ok) {
+      throw new Error(`Error fetching relation for ${userId}`);
+    }
+
+    const userIds = await response.json();
+    return userIds.length;
+  } catch (error) {
+    console.error(error);
+    return 0; // Return 0 if there was an error
+  }
+};
+
+const getRelationshipStatus = async (myUserId, targetUserId) => {
+  try {
+    console.log("myUserId:", myUserId);
+    console.log("targetUserId:", targetUserId);
+    // Case 1: Check if I follow them
+    let response = await fetch(`http://localhost:3001/api/relations/${myUserId}/${targetUserId}`);
+    let data = await response.json();
+    if (response.ok && data && data.relation_type === 2) {
+      return "Unfollow";
+    }    
+
+    // Case 2: Check if I requested them
+    response = await fetch(`http://localhost:3001/api/requests/${targetUserId}`);
+    data = await response.json();
+    console.log("Data:", data);
+    if (response.ok && Array.isArray(data) && data.some(item => String(item) === String(myUserId))) {
+      return "Requested";
+    }
+
+    // Case 3: Check if they follow me (invert user IDs)
+    response = await fetch(`http://localhost:3001/api/relations/${targetUserId}/${myUserId}`);
+    data = await response.json();
+    if (response.ok && data && data.relation_type === 2) {
+      return "Follow Back";
+    }
+
+    // Case 4: Default case
+    return "Follow";
+
+  } catch (error) {
+    console.error("Error fetching relationship status:", error);
+    return "Follow"; 
+  }
+};
+
+
 const UserPage = () => {
   const navigate = useNavigate();
+  const { userId } = useParams();
+  const [user, setUser] = useState({
+    user_name: "",
+    user_id: "",
+    user_bio: "",
+    profile_picture: "",
+    isPrivate: 0,
+    relationship: "Not Found",
+  });
+  const [followersCount, setFollowersCount] = useState(0); // State for followers count
+  const [followingCount, setFollowingCount] = useState(0); // State for following count
+  const [loading, setLoading] = useState(true);
 
   const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
-  const globalUserId = parseInt(localStorage.getItem("userID"), 10);
+  const myUserId = localStorage.getItem("userID");
 
-  console.log("caseNumb: ", caseNumb);
-  console.log("globalUserId: ", globalUserId);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
 
-  const user = {
-    user_name: "Jane Doe",
-    profile_picture: "./src/dummy-profile-img.jpg",
-    isPrivate: true, // Set this to `false` for public profiles
-    relationship: "Following", // Options: "Following", "Follow Back", "Follow", "Requested", "Unfollow"
+        const response = await fetch(`http://localhost:3001/api/user/${userId}`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+
+        setUser({
+          user_name: data.user_name,
+          profile_picture: data.profile_picture,
+          user_id: data.id_name,
+          user_bio: data.user_bio,
+          isPrivate: data.visibility,
+          relationship: "Not Found",
+        });
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [userId]);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      const status = await getRelationshipStatus(myUserId, userId);
+      setUser((prevUser) => ({ ...prevUser, relationship: status }));
+    };
+  
+    if (userId) {
+      fetchStatus();
+    }
+  }, [myUserId, userId]); 
+
+  const updateRelationshipStatus = async () => {
+    const status = await getRelationshipStatus(myUserId, userId);
+    setUser((prevUser) => ({ ...prevUser, relationship: status }));
   };
+
+  useEffect(() => {
+    // Fetch the follower count and following count
+    const fetchCounts = async () => {
+      const followers = await fetchRelation(userId, 1); // Followers count
+      const following = await fetchRelation(userId, 2); // Following count
+      setFollowersCount(followers); // Set followers count
+      setFollowingCount(following); // Set following count
+    };
+
+    fetchCounts();
+  }, [userId]);
+
+  console.log("Relatioooon:", user.relationship);
 
   const posts = [
     {
@@ -38,44 +156,24 @@ const UserPage = () => {
           { profileImg: "./src/dummy-profile-img-2.jpg", userName: "John Smith" },
           { profileImg: "./src/dummy-profile-img-4.jpeg", userName: "Alice Brown" },
         ],
-        emojiReactions: [
-          { profileImg: "./src/dummy-profile-img-3.jpg", userName: "Bob Smith", emoji: "😂" },
-          { profileImg: "./src/dummy-profile-img-4.jpeg", userName: "Charlie Lee", emoji: "❤️" },
-        ],
         upvotedUsers: 10,
         downvotedUsers: 2,
         shares: 3,
       },
-      comments: [
-        {
-          id: 101,
-          profileImg: "./src/dummy-profile-img-2.jpg",
-          userName: "John Smith",
-          text: "Awesome post!",
-          replies: [
-            {
-              id: 201,
-              profileImg: "./src/dummy-profile-img-4.jpeg",
-              userName: "Alice Brown",
-              text: "Agreed!",
-            },
-          ],
-        },
-        {
-          id: 102,
-          profileImg: "./src/dummy-profile-img-4.jpeg",
-          userName: "Alice Brown",
-          text: "Really nice!",
-          replies: [],
-        },
-      ],
     },
   ];
 
-  // Handle Direct Message
   const handleDMClick = () => {
     navigate("/dms", { state: { chatUser: "Kim Seokjin" } });
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <div>User not found</div>;
+  }
 
   return (
     <div style={pageStyle}>
@@ -89,20 +187,22 @@ const UserPage = () => {
         <div style={centerContentStyle}>
           {/* Profile Card */}
           <ProfileCard
-            id={1}
-            username= {user.user_name}
-            userid="@janedoe"
+            username={user.user_name}
+            id={userId}
+            userid={`@${user.user_id}`}
             userPic={user.profile_picture}
-            bio="Photographer & Nature Lover"
-            followers={1200}
-            following={600}
+            bio={user.user_bio}
+            followers={followersCount} // Use followersCount here
+            following={followingCount} // Use followingCount here
             onDMClick={handleDMClick}
+            isPrivate={user.isPrivate}
             relationship={user.relationship}
-            isMyProfile={globalUserId === 1}
+            isMyProfile={myUserId === userId}
+            updateRelationshipStatus={updateRelationshipStatus}
           />
 
           {/* User's Posts */}
-          {user.relationship === "Following" || !user.isPrivate ? (
+          {user.relationship === "Unfollow" || !user.isPrivate || (myUserId === userId) ? (
             <>
               <h2 style={feedTitleStyle}>Posts</h2>
               <Feed user={user} posts={posts} />

@@ -12,13 +12,13 @@ const formatTimestamp = (timestamp) => {
   });
 };
 
-const SingleMessage = ({ message, onReply, onReact }) => {
+const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
   const [hovered, setHovered] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [reaction, setReaction] = useState(null);
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [profilePosition, setProfilePosition] = useState({ x: 0, y: 0 });
-  const profileCardRef = useRef(null); // Ref for the profile card
+  const profileCardRef = useRef(null);
   const timeoutRef = useRef(null);
 
   const handleEmojiClick = (emoji) => {
@@ -40,11 +40,10 @@ const SingleMessage = ({ message, onReply, onReact }) => {
   const handleNameClick = (e) => {
     e.stopPropagation();
     const rect = e.target.getBoundingClientRect();
-    setProfilePosition({ x: rect.right + 10, y: rect.top });
+    setProfilePosition({ x: rect.right + 10, y: rect.top - 20 });
     setShowProfileCard((prev) => !prev);
   };
 
-  // Detect click outside the profile card to hide it
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileCardRef.current && !profileCardRef.current.contains(event.target)) {
@@ -188,11 +187,9 @@ const SingleMessage = ({ message, onReply, onReact }) => {
           >
             <ProfileCard
               username={message.sender}
-              id={24}
+              id={message.user_id}
               userPic={`https://i.pravatar.cc/120?u=${message.sender}`}
               bio = {`This is the bio of ${message.sender}`}
-              onFollowClick={() => alert("Follow button clicked")}     //CHANGE
-              isFollowing={false}
               onDMClick={() => alert("DM button clicked")}     //CHANGE
             />
           </div>
@@ -231,6 +228,7 @@ const SingleMessage = ({ message, onReply, onReact }) => {
                 borderLeft: "2px solid #7CB9E8",
                 paddingLeft: "8px",
               }}
+              onClick={() => scrollToMessage(message.replyTo.post_id)}
             >
               Reply to {message.replyTo.sender}: {message.replyTo.text}
             </div>
