@@ -215,14 +215,28 @@ const ChatDAO = {
     async deleteChat(chat_id){
 
         return new Promise((resolve, reject) => {
-            const sql = 'DELETE FROM Chat WHERE chat_id=?';
-            db.run(sql, [chat_id], function (err) {
+            const checkMessagesSql = 'SELECT COUNT(*) AS message_count FROM Message WHERE chat_id = ?';
+        
+            db.get(checkMessagesSql, [chat_id], (err, row) => {
                 if (err) {
                     return reject(err);
                 }
-                resolve(this.changes > 0); 
+        
+                if (row.message_count === 0) {
+                    const deleteChatSql = 'DELETE FROM Chat WHERE chat_id = ?';
+        
+                    db.run(deleteChatSql, [chat_id], function (err) {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve(this.changes > 0); 
+                    });
+                } else {
+                    resolve(false);
+                }
             });
         });
+        
 
 
     }
