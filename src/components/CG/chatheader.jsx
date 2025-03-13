@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const ChatHeader = ({ currentCommunity, ProfilePics, onSearch }) => {
+const ChatHeader = ({ currentCommunity, ProfilePics, onSearch, bio }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e) => {
@@ -20,11 +20,11 @@ const ChatHeader = ({ currentCommunity, ProfilePics, onSearch }) => {
         borderBottom: "0.1px solid #ddd",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center" }}>
+      <div style={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
         {currentCommunity && (
           <img
             src={ProfilePics}
-            alt={`${currentCommunity}'s avatar`}
+            alt="Profile"
             style={{
               width: "30px",
               height: "30px",
@@ -33,9 +33,26 @@ const ChatHeader = ({ currentCommunity, ProfilePics, onSearch }) => {
             }}
           />
         )}
-        <h2 style={{ margin: 0, color: "#032F50" }}>
-          {currentCommunity || "."}
-        </h2>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <h2 style={{ margin: 0, color: "#032F50", fontSize: "18px" }}>
+            {currentCommunity || "."}
+          </h2>
+          {bio && (
+            <span
+              style={{
+                fontSize: "12px",
+                color: "#777",
+                maxWidth: "200px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+              title={bio} // Show full bio on hover
+            >
+              {bio}
+            </span>
+          )}
+        </div>
       </div>
       <input
         type="text"
