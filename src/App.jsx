@@ -41,7 +41,7 @@ const App = () => {
           />
           <Route path="/case/1/*" element={<NFPage />} />
           <Route path="/case/2" element={<NCPage />} />
-          <Route path="/case/3" element={<CFPage />} />
+          <Route path="/case/3/*" element={<CFPage />} />
           <Route path="/case/4" element={<CGPage />} />
           <Route path="/user/:userId" element={<UserPage />} />
           <Route path="/dms/*" element={<ChatPage />} />

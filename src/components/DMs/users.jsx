@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { MdOutlineAddComment, MdGroups2 } from "react-icons/md";
 import NewChat from "../newChat";
-import { useParams, useNavigate } from "react-router-dom";
 
 let globalCaseType = parseInt(localStorage.getItem("selectedCase"), 10);
 
 const UserList = ({ users, onUserClick}) => {
   const [showNewChat, setShowNewChat] = useState(false);
+
+  console.log(users);
 
   const handleOpenNewChat = () => {
     setShowNewChat(true);
@@ -14,10 +15,6 @@ const UserList = ({ users, onUserClick}) => {
 
   const handleCloseNewChat = () => {
     setShowNewChat(false); 
-  };
-
-  const handleUserListUpdate = (newChat) => {
-    setUserList((prevList) => [...prevList, newChat]); 
   };
 
   return (
@@ -58,14 +55,12 @@ const UserList = ({ users, onUserClick}) => {
         </span>
       </h2>
 
-      {/* Render the newChat modal */}
       {showNewChat && (
         <div style={styles.modalBackdrop}>
           <div style={styles.modalContainer}>
             <NewChat
               caseType={globalCaseType}
               closeModal={handleCloseNewChat}
-              onUserListUpdate={handleUserListUpdate} // Pass the function to update the user list
             />
           </div>
         </div>

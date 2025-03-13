@@ -7,8 +7,30 @@ const ProfileCard = ({ idname, username, id, userPic, bio }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [relationship, setRelationship] = useState("Loading...");
 
-  const onDMClick = () => {
+  const onDMClick = async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/chat/${myID}/${id}`);
+      const data = await response.json();
 
+      if (response.ok && data?.chat_id) {
+        navigate(`/dms/${data.chat_id}`);
+      } else {
+        const newChatResponse = await fetch("http://localhost:3001/api/chats/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id_1: myID, user_id_2: id, chat_name: null, chat_image: null }),
+        });
+
+        const newChatData = await newChatResponse.json();
+        if (newChatResponse.ok && newChatData?.chat_id) {
+          navigate(`/dms/${newChatData.chat_id}`);
+        } else {
+          console.error("Failed to create chat:", newChatData);
+        }
+      }
+    } catch (error) {
+      console.error("Error handling DM click:", error);
+    }
   };
 
   useEffect(() => {

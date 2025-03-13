@@ -8,11 +8,11 @@ import ChatHeader from "../components/DMs/chatheader.jsx";
 import NavBar from "../components/NavBar/Small.jsx";
 
 const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
-const userId = localStorage.getItem("userID");
 
 const ChatPage = () => {
   const { chatId } = useParams();
   const navigate = useNavigate();
+  const userId = parseInt(localStorage.getItem("userID"), 10);
   const [messages, setMessages] = useState({});
   const [currentUser, setCurrentUser] = useState("Me");
   const [currentChatUser, setCurrentChatUser] = useState(null);
@@ -36,7 +36,7 @@ const ChatPage = () => {
             let displayName;
             let chatimg;
             if (chat.group_chat === 0) {
-              const otherUserId = chat.user_id_1 === userId ? chat.user_id_2 : chat.user_id_1;
+              const otherUserId = parseInt(chat.user_id_1, 10) === userId ? parseInt(chat.user_id_2, 10) : chat.user_id_1;
               const userResponse = await fetch(`http://localhost:3001/api/user/${otherUserId}`);
               const userData = await userResponse.json();
               displayName = userData.id_name;
@@ -51,7 +51,7 @@ const ChatPage = () => {
                   return userData.id_name;
                 })
               );
-              displayName = groupNames.join(", "); // Group member names
+              displayName = groupNames.join(", ");
               chatimg = null;
             }
             return { chat_id: chat.chat_id, name: displayName, image: chatimg, group_chat: chat.group_chat };
@@ -180,7 +180,7 @@ const ChatPage = () => {
         <ChatList
           users={chatList}
           onUserClick={handleUserClick}
-          onchatListUpdate={handlechatListUpdate} // Pass the function to update the user list
+          onchatListUpdate={handlechatListUpdate}
         />
       </div>
 
