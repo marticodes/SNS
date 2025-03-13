@@ -776,6 +776,17 @@ app.get('/api/recomm/feed/friends/:user_id/',
       }
 );
 
+app.get('/api/recomm/feed/channel/:comm_id/',
+  async (req, res) => {
+      try {
+        const posts = await feedDao.getChannelFeed(req.params.comm_id);
+        res.status(200).json(posts);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error populating feed (channel) ${err}` });
+      }
+    }
+);
+
 app.get('/api/recomm/feed/combined/:user_id/',
   async (req, res) => {
       try {
