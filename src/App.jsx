@@ -44,7 +44,7 @@ const App = () => {
           <Route path="/case/3" element={<CFPage />} />
           <Route path="/case/4" element={<CGPage />} />
           <Route path="/user/:userId" element={<UserPage />} />
-          <Route path="/dms" element={<ChatPage />} />+
+          <Route path="/dms/*" element={<ChatPage />} />
           <Route path="/login" element={<LogIn />} />
         </Routes>
       </div>

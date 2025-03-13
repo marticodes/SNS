@@ -1,24 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { MdOutlineAddComment, MdGroups2 } from "react-icons/md";
 import NewChat from "../newChat";
+import { useParams, useNavigate } from "react-router-dom";
 
 let globalCaseType = parseInt(localStorage.getItem("selectedCase"), 10);
 
 const UserList = ({ users, onUserClick}) => {
   const [showNewChat, setShowNewChat] = useState(false);
-
-  const userss = [
-    { id: 1, name: "Alice Johnson", image: "https://via.placeholder.com/30" },
-    { id: 2, name: "Bob Smith", image: "https://via.placeholder.com/30"},
-    { id: 3, name: "Charlie Brown", image: "https://via.placeholder.com/30" },
-    { id: 4, name: "Daisy Carter", image: "https://via.placeholder.com/30" },
-    { id: 5, name: "Ethan Wright", image: "https://via.placeholder.com/30" },
-    { id: 6, name: "Fiona Davis", image: "https://via.placeholder.com/30" },
-    { id: 7, name: "George Miller", image: "https://via.placeholder.com/30" },
-    { id: 8, name: "Hannah Wilson", image: "https://via.placeholder.com/30" },
-    { id: 9, name: "Ian Clark", image: "https://via.placeholder.com/30" },
-    { id: 10, name: "Jane Moore", image: "https://via.placeholder.com/30" },
-  ];
 
   const handleOpenNewChat = () => {
     setShowNewChat(true);
@@ -76,7 +64,6 @@ const UserList = ({ users, onUserClick}) => {
           <div style={styles.modalContainer}>
             <NewChat
               caseType={globalCaseType}
-              users={userss}
               closeModal={handleCloseNewChat}
               onUserListUpdate={handleUserListUpdate} // Pass the function to update the user list
             />

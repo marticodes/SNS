@@ -3,9 +3,13 @@ import ProfileEdit from "./Profile/EditProfile";
 
 const myID = parseInt(localStorage.getItem("userID"), 10);
 
-const ProfileCard = ({ idname, username, id, userPic, bio, onDMClick }) => {
+const ProfileCard = ({ idname, username, id, userPic, bio }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [relationship, setRelationship] = useState("Loading...");
+
+  const onDMClick = () => {
+
+  };
 
   useEffect(() => {
     const fetchRelationship = async () => {

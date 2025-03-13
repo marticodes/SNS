@@ -1,11 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const NewChat = ({ caseType, users, closeModal, onUserListUpdate }) => {
+const NewChat = ({ caseType, closeModal, onUserListUpdate }) => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState(users);
   const navigate = useNavigate();
+
+  const userId = parseInt(localStorage.getItem("userID"), 10);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/api/users/active/info");
+        const formattedUsers = response.data.map((user) => ({
+          id: user.user_id,
+          name: user.user_name,
+          image: user.profile_picture,
+        }));
+        setUsers(formattedUsers);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     setFilteredUsers(
@@ -37,20 +59,71 @@ const NewChat = ({ caseType, users, closeModal, onUserListUpdate }) => {
     }
   };
 
-  const handleStartChat = () => {
-    const newChat = {
-      id: Date.now(),
-      name: selectedUsers.map(user => user.name).join(", "), // Create a name based on selected users
-      users: selectedUsers,
-    };
-
-    onUserListUpdate(newChat);
-
-    // Navigate to the new chat
-    if (caseType === 1 || caseType === 2 || caseType === 4) navigate("/dms", { state: { chatUser: newChat.name } });
-    if (caseType === 3) navigate("/case/3", { state: { chatUser: newChat.name } });
-    closeModal();
-  };
+  const handleStartChat = async () => {
+    if (selectedUsers.length === 0) return;
+  
+    console.log(selectedUsers);
+  
+    try {
+      let response;
+      let newChat;
+  
+      if (selectedUsers.length === 1) {
+        // 1-to-1 Chat
+        const user1Id = selectedUsers[0].id;
+        console.log(user1Id);
+  
+        response = await fetch("http://localhost:3001/api/chats/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id_1: userId, 
+            user_id_2: user1Id,
+            chat_name: null,
+            chat_image: null,
+          }),
+        });
+  
+      } else {
+        // Group Chat
+        const userIds = selectedUsers.map(user => user.id);
+        console.log(userIds);
+  
+        response = await fetch("http://localhost:3001/api/chats/group/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_ids: userIds,
+            chat_name: selectedUsers.map(user => user.name).join(", "), 
+            chat_image: null,
+          }),
+        });
+      }
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+  
+      newChat = {
+        id: data.ina, // Get the chat ID from API response
+        name: selectedUsers.length === 1 ? selectedUsers[0].name : selectedUsers.map(user => user.name).join(", "),
+        users: selectedUsers,
+      };
+  
+      onUserListUpdate(newChat);
+  
+      if (caseType === 1 || caseType === 2 || caseType === 4) 
+        navigate("/dms", { state: { chatUser: newChat.name } });
+      if (caseType === 3) 
+        navigate("/case/3", { state: { chatUser: newChat.name } });
+  
+      closeModal();
+    } catch (error) {
+      console.error("Error creating chat:", error);
+    }
+  };  
 
   if (caseType === 1 || caseType === 3) {
     return (
