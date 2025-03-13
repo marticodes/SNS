@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const NewChat = ({ caseType, closeModal, onUserListUpdate }) => {
+const NewChat = ({ caseType, closeModal }) => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState([]);
@@ -111,8 +111,6 @@ const NewChat = ({ caseType, closeModal, onUserListUpdate }) => {
         name: selectedUsers.length === 1 ? selectedUsers[0].name : selectedUsers.map(user => user.name).join(", "),
         users: selectedUsers,
       };
-  
-      onUserListUpdate(newChat);
   
       if (caseType === 1 || caseType === 2 || caseType === 4) 
         navigate("/dms", { state: { chatUser: newChat.name } });
