@@ -5,6 +5,7 @@
 //4: updating
 //5: comm
 //6: notification
+//7: creation agents
 
 export default function ActionLogs(action_id, user_id, action_type, content, timestamp){
     this.action_id = action_id;
