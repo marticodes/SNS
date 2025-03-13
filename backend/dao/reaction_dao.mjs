@@ -112,14 +112,21 @@ const ReactionDAO = {
     async insertPostReaction(reaction_type, emote_type, post_id, user_id, timestamp) {
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO Reaction (reaction_type, emote_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?)';
+                const sql = 'INSERT INTO Reaction (reaction_type, emote_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?,?)';
                 db.run(sql, [reaction_type, emote_type, post_id, 0, 0, 0, user_id, timestamp], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
                         resolve(false);
                     } else {
-                        const id = this.lastID; 
+                        const id = this.lastID;
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+            db.run(log_sql, [ user_id, 2, `Inserted a reaction to post with id ${post_id}`, timestamp], function (log_err) {
+                if (log_err) {
+                              return reject(log_err);
+                            }
+            }); 
                         resolve(id);
                     }
                 });
@@ -132,14 +139,21 @@ const ReactionDAO = {
     async insertCommentReaction(reaction_type, emote_type, comment_id, user_id, timestamp){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO Reaction (reaction_type, emote_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?)';
+                const sql = 'INSERT INTO Reaction (reaction_type, emote_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?,?)';
                 db.run(sql, [reaction_type, emote_type, 0, comment_id, 0, 0, user_id, timestamp], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
                         resolve(false);
                     } else {
-                        const id = this.lastID; 
+                        const id = this.lastID;
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                        db.run(log_sql, [ user_id, 2, `Inserted a reaction to comment with id ${comment_id}`, timestamp], function (log_err) {
+                            if (log_err) {
+                                        return reject(log_err);
+                                        }
+                        });  
                         resolve(id);
                     }
                 });
@@ -152,14 +166,21 @@ const ReactionDAO = {
     async insertMessageReaction(reaction_type, emote_type, chat_id, message_id, user_id, timestamp){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO Reaction (reaction_type, emote_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?)';
+                const sql = 'INSERT INTO Reaction (reaction_type, emote_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?,?)';
                 db.run(sql, [reaction_type, emote_type, 0, 0,chat_id, message_id, user_id, timestamp], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
                         resolve(false);
                     } else {
-                        const id = this.lastID; 
+                        const id = this.lastID;
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                        db.run(log_sql, [ user_id, 2, `Inserted a reaction to message with id ${message_id}`, timestamp], function (log_err) {
+                            if (log_err) {
+                                        return reject(log_err);
+                                        }
+                        });  
                         resolve(id);
                     }
                 });

@@ -63,6 +63,14 @@ const MessageDAO = {
                     });
                 });
             });
+
+            const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+            db.run(log_sql, [ sender_id, 3, `Sent a Message "${content}"`, timestamp], function (log_err) {
+                if (log_err) {
+                              return reject(log_err);
+                            }
+            });          
     
             await Promise.all(insertReceipts);
             return message_id;

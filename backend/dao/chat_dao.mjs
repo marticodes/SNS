@@ -13,7 +13,14 @@ const ChatDAO = {
                     if (err) {
                         reject(err);
                     } else if (this.changes > 0) {
-                        const id = this.lastID; 
+                        const id = this.lastID;
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                        db.run(log_sql, [user_id_1, 3, `Created DM with user ${user_id_2}`, timestamp], function (log_err) {
+                            if (log_err) {
+                                return reject(log_err);
+                            }
+                        }); 
                         resolve(id);
                     } else {
                         resolve(false);
@@ -45,16 +52,16 @@ const ChatDAO = {
     async insertGroupChat(user_ids, chat_name, chat_image) {
         return new Promise((resolve, reject) => {
             try {
-                db.run('BEGIN TRANSACTION'); // Start a transaction
+                db.run('BEGIN TRANSACTION');
                 const timestamp = new Date().toISOString();
                 // Insert into Chat table (user_id_1 and user_id_2 are NULL for group chats)
                 const sqlChat = 'INSERT INTO Chat (user_id_1, user_id_2, group_chat, chat_name, chat_image, timestamp) VALUES (NULL, NULL, 1, ?, ?, ?)';
                 db.run(sqlChat, [chat_name, chat_image, timestamp], function (err) {
                     if (err) {
-                        db.run('ROLLBACK'); // Rollback transaction if chat insert fails
+                        db.run('ROLLBACK'); 
                         reject(err);
                     } else {
-                        const chat_id = this.lastID; // Get the newly created chat_id
+                        const chat_id = this.lastID; 
                         
                         // Insert all users into GCMembership
                         const sqlMembership = 'INSERT INTO GCMembership (chat_id, user_id) VALUES ' + 
@@ -64,17 +71,25 @@ const ChatDAO = {
     
                         db.run(sqlMembership, membershipValues, function (err) {
                             if (err) {
-                                db.run('ROLLBACK'); // Rollback transaction if membership insert fails
+                                db.run('ROLLBACK'); 
                                 reject(err);
                             } else {
-                                db.run('COMMIT'); // Commit transaction if everything succeeds
+                                db.run('COMMIT'); 
                                 resolve(chat_id);
+                            }
+                        });
+
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                        db.run(log_sql, [user_ids[0], 3, `Created group chat with name ${chat_name}`, timestamp], function (log_err) {
+                            if (log_err) {
+                                return reject(log_err);
                             }
                         });
                     }
                 });
             } catch (error) {
-                db.run('ROLLBACK'); // Ensure rollback on unexpected error
+                db.run('ROLLBACK'); 
                 reject(error);
             }
         });

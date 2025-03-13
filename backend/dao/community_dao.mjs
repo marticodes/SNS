@@ -22,6 +22,7 @@ const CommunityDAO = {
         });
     },
 
+//TODO
     async createNewChannel(comm_name, comm_image, comm_bio){
         return new Promise((resolve, reject) => {
             try {
@@ -32,7 +33,16 @@ const CommunityDAO = {
                     } else if (this.changes === 0) { 
                         resolve(false);
                     } else {
+                        const timestamp = new Date().toISOString();
+
                         const id = this.lastID; 
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                        db.run(log_sql, [ 0, 5, `New community "${comm_name}" has been created`, timestamp], function (log_err) {
+                            if (log_err) {
+                                return reject(log_err);
+                            }
+                        });
                         resolve(id);
                     }
                 });
