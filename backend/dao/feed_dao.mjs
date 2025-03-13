@@ -74,6 +74,28 @@ const FeedDAO = {
             throw err;
         }
     },
+
+    async getChannelFeed(comm_id){
+
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT *
+                FROM Post 
+                WHERE comm_id = ?
+                ORDER BY timestamp DESC;
+            `;
+    
+            db.all(sql, [comm_id], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    const posts= rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id, row.hashtag));
+                    resolve(posts);
+                }
+            });
+        });
+
+    },
     
     async  getEphemeralPosts(userId){
         return new Promise((resolve, reject) => {
