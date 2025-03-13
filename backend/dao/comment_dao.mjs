@@ -25,6 +25,7 @@ const CommentDAO = {
     async insertComment(parent_id, user_id, content, media_type, media_url, timestamp, visibility, post) {
         return new Promise((resolve, reject) => {
             try {
+                 timestamp = new Date().toISOString();
                 const sql = 'INSERT INTO Comment (parent_id, user_id, content, media_type, media_url, timestamp, visibility, post) VALUES (?,?,?,?,?,?,?,?)';
                 db.run(sql, [parent_id, user_id, content, media_type, media_url, timestamp, visibility, post], function(err) { 
                     if (err) {
@@ -33,6 +34,13 @@ const CommentDAO = {
                         resolve(false);
                     } else {
                         const id = this.lastID; 
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                        db.run(log_sql, [user_id, 1, `Added a comment "${content}"`, timestamp], function (log_err) {
+                            if (log_err) {
+                                return reject(log_err);
+                            }
+                        });
                         resolve(id);
                     }
                 });

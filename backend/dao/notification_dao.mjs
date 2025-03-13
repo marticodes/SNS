@@ -87,6 +87,15 @@ const NotificationDAO = {
                 if (err) {
                     return reject(err);
                 }
+                //TODO
+                const timestamp = new Date().toISOString();
+                const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                                db.run(log_sql, [ 0 , 1, `Removed notification with id ${notif_id}`, timestamp], function (log_err) {
+                                    if (log_err) {
+                                        return reject(log_err);
+                                    }
+                                });
                 resolve(this.changes > 0); 
             });
         });

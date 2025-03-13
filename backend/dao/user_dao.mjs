@@ -130,7 +130,15 @@ const UserDAO = {
                     } else if (this.changes === 0) { 
                         resolve(false);
                     } else {
-                        const id = this.lastID; 
+                        const timestamp = new Date().toISOString();
+                        const id = this.lastID;
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                        db.run(log_sql, [ id, 5, `Created an account`, timestamp], function (log_err) {
+                            if (log_err) {
+                                        return reject(log_err);
+                                        }
+                        });  
                         resolve(id);
                     }
                 });
@@ -205,6 +213,15 @@ const UserDAO = {
                     if (err) {
                       reject(err);
                     }else {
+                        const timestamp = new Date().toISOString();
+
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                        db.run(log_sql, [ user_id, 4, `Updated bio to ${user_bio}`, timestamp], function (log_err) {
+                            if (log_err) {
+                                        return reject(log_err);
+                                        }
+                        });  
                       resolve(this.changes > 0);
                     }
                 });

@@ -10,6 +10,15 @@ const ReceiptsDAO = {
                 if (err) {
                     return reject(err);
                 }
+                const timestamp = new Date().toISOString();
+
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                        db.run(log_sql, [ user_id, 3, `Read all messages in chat with id${chat_id}`, timestamp], function (log_err) {
+                            if (log_err) {
+                                        return reject(log_err);
+                                        }
+                        });  
                 resolve(this.changes > 0); 
             });
         });

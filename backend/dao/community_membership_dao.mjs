@@ -26,12 +26,32 @@ const CMemberDAO = {
     async addChannel(user_id, comm_id){
         return new Promise((resolve, reject) => {
             try {
+                let comm_name = "";
+                const timestamp = new Date().toISOString();
                 const sql = 'INSERT INTO CommunityMembership (user_id, comm_id) VALUES (?,?)';
                 db.run(sql, [user_id, comm_id], function(err) {
                     if (err) {
                         reject(err);
                     } else if (this.changes > 0) {
                         const id = this.lastID; 
+
+                        const comm_sql = 'SELECT comm_name FROM Community WHERE comm_id = ?';
+                        db.get(comm_sql, [comm_id], (err, row) => {
+                            if (err) {
+                                reject(err);
+                            } else if (row.length === 0) {
+                                resolve(false);
+                            } else {
+                                comm_name = row.comm_name;
+                                const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                                db.run(log_sql, [user_id, 1, `Joined the community "${comm_name}"`, timestamp], function (log_err) {
+                                    if (log_err) {
+                                        return reject(log_err);
+                                    }
+                                });
+                            }
+                        });
                         resolve(id);
                     } else {
                         resolve(false);

@@ -51,7 +51,7 @@ const ActionChoice = {
 
         // Perform other actions if still online
         const actions = [
-             {action: "Update user bio", weight: user_trait.updating_trait},
+             {action: "Update user bio", weight: user_trait.updating_trait},//
              {action: "Start new DM", weight: user_trait.comm_trait},
              {action: "Start new group chat", weight: user_trait.comm_trait},
              {action: "Add comment on post", weight: user_trait.commenting_trait},
@@ -59,14 +59,14 @@ const ActionChoice = {
              {action: "Create new channel", weight: user_trait.comm_trait},
              {action: "Send message", weight: user_trait.messaging_trait},
              {action: "Add post", weight: user_trait.posting_trait},
-             {action: "Update post visibility", weight: user_trait.updating_trait},
+             {action: "Update post visibility", weight: user_trait.updating_trait},//
              {action: "React", weight: user_trait.reacting_trait},
              {action: "Send friend request", weight: user_trait.comm_trait},
              {action: "Delete relation", weight: user_trait.notification_trait},
              {action: "Update relation", weight: user_trait.updating_trait},
              {action: "Update restriction", weight: user_trait.updating_trait},
              {action: "View a story", weight: user_trait.comm_trait},
-             {action: "Read unread messages", weight: user_trait.notification_trait},
+             {action: "Read unread messages", weight: user_trait.notification_trait},//
         ];       
         
         let totalWeight = actions.reduce((sum, a) => sum + a.weight, 0);
