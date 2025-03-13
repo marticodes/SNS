@@ -3,11 +3,53 @@ import { MdOutlineAddComment, MdGroups2 } from "react-icons/md";
 import NewChat from "../newChat";
 
 let globalCaseType = parseInt(localStorage.getItem("selectedCase"), 10);
+let userId = parseInt(localStorage.getItem("userID"), 10);
 
 const UserList = ({ users, onUserClick}) => {
   const [showNewChat, setShowNewChat] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState({}); // Stores unread counts per chat
 
-  console.log(users);
+  useEffect(() => {
+    const fetchUnreadCounts = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/api/chats/unread/all/${userId}`);
+        const data = await response.json();
+
+        const counts = data.reduce((acc, chatId) => {
+          acc[chatId] = (acc[chatId] || 0) + 1;
+          return acc;
+        }, {});
+
+        setUnreadCounts(counts);
+      } catch (error) {
+        console.error("Error fetching unread messages:", error);
+      }
+    };
+
+    fetchUnreadCounts();
+  }, [userId]);
+
+  const handleChatClick = async (chat) => {
+    onUserClick(chat);
+
+    if (unreadCounts[chat.chat_id]) {
+      // Mark messages as read
+      try {
+        await fetch("http://localhost:3001/api/read/receipts/delete", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chat.chat_id, user_id: userId }),
+        });
+
+        setUnreadCounts((prevCounts) => ({
+          ...prevCounts,
+          [chat.chat_id]: 0, 
+        }));
+      } catch (error) {
+        console.error("Error marking messages as read:", error);
+      }
+    }
+  };
 
   const handleOpenNewChat = () => {
     setShowNewChat(true);
@@ -81,7 +123,7 @@ const UserList = ({ users, onUserClick}) => {
               borderRadius: "3px",
               color: "#000000",
             }}
-            onClick={() => onUserClick(chat)} // Call the function when the user is clicked
+            onClick={() => handleChatClick(chat)} // Call the function when the user is clicked
           >
             {/* Display user profile picture */}
             {chat.image ? (
@@ -105,6 +147,11 @@ const UserList = ({ users, onUserClick}) => {
               />
             )}
             {chat.name}
+            {unreadCounts[chat.chat_id] > 0 && (
+              <span style={{ marginLeft: "auto", backgroundColor: "red", color: "white", borderRadius: "80%", padding: "3px 7px", fontSize: "10px" }}>
+                {unreadCounts[chat.chat_id]}
+              </span>
+            )}
           </li>
         ))}
       </ul>

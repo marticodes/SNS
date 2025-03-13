@@ -46,7 +46,12 @@ function LogIn() {
                     const data = await response.json();
                     if (data) {
                         localStorage.setItem("userID", data);
-                        navigate(`/case/${selectedCase || 3}`);
+                        if (selectedCase != 3){
+                            navigate(`/case/${selectedCase}`);
+                        }
+                        else {
+                            navigate(`/dms`);
+                        }
                         setLoginResult(`Welcome user ${data}`); // Handle success
                     } else {
                         setLoginResult("Invalid credentials."); // Handle failure
