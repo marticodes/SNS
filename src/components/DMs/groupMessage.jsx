@@ -217,7 +217,6 @@ const GroupMessage = ({ message, isCurrentUser, onReply, onReact }) => {
             id={message.sender}
             userPic={userInfo.profile_picture}
             bio={userInfo.user_bio}
-            onDMClick={() => alert("DM button clicked")}
           />
         </div>
 

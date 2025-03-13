@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ChatList from "../components/DMs/users.jsx";
 import MessageList from "../components/DMs/messages.jsx";
 import MessageInput from "../components/DMs/message_input.jsx";
@@ -10,7 +11,8 @@ const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
 const userId = localStorage.getItem("userID");
 
 const ChatPage = () => {
-  const location = useLocation();
+  const { chatId } = useParams();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState({});
   const [currentUser, setCurrentUser] = useState("Me");
   const [currentChatUser, setCurrentChatUser] = useState(null);
@@ -19,12 +21,11 @@ const ChatPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [chatList, setchatList] = useState([]);
+  
 
   useEffect(() => {
-    if (location.state?.chatUser) {
-      setCurrentChatUser(location.state.chatUser);
-    }
-  }, [location.state]);
+    setCurrentChatId(chatId);
+  }, [chatId]);
 
   useEffect(() => {
     fetch(`http://localhost:3001/api/chats/all/${userId}`)
@@ -142,7 +143,8 @@ const ChatPage = () => {
 
   const handleUserClick = (chat) => {
     setCurrentChatUser(chat.name);
-    setCurrentChatId(chat.chat_id); 
+    setCurrentChatId(chat.chat_id);
+    navigate(`/dms/${chat.chat_id}`);
   };
 
   const handleMessageReply = (message) => {
@@ -153,7 +155,7 @@ const ChatPage = () => {
     setchatList((prevList) => [...prevList, { chat_id: newChat.id, name: newChat.name, image: "https://via.placeholder.com/30" }]);
     setMessages((prev) => ({
       ...prev,
-      [newChat.id]: [], // Initialize an empty message list for the new chat
+      [newChat.id]: [],
     }));
     setCurrentChatUser(newChat.name);
     setCurrentChatId(newChat.id);

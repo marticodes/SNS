@@ -209,7 +209,6 @@ const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
               id={message.user_id}
               userPic={userData.profile_picture}
               bio={userData.user_bio}
-              onDMClick={() => alert("DM button clicked")}
             />
           </div>
         )}

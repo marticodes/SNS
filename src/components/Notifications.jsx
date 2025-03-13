@@ -439,7 +439,6 @@ export default function NotificationPanel({ onClose }) {
         sender.find((user) => user.user_id === selectedUser)?.user_bio ||
         "No bio available."
       }
-      onDMClick={handleDMClick}
       relationship={relationship}
       isMyProfile={false}
       onClose={handleCloseProfileCard}
