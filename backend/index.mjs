@@ -23,6 +23,7 @@ import CMemberDAO from './dao/community_membership_dao.mjs';
 import CommunityDAO from './dao/community_dao.mjs';
 import NotificationDAO from './dao/notification_dao.mjs';
 import ReceiptsDAO from './dao/read_receipts_dao.mjs';
+import ActionLogsDAO from './dao/action_logs_dao.mjs';
 
 const chatDao = ChatDAO;
 const userDao = UserDAO;
@@ -39,6 +40,7 @@ const cmemberDao = CMemberDAO;
 const communityDao = CommunityDAO;
 const notificationDao = NotificationDAO;
 const receiptsDAO = ReceiptsDAO;
+const logsDAO = ActionLogsDAO;
 
 const SERVER_URL = 'http://localhost:3001/api';
 
@@ -932,6 +934,63 @@ app.get('/api/notifs/:sender_id/:notif_type/:receiver_id/',
         res.status(200).json(notif_id);
       } catch (err) {
         res.status(500).json({ error: `BE: Error obtaining notif list ${err}` });
+      }
+    }
+);
+
+//Logs API
+
+app.post('/api/logs/add',
+  async (req, res) => {
+      try {
+        const ina = await logsDAO.insertActionLog(req.body.user_id, req.body.action_type, req.body.content, req.body.timestamp);
+        res.status(201).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error inserting logs ${err}` });
+      }
+    }
+);
+
+app.get('/api/logs/all/',
+  async (req, res) => {
+      try {
+        const logs = await logsDAO.getAllActionLogs();
+        res.status(200).json(logs);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error listing all logs ${err}` });
+      }
+    }
+);
+
+app.get('/api/logs/user/all/:user_id',
+  async (req, res) => {
+      try {
+        const logs = await logsDAO.getUserActionLogs(req.params.user_id);
+        res.status(200).json(logs);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error listing all user logs ${err}` });
+      }
+    }
+);
+
+app.delete('/api/logs/delete/all',
+  async (req, res) => {
+      try {
+        const ina = await logsDAO.deleteAllActionLogs();
+        res.status(200).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error deleting logs ${err}` });
+      }
+    }
+);
+
+app.delete('/api/logs/delete/user/',
+  async (req, res) => {
+      try {
+        const ina = await logsDAO.deleteUserActionLogs(req.body.user_id);
+        res.status(200).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error deleting user logs ${err}` });
       }
     }
 );
