@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from "react";
 import ProfileEdit from "./Profile/EditProfile";
+import { useNavigate } from "react-router-dom";
 
 const myID = parseInt(localStorage.getItem("userID"), 10);
 
 const ProfileCard = ({ idname, username, id, userPic, bio }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [relationship, setRelationship] = useState("Loading...");
+  const navigate = useNavigate();
 
   const onDMClick = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/api/chat/${myID}/${id}`);
+      const response = await fetch(`http://localhost:3001/api/chats/exist/${myID}/${id}`);
       const data = await response.json();
 
-      if (response.ok && data?.chat_id) {
-        navigate(`/dms/${data.chat_id}`);
+      if (response.ok && data) {
+        navigate(`/dms/${data}`);
       } else {
         const newChatResponse = await fetch("http://localhost:3001/api/chats/add", {
           method: "POST",
@@ -22,8 +24,8 @@ const ProfileCard = ({ idname, username, id, userPic, bio }) => {
         });
 
         const newChatData = await newChatResponse.json();
-        if (newChatResponse.ok && newChatData?.chat_id) {
-          navigate(`/dms/${newChatData.chat_id}`);
+        if (newChatResponse.ok && newChatData?.ina) {
+          navigate(`/dms/${newChatData.ina}`);
         } else {
           console.error("Failed to create chat:", newChatData);
         }
