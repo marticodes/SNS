@@ -194,7 +194,7 @@ const ChatDAO = {
     async isExistingChat(user_id_1, user_id_2) {
         return new Promise((resolve, reject) => {
             const sql = `
-                SELECT 1 
+                SELECT chat_id 
                 FROM Chat 
                 WHERE 
                     (user_id_1 = ? AND user_id_2 = ?) 
@@ -206,7 +206,7 @@ const ChatDAO = {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(!!row);
+                    resolve(row ? row.chat_id : 0);
                 }
             });
         });
