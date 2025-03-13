@@ -599,6 +599,17 @@ app.get('/api/chats/unread/all/:user_id',
     }
 );
 
+app.get('/api/chats/exist/:user_id_1/:user_id_2',
+  async (req, res) => {
+      try {
+        const chats = await chatDao.isExistingChat(req.params.user_id_1, req.params.user_id_2);
+        res.status(200).json(chats);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining chats ${err}` });
+      }
+    }
+);
+
 app.get('/api/chats/all/:user_id',
     async (req, res) => {
         try {
