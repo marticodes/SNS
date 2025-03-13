@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import axios from "axios";
 import FeedSearch from "./FeedSearch";
 import Feed from "./Feed";
 import NavBar from "../NavBar/Small"
@@ -10,6 +11,7 @@ const FeedContainer = styled.div`
   display: flex;
   width: 100%;
   background-color: #f4f4f4;
+
 `;
 
 const FeedContent = styled.div`
@@ -17,6 +19,8 @@ const FeedContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  height: 100vh;
+  overflow-y: auto;
 `;
 
 const NewPostDiv = styled.div`
@@ -29,7 +33,7 @@ const NewPostDiv = styled.div`
 const NewPostButton = styled.button`
   width: 100%;
   padding: 12px;
-  margin-top: 6rem;
+  margin-top: 1rem;
   font-size: 1rem;
   border: none;
   border-radius: 5px;
@@ -43,9 +47,29 @@ const NewPostButton = styled.button`
   }
 `;
 
-const FeedMain = ({ user, posts}) => {
+const FeedMain = ({ user }) => {
+  const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState(posts);
   const navigate = useNavigate(); 
+
+  const userID = parseInt(localStorage.getItem("userID"), 10);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3001/api/posts/all/${userID}`); // Need Backend Change
+        console.log("✅ Fetched posts:", res.data);
+
+        setPosts(res.data);
+        setFilteredPosts(res.data);
+      } catch (error) {
+        console.error("❌ Error fetching posts:", error);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
 
   const handleSearch = (result) => {
     if (result.userName) {

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import UserProfile from './UserProfile';
 import { RiShareForwardLine } from "react-icons/ri";
 import { BiLike, BiSolidLike, BiUpvote, BiSolidUpvote, BiDownvote, BiSolidDownvote, BiComment, BiRepost } from 'react-icons/bi';
 import { MdOutlineEmojiEmotions } from "react-icons/md";
+import axios from "axios";
 
 // Styled Components
 const ReactionSummaryContainer = styled.div`
@@ -201,76 +202,145 @@ const CloseButton = styled.button`
 `;
 
 // Component
-const Reaction = ({ user, userProfile, userName, reactions, originalPost, onLike, onUpvote, onDownvote, onEmojiSelect, onCommentClick }) => {
-  const [likeActive, setLikeActive] = useState(
-    reactions.likedUsers.some((u) => u.userName === user.user_name)
-  );
+const Reaction = ({ user, post_id, onCommentClick }) => {  
+  const userID = user.user_id;
+  const [reactions, setReactions] = useState({
+    likedUsers: [],
+    emojiReactions: [],
+    upvotes: 0,
+    downvotes: 0,
+    shares: 0
+  });
+
+  const [likeActive, setLikeActive] = useState(false);
   const [upvoteActive, setUpvoteActive] = useState(false);
   const [downvoteActive, setDownvoteActive] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState(null);
+  const [originalPost, setOriginalPost] = useState(null);
   const [repostPopupOpen, setRepostPopupOpen] = useState(false);
   const [repostComment, setRepostComment] = useState('');
+
   const [sharePopupOpen, setSharePopupOpen] = useState(false);
-  const [chatrooms, setChatrooms] = useState([
-    { id: 1, name: 'Chatroom1', profileImg: '../src/dummy-profile-img-4.jpeg' },
-    { id: 2, name: 'Chatroom2', profileImg: '../src/dummy-profile-img-4.jpeg'},
-    { id: 3, name: 'Chatroom3', profileImg: '../src/dummy-profile-img-4.jpeg'},
-    { id: 4, name: 'Chatroom4', profileImg: '../src/dummy-profile-img-4.jpeg'}
-  ]);
 
-  const toggleLike = () => {
-    setLikeActive(!likeActive);
+  const [chatrooms, setChatrooms] = useState([]);
+  const [loadingChats, setLoadingChats] = useState(false);
 
-    if (!likeActive) {
-      onLike([...reactions.likedUsers, { profileImg: user.profile_picture, userName: user.user_name }]);
-    } else {
-      onLike(reactions.likedUsers.filter((u) => u.userName !== user.user_name));
+  useEffect(() => {
+    const fetchReactions = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
+        console.log('✅ Reactions Fetched:', res.data);
+
+        setReactions(res.data);
+
+        // Check if user already reacted
+        setLikeActive(res.data.likedUsers.includes(userID));
+        setUpvoteActive(res.data.upvotesUsers?.includes(userID));  // Optional, if you track per user
+        setDownvoteActive(res.data.downvotesUsers?.includes(userID));  // Optional
+      } catch (err) {
+        console.error('❌ Error fetching reactions:', err);
+      }
+    };
+
+    fetchReactions();
+  }, [post_id, userID]);
+
+  const toggleLike = async () => {
+    try {
+      await axios.post(`http://localhost:3001/api/reactions/post/add`, {
+        reaction_type: 0, // 0 = Like
+        emote_type: null,
+        post_id: post_id,
+        user_id: userID,
+        timestamp: new Date().toISOString(),
+      });
+
+      setLikeActive(!likeActive);
+
+      const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
+      setReactions(res.data);
+    } catch (err) {
+      console.error('❌ Error adding like reaction:', err);
     }
   };
 
-  const toggleUpvote = () => {
-    if (downvoteActive) {
-      setDownvoteActive(false);
-      onDownvote(false);
+  const toggleUpvote = async () => {
+    try {
+      await axios.post(`http://localhost:3001/api/reactions/post/add`, {
+        reaction_type: 1, // 1 = Upvote
+        emote_type: null,
+        post_id: post_id,
+        user_id: userID,
+        timestamp: new Date().toISOString(),
+      });
+
+      setUpvoteActive(!upvoteActive);
+      if (downvoteActive) setDownvoteActive(false);
+
+      const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
+      setReactions(res.data);
+    } catch (err) {
+      console.error('❌ Error adding upvote reaction:', err);
     }
-    
-    setUpvoteActive(!upvoteActive);
-    onUpvote(!upvoteActive ? 1 : -1);
   };
-  
-  const toggleDownvote = () => {
-    if (upvoteActive) {
-      setUpvoteActive(false);
-      onUpvote(false);
+
+  const toggleDownvote = async () => {
+    try {
+      await axios.post(`http://localhost:3001/api/reactions/post/add`, {
+        reaction_type: 2, // 2 = Downvote
+        emote_type: null,
+        post_id: post_id,
+        user_id: userID,
+        timestamp: new Date().toISOString(),
+      });
+
+      setDownvoteActive(!downvoteActive);
+      if (upvoteActive) setUpvoteActive(false);
+
+      const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
+      setReactions(res.data);
+    } catch (err) {
+      console.error('❌ Error adding downvote reaction:', err);
     }
-    
-    setDownvoteActive(!downvoteActive);
-    onDownvote(!downvoteActive ? 1 : -1);
   };
 
   const toggleEmojiPicker = () => {
     setEmojiPickerOpen((prev) => !prev);
   };
 
-  const selectEmoji = (emoji) => {
-    const currentEmojiReactions = reactions.emojiReactions || [];
-    const existingIndex = currentEmojiReactions.findIndex((u) => u.userName === user.user_name);
+  const selectEmoji = async (emoji) => {
+    try {
+      await axios.post(`http://localhost:3001/api/reactions/post/add`, {
+        reaction_type: 4,  // 4 = Emoji Reaction
+        emote_type: emoji,
+        post_id: post_id,
+        user_id: userID,
+        timestamp: new Date().toISOString(),
+      });
 
-    let updatedReactions;
-    if (existingIndex !== -1) {
-      updatedReactions = [...currentEmojiReactions];
-      updatedReactions[existingIndex].emoji = emoji;
-    } else {
-      updatedReactions = [...currentEmojiReactions, { profileImg: user.profile_picture, userName: user.user_name, emoji }];
+      setSelectedEmoji(emoji);
+      setEmojiPickerOpen(false);
+
+      const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
+      setReactions(res.data);
+    } catch (err) {
+      console.error('❌ Error adding emoji reaction:', err);
     }
-
-    onEmojiSelect(updatedReactions, emoji);
-    setEmojiPickerOpen(false);
   };
 
-  const toggleRepostPopup = () => {
-    setRepostPopupOpen((prev) => !prev);
+  const toggleRepostPopup = async () => {
+    if (!repostPopupOpen) {
+      try {
+        const res = await axios.get(`http://localhost:3001/api/posts/${post_id}`);
+        console.log("✅ Original post fetched:", res.data);
+        setOriginalPost(res.data);
+      } catch (error) {
+        console.error("❌ Error fetching original post:", error);
+      }
+    }
+
+    setRepostPopupOpen(!repostPopupOpen);
   };
 
   const handleRepost = () => {
@@ -280,40 +350,79 @@ const Reaction = ({ user, userProfile, userName, reactions, originalPost, onLike
     // fetch('/api/repost', { method: 'POST', body: JSON.stringify({ repostComment, postId: post.id }) });
   };
 
-  const toggleSharePopup = () => {
+  const toggleSharePopup = async () => {
     setSharePopupOpen((prev) => !prev);
+    
+    if (!sharePopupOpen) {
+      setLoadingChats(true);
+      try {
+        const res = await axios.get(`http://localhost:3001/api/chats/all/${userID}`);
+        console.log("✅ Chatrooms fetched:", res.data);
+        setChatrooms(res.data);
+      } catch (error) {
+        console.error("❌ Error fetching chatrooms:", error);
+      } finally {
+        setLoadingChats(false);
+      }
+    }
   };
 
-  const handleShare = (chatroomId) => {
-    console.log(`Post shared to chatroom ID: ${chatroomId}`);
-    setSharePopupOpen(false);
-    // fetch('/api/share', { method: 'POST', body: JSON.stringify({ chatroomId }) });
+  const handleShare = async (chatroomId) => {
+    if (!post_id || !chatroomId) {
+      alert("Missing post or chatroom ID!");
+      return;
+    }
+
+    try {
+      const messagePayload = {
+        chat_id: chatroomId,
+        sender_id: userID,
+        reply_id: null, // optional, unless it's a reply
+        content: `Check out this post! http://localhost:3001/post/${post_id}`,  // or actual post content
+        media_type: null, // optional, add if you're sharing media
+        media_url: null,   // optional, same as above
+        timestamp: new Date().toISOString(),
+      };
+
+      const res = await axios.post("http://localhost:3001/api/messages/add", messagePayload);
+      console.log("✅ Post shared to chatroom:", res.data);
+
+      alert("Post shared successfully!");
+      setSharePopupOpen(false);
+    } catch (error) {
+      console.error("❌ Error sharing post:", error);
+      alert("Failed to share post!");
+    }
   };
 
   return (
     <>
     <ReactionSummaryContainer>
-      <ReactionDiv>
-        <ReactionItem active={likeActive} onClick={toggleLike}>
-          {likeActive ? <BiSolidLike /> : <BiLike />}Like
-        </ReactionItem>
-        <ReactionItem active={upvoteActive} onClick={toggleUpvote}>
-          {upvoteActive ? <BiSolidUpvote /> : <BiUpvote />}
-        </ReactionItem>
-        <ReactionItem active={downvoteActive} onClick={toggleDownvote}>
-          {downvoteActive ? <BiSolidDownvote /> : <BiDownvote />}
-        </ReactionItem>
-        <ReactionItem onClick={toggleEmojiPicker}>
-          <MdOutlineEmojiEmotions /> {selectedEmoji && <SelectedEmoji>{selectedEmoji}</SelectedEmoji>}
-        </ReactionItem>
-        <EmojiPickerContainer show={emojiPickerOpen}>
+    <ReactionDiv>
+      <ReactionItem active={likeActive} onClick={toggleLike}>
+        {likeActive ? <BiSolidLike /> : <BiLike />} Like
+      </ReactionItem>
+
+      <ReactionItem active={upvoteActive} onClick={toggleUpvote}>
+        {upvoteActive ? <BiSolidUpvote /> : <BiUpvote />}
+      </ReactionItem>
+
+      <ReactionItem active={downvoteActive} onClick={toggleDownvote}>
+        {downvoteActive ? <BiSolidDownvote /> : <BiDownvote />}
+      </ReactionItem>
+
+      <ReactionItem onClick={toggleEmojiPicker}>
+        <MdOutlineEmojiEmotions /> {selectedEmoji && <SelectedEmoji>{selectedEmoji}</SelectedEmoji>}
+      </ReactionItem>
+
+      <EmojiPickerContainer show={emojiPickerOpen}>
         {['😀', '😍', '😂', '😢', '😡', '👍', '👏'].map((emoji) => (
           <EmojiOption key={emoji} onClick={() => selectEmoji(emoji)}>
             {emoji}
           </EmojiOption>
         ))}
       </EmojiPickerContainer>
-      </ReactionDiv>
+    </ReactionDiv>
 
       <ReactionDiv>
         <ReactionItem onClick={onCommentClick}>
@@ -332,19 +441,20 @@ const Reaction = ({ user, userProfile, userName, reactions, originalPost, onLike
         <>
           <Overlay onClick={toggleRepostPopup} />
           <RepostPopupContainer>
-          <UserProfile profileImg={userProfile} userName={userName} />
+          <UserProfile profileImg={user.profile_picture} userName={user.user_name} variant="default" />
             <CommentInput
               value={repostComment}
               onChange={(e) => setRepostComment(e.target.value)}
-              placeholder="Write a post..."
+              placeholder="Write your thoughts about this post..."
             />
-            {originalPost && originalPost.text ? (
+            {originalPost && originalPostUser ? (
               <RepostCard>
                 <UserProfile
-                  profileImg={originalPost.profileImg} // Profile of the original post's author
+                  user_id={originalPost.user_id}
+                  profileImg={originalPost.profile_picture} // Profile of the original post's author
                   userName={originalPost.userName}
                 />
-                <p>{originalPost.text}</p>
+                <p>{originalPost.content}</p>
                 {originalPost.images && originalPost.images.length > 0 && (
                   <img src={originalPost.images[0]} alt="Post Preview" width="100%" />
                 )}
@@ -363,20 +473,34 @@ const Reaction = ({ user, userProfile, userName, reactions, originalPost, onLike
         <Overlay onClick={toggleSharePopup} />
         <SharePopupContainer>
           <h3>Select a Chatroom to Share</h3>
+
+          {loadingChats ? (
+            <p>Loading chatrooms...</p>
+          ) : chatrooms.length > 0 ? (
           <ChatroomList>
             {chatrooms.map((chatroom) => (
-              <ChatroomItem key={chatroom.id} onClick={() => handleShare(chatroom.id)}>
-                <ChatroomImage src={chatroom.profileImg} alt={chatroom.name} />
-                {chatroom.name}
+              <ChatroomItem
+                key={chatroom.chat_id}
+                onClick={() => handleShare(chatroom.chat_id)}
+              >
+                <ChatroomImage
+                  src={chatroom.chat_image && chatroom.chat_image.trim() !== "" ? chatroom.chat_image : "/src/default-chat.png"} // ✅ Check if image is empty
+                  alt={chatroom.chat_name}
+                />
+                {chatroom.chat_name}
               </ChatroomItem>
             ))}
           </ChatroomList>
+          ) : (
+            <p>No chatrooms available.</p>
+          )}
+
           <CloseButton onClick={toggleSharePopup}>Cancel</CloseButton>
         </SharePopupContainer>
-      </>
-    )}
+      </>)}
     </>
   );
 };
+
 
 export default Reaction;
