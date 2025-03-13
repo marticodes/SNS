@@ -113,9 +113,9 @@ const NewChat = ({ caseType, closeModal }) => {
       };
   
       if (caseType === 1 || caseType === 2 || caseType === 4) 
-        navigate("/dms", { state: { chatUser: newChat.name } });
+        navigate(`/dms/${newChat.id}`);
       if (caseType === 3) 
-        navigate("/case/3", { state: { chatUser: newChat.name } });
+        navigate(`/case/3/${newChat.id}`);
   
       closeModal();
     } catch (error) {

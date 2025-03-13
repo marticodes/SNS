@@ -20,6 +20,22 @@ const CGPage = () => {
   //this one is to get all the communities
 
   useEffect(() => {
+    const deleteChat = async () => {
+      try {
+        const res = await fetch(`http://localhost:3001/api/chat/delete/`, {
+          method: "DELETE",
+        });
+        if (!res.ok) throw new Error("Failed to delete chat");
+        console.log("Chat deleted successfully");
+      } catch (error) {
+        console.error("Error deleting chat:", error);
+      }
+    };
+    deleteChat();
+  }
+  );
+
+  useEffect(() => {
     const fetchCommunities = async () => {
       try {
         const res = await fetch(`http://localhost:3001/api/channels/${userId}/`);

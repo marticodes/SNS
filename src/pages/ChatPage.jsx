@@ -39,7 +39,7 @@ const ChatPage = () => {
               const otherUserId = parseInt(chat.user_id_1, 10) === userId ? parseInt(chat.user_id_2, 10) : chat.user_id_1;
               const userResponse = await fetch(`http://localhost:3001/api/user/${otherUserId}`);
               const userData = await userResponse.json();
-              displayName = userData.id_name;
+              displayName = userData.user_name;
               chatimg = userData.profile_picture;
             } else {
               const groupResponse = await fetch(`http://localhost:3001/api/members/chat/${chat.chat_id}`);
@@ -48,7 +48,7 @@ const ChatPage = () => {
                 groupData.map(async (member) => {
                   const userResponse = await fetch(`http://localhost:3001/api/user/${member}`);
                   const userData = await userResponse.json();
-                  return userData.id_name;
+                  return userData.user_name;
                 })
               );
               displayName = groupNames.join(", ");
@@ -84,7 +84,7 @@ const ChatPage = () => {
           .catch((error) => {
             console.error("Error fetching messages:", error);
           });
-      }, 10000); //update chat every 0.5 seconds SO THAT I CAN GET MESSAGES FROM THE DATABASE CONSTANTLY 
+      }, 1000); //update chat every 0.5 seconds SO THAT I CAN GET MESSAGES FROM THE DATABASE CONSTANTLY 
       //Is there a better way to do this? because it might be really costly...
   
       return () => clearInterval(intervalId);
