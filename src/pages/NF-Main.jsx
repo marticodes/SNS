@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar/Full"; 
 import styled from "styled-components";
 import FeedMain from "../components/NF-NG/FeedMain";
 import EditPost from "../components/NF-NG/EditPost";
 import NewPost from "../components/NF-NG/NewPost";
+import axios from "axios";
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -18,7 +19,11 @@ const AppContainer = styled.div`
 
 const NFPage = () => {
   const navigate = useNavigate(); 
+  const userID = parseInt(localStorage.getItem("userID"), 10);
 
+  const [userInfo, setUserInfo] = useState(null);
+  const [posts, setPosts] = useState([]);
+  /*
   const userInfo = {
     user_name: "Jane Doe",
     profile_picture: "./src/dummy-profile-img.jpg",
@@ -117,6 +122,43 @@ const NFPage = () => {
       ],
     },
   ]);
+  */
+
+  useEffect(() => {
+    if (!userID) {
+      alert("User not logged in!");
+      navigate("/login");
+      return;
+    }
+
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3001/api/user/${userID}`);
+        setUserInfo(res.data);
+        console.log("✅ User Info:", res.data);
+      } catch (err) {
+        console.error("❌ Error fetching user:", err);
+      }
+    };
+
+    fetchUser();
+  }, [userID, navigate]);
+
+  useEffect(() => {
+    if (!userID) return;
+
+    const fetchPosts = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3001/api/posts/all/${userID}`);
+        setPosts(res.data);
+        console.log("✅ Posts fetched:", res.data);
+      } catch (err) {
+        console.error("❌ Error fetching posts:", err);
+      }
+    };
+
+    fetchPosts();
+  }, [userID]);
 
   const addNewPost = (newPost) => {
     setPosts((prev) => [newPost, ...prev]);
@@ -126,7 +168,7 @@ const NFPage = () => {
   const updatePost = (postId, updatedData) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
-        post.id === postId ? { ...post, ...updatedData } : post
+        post.post_id === postId ? { ...post, ...updatedData } : post
       )
     );
     navigate("/case/1");
@@ -134,16 +176,42 @@ const NFPage = () => {
 
   return (
     <>
-    <div style={{ position: "fixed", top: 0, left: 0, height: "100vh" }}>
-  <NavBar caseId={1} />
-</div>
-    <AppContainer>
-      <Routes>
-        <Route path="/" element={<FeedMain user={userInfo} posts={posts} setPosts={setPosts}/>} />
-        <Route path="new-post" element={<NewPost user={userInfo} addNewPost={addNewPost} setPosts={setPosts}/>} />
-        <Route path="edit-post/:postId" element={<EditPost user={userInfo} updatePost={updatePost} />} />
-      </Routes>
-    </AppContainer>
+      <div style={{ position: "fixed", top: 0, left: 0, height: "100vh" }}>
+        <NavBar caseId={1} />
+      </div>
+      <AppContainer>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <FeedMain
+                user={userInfo}
+                posts={posts}
+                setPosts={setPosts}
+              />
+            }
+          />
+          <Route
+            path="new-post"
+            element={
+              <NewPost
+                user={userInfo}
+                addNewPost={addNewPost}
+                setPosts={setPosts}
+              />
+            }
+          />
+          <Route
+            path="edit-post/:postId"
+            element={
+              <EditPost
+                user={userInfo}
+                updatePost={updatePost}
+              />
+            }
+          />
+        </Routes>
+      </AppContainer>
     </>
   );
 };
