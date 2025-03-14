@@ -2,15 +2,52 @@ import React, { useState, useEffect } from "react";
 import { MdOutlineReply, MdOutlineEmojiEmotions } from "react-icons/md";
 import EmojiPicker from "emoji-picker-react";
 
-const SingleMessage = ({ message, isCurrentUser, onReply, onReact, scrollToMessage }) => {
+const SingleMessage = ({ message, isCurrentUser, onReply, scrollToMessage }) => {
   const [hovered, setHovered] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [reaction, setReaction] = useState(null);
   const [replyMessage, setReplyMessage] = useState(null);
+  const [emojiReactions, setEmojiReactions] = useState([]);
+
+  console.log(message);
+
+  useEffect(() => {
+    const fetchReactions = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3001/api/reactions/messages/${message.chat_id}/${message.message_id}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+
+          // Map user IDs to their info
+          const reactionsWithUserInfo = await Promise.all(
+            data.emojiReactions.map(async (reaction) => {
+              const users = await Promise.all(
+                reaction.user_id.map(async (userId) => {
+                  const userResponse = await fetch(`http://localhost:3001/api/user/${userId}`);
+                  return userResponse.ok ? await userResponse.json() : null;
+                })
+              );
+              return { ...reaction, users: users.filter((user) => user) };
+            })
+          );
+
+          setEmojiReactions(reactionsWithUserInfo);
+        } else {
+          console.error("Failed to fetch reactions");
+        }
+      } catch (error) {
+        console.error("Error fetching reactions:", error);
+      }
+    };
+
+    fetchReactions();
+  }, [message.chat_id, message.message_id]);
+
 
   const handleEmojiClick = (emoji) => {
     setReaction(emoji.emoji); 
-    onReact(message, emoji.emoji); 
     setShowEmojiPicker(false);
   };
 

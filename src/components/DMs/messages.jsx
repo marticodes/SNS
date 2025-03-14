@@ -4,7 +4,7 @@ import GroupMessage from "./groupMessage";
 
 const myID = parseInt(localStorage.getItem("userID"), 10);
 
-const MessageList = ({ messages, onReply, onReact, isGroup }) => {
+const MessageList = ({ messages, onReply, isGroup }) => {
   const messageListRef = useRef(null); 
 
   useEffect(() => {
@@ -29,7 +29,6 @@ const MessageList = ({ messages, onReply, onReact, isGroup }) => {
               message={message}
               isCurrentUser={message.sender === Number(myID)}
               onReply={(msg) => onReply(msg)}
-              onReact={onReact}
             />
           ))
         : messages.map((message) => (
@@ -37,7 +36,6 @@ const MessageList = ({ messages, onReply, onReact, isGroup }) => {
               message={message}
               isCurrentUser={message.sender === Number(myID)}
               onReply={(msg) => onReply(msg)}
-              onReact={onReact}
             />
           ))}
     </div>
