@@ -202,7 +202,7 @@ const countTotalComments = (comments) => {
         />
 
       <Reaction
-        user={4} //should change to UserID if it have reaction data model.
+        user={user_id}
         post_id={post_id}
         reactions={reactions}
         onLike={handleLike}

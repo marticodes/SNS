@@ -137,7 +137,7 @@ const Button = styled.button`
   }
 `;
 
-const NewPost = ({ user, addNewPost }) => {
+const NewPost = ({ user, addNewPost, fetchFeedData }) => {
   const navigate = useNavigate();
   const [postText, setPostText] = useState("");
   const [mediaFiles, setMediaFiles] = useState([]); 
@@ -176,7 +176,9 @@ const NewPost = ({ user, addNewPost }) => {
 
     console.log("🚀 Sending new post data:", newPostData);
     try {
-      const response = await axios.post("http://localhost:3001/api/post/add", newPostData);
+      const response = await axios.post("http://localhost:3001/api/requests/add", newPostData);
+      console.log("✅ Post created:", response.data);
+      await fetchFeedData();
       console.log("✅ Post created:", response.data);
       navigate("/case/1"); 
     } catch (error) {
