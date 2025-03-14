@@ -195,10 +195,6 @@ const CGPage = () => {
     console.log("Message to reply to:", message);
     setReplyTo(message); // Set the message to reply to
   };
-  
-  const handleMessageReact = (message, emoji) => {
-     // CHANGE THIS WITH POST REQUEST
-  };
 
 
   return (
@@ -245,7 +241,6 @@ const CGPage = () => {
                 post_id: msg.post_id || null,
               }))}
               onReply={handleMessageReply}
-              onReact={handleMessageReact}
             />
             <MessageInput
               onSendMessage={handleSendMessage}

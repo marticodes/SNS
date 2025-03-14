@@ -3,7 +3,7 @@ import { MdOutlineReply, MdOutlineEmojiEmotions } from "react-icons/md";
 import EmojiPicker from "emoji-picker-react";
 import ProfileCard from "../PopUpProfileCard";
 
-const GroupMessage = ({ message, isCurrentUser, onReply, onReact }) => {
+const GroupMessage = ({ message, isCurrentUser, onReply }) => {
   const [hovered, setHovered] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [reaction, setReaction] = useState(null);
@@ -15,7 +15,6 @@ const GroupMessage = ({ message, isCurrentUser, onReply, onReact }) => {
 
   const handleEmojiClick = (emoji) => {
       setReaction(emoji.emoji); 
-      onReact(message, emoji.emoji); 
       setShowEmojiPicker(false);
     };
   
