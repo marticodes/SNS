@@ -47,29 +47,11 @@ const NewPostButton = styled.button`
   }
 `;
 
-const FeedMain = ({ user }) => {
-  const [posts, setPosts] = useState([]);
+const FeedMain = ({ user, posts, setPosts, fetchFeedData }) => {
   const [filteredPosts, setFilteredPosts] = useState(posts);
   const navigate = useNavigate(); 
 
   const userID = parseInt(localStorage.getItem("userID"), 10);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await axios.get(`http://localhost:3001/api/posts/all/${userID}`); // Need Backend Change
-        console.log("✅ Fetched posts:", res.data);
-
-        setPosts(res.data);
-        setFilteredPosts(res.data);
-      } catch (error) {
-        console.error("❌ Error fetching posts:", error);
-      }
-    };
-
-    fetchPosts();
-  }, []);
-
 
   const handleSearch = (result) => {
     if (result.userName) {

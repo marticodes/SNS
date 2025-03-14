@@ -23,6 +23,7 @@ const NFPage = () => {
 
   const [userInfo, setUserInfo] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
   /*
   const userInfo = {
     user_name: "Jane Doe",
@@ -144,20 +145,32 @@ const NFPage = () => {
     fetchUser();
   }, [userID, navigate]);
 
+  const fetchFeedData = async () => {
+    try {
+      const followsRes = await axios.get(`http://localhost:3001/api/relations/all/${userID}/0`);
+      const followingIDs = followsRes.data.map((user) => user.user_id);
+
+      const userIdsToFetch = [...followingIDs, userID];
+
+      const postsPromises = userIdsToFetch.map((id) =>
+        axios.get(`http://localhost:3001/api/posts/all/${id}`).then((res) => res.data)
+      );
+
+      const postsResults = await Promise.all(postsPromises);
+
+      const allPosts = postsResults.flat();
+      const sortedPosts = allPosts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      setPosts(sortedPosts);
+      setFilteredPosts(sortedPosts); // if you're using filtered posts
+    } catch (error) {
+      console.error("❌ Error fetching feed data:", error);
+    }
+  };
+
   useEffect(() => {
     if (!userID) return;
-
-    const fetchPosts = async () => {
-      try {
-        const res = await axios.get(`http://localhost:3001/api/posts/all/${userID}`);
-        setPosts(res.data);
-        console.log("✅ Posts fetched:", res.data);
-      } catch (err) {
-        console.error("❌ Error fetching posts:", err);
-      }
-    };
-
-    fetchPosts();
+    fetchFeedData();
   }, [userID]);
 
   const addNewPost = (newPost) => {
@@ -187,7 +200,7 @@ const NFPage = () => {
               <FeedMain
                 user={userInfo}
                 posts={posts}
-                setPosts={setPosts}
+                fetchFeedData={fetchFeedData}
               />
             }
           />
@@ -197,7 +210,7 @@ const NFPage = () => {
               <NewPost
                 user={userInfo}
                 addNewPost={addNewPost}
-                setPosts={setPosts}
+                fetchFeedData={fetchFeedData}
               />
             }
           />
@@ -207,6 +220,7 @@ const NFPage = () => {
               <EditPost
                 user={userInfo}
                 updatePost={updatePost}
+                fetchFeedData={fetchFeedData}
               />
             }
           />
