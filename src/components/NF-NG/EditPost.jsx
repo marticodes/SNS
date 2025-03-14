@@ -188,17 +188,14 @@ const EditPost = ({ user, updatePost }) => {
       alert("Post content cannot be empty.");
       return;
     }
-
+  
     try {
-      const updatedPost = {
+      const response = await axios.post('http://localhost:3001/api/posts/content', {
         post_id: postId,
-        content: postText,
-        // Backend should handle media separately if it needs it
-      };
-
-      const response = await axios.post(`http://localhost:3001/api/post/update/${postId}`, updatedPost);
+        content: postText
+      });
+  
       console.log("✅ Post updated:", response.data);
-
       navigate("/case/1");
     } catch (error) {
       console.error("❌ Error updating post:", error);

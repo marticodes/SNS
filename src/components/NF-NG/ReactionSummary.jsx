@@ -177,9 +177,6 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
         <ReactionItem>
           <ReactionNum>{comments}</ReactionNum> comments
         </ReactionItem>
-        <ReactionItem>
-          <ReactionNum>{reactions.shares}</ReactionNum> shares
-        </ReactionItem>
       </ReactionDiv>
 
       {popupOpen && (

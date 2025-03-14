@@ -202,7 +202,7 @@ const countTotalComments = (comments) => {
         />
 
       <Reaction
-        user={4} //should change to UserID if it have reaction data model.
+        user={user_id}
         post_id={post_id}
         reactions={reactions}
         onLike={handleLike}
@@ -214,6 +214,8 @@ const countTotalComments = (comments) => {
       />
       {isCommentSectionOpen && (
         <Comments
+          post_id={post_id}
+          user={user_id}
           userProfile={userData?.profile_picture || "/default-profile.png"}
           userName={userData?.user_name || "Unknown User"}
           initialComments={comments}
