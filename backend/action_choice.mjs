@@ -73,7 +73,7 @@ const ActionChoice = {
         let random = Math.random() * totalWeight;
         let chosenAction = null;
 
-        for (let a of weightedActions) {
+        for (let a of actions) {
             if (random < a.weight) {
                 chosenAction = a.action;
                 break;
@@ -178,7 +178,7 @@ async function testUserBio(user_id = 2) {
     Simulation.generatePost(user_id, system_prompt);
 }
 
-testUserBio();
+ActionChoice.performRandomAction(1);
 
 
 

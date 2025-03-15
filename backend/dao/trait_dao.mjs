@@ -12,7 +12,7 @@ const TraitDAO = {
                     } else if (!row) {
                         resolve(false);
                     } else {
-                        const trait = new Trait(row.user_id, row.posting_trait, row.commenting_trait, row.reacting_trait, row.messaging_trait, row.updating_trait, row.comm_trait, row.notification_trait);
+                        const trait = new Trait(row.trait_id, row.user_id, row.posting_trait, row.commenting_trait, row.reacting_trait, row.messaging_trait, row.updating_trait, row.comm_trait, row.notification_trait);
                         resolve(trait);
                     }
                 });
