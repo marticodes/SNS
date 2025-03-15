@@ -1,47 +1,74 @@
 import React, { useState, useEffect } from "react";
-import { MdOutlineAddComment } from "react-icons/md";
-import NewChat from "../newChat"; // Import the component properly
+import { MdOutlineAddComment, MdGroups2 } from "react-icons/md";
+import NewChat from "../newChat";
 
 let globalCaseType = parseInt(localStorage.getItem("selectedCase"), 10);
+let userId = parseInt(localStorage.getItem("userID"), 10);
 
 const UserList = ({ users, onUserClick}) => {
-  const [showNewChat, setShowNewChat] = useState(false); // State to control visibility of the newChat component
+  const [showNewChat, setShowNewChat] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState({}); // Stores unread counts per chat
 
-  const userss = [
-    { id: 1, name: "Alice Johnson", image: "https://via.placeholder.com/30" },
-    { id: 2, name: "Bob Smith", image: "https://via.placeholder.com/30"},
-    { id: 3, name: "Charlie Brown", image: "https://via.placeholder.com/30" },
-    { id: 4, name: "Daisy Carter", image: "https://via.placeholder.com/30" },
-    { id: 5, name: "Ethan Wright", image: "https://via.placeholder.com/30" },
-    { id: 6, name: "Fiona Davis", image: "https://via.placeholder.com/30" },
-    { id: 7, name: "George Miller", image: "https://via.placeholder.com/30" },
-    { id: 8, name: "Hannah Wilson", image: "https://via.placeholder.com/30" },
-    { id: 9, name: "Ian Clark", image: "https://via.placeholder.com/30" },
-    { id: 10, name: "Jane Moore", image: "https://via.placeholder.com/30" },
-  ];
+  useEffect(() => {
+    const fetchUnreadCounts = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/api/chats/unread/all/${userId}`);
+        const data = await response.json();
+
+        const counts = data.reduce((acc, chatId) => {
+          acc[chatId] = (acc[chatId] || 0) + 1;
+          return acc;
+        }, {});
+
+        setUnreadCounts(counts);
+      } catch (error) {
+        console.error("Error fetching unread messages:", error);
+      }
+    };
+
+    fetchUnreadCounts();
+  }, [userId]);
+
+  const handleChatClick = async (chat) => {
+    onUserClick(chat);
+
+    if (unreadCounts[chat.chat_id]) {
+      // Mark messages as read
+      try {
+        await fetch("http://localhost:3001/api/read/receipts/delete", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chat.chat_id, user_id: userId }),
+        });
+
+        setUnreadCounts((prevCounts) => ({
+          ...prevCounts,
+          [chat.chat_id]: 0, 
+        }));
+      } catch (error) {
+        console.error("Error marking messages as read:", error);
+      }
+    }
+  };
 
   const handleOpenNewChat = () => {
-    setShowNewChat(true); // Show the newChat component
+    setShowNewChat(true);
   };
 
   const handleCloseNewChat = () => {
-    setShowNewChat(false); // Hide the newChat component
-  };
-
-  const handleUserListUpdate = (newChat) => {
-    setUserList((prevList) => [...prevList, newChat]); // Add the new chat to the list
+    setShowNewChat(false); 
   };
 
   return (
     <div
       style={{
-        height: "100vh", // Ensures the sidebar stretches to full page height
+        height: "100vh", 
         backgroundColor: "#ffffff",
         color: "#fff",
         padding: "10px",
-        overflowY: "auto", // Allows scrolling if there are too many users
+        overflowY: "auto", 
         borderRight: "0.1px solid #B0BEC5",
-        position: "relative", // Required for stacking NewChat box
+        position: "relative",
       }}
     >
       <h2
@@ -51,34 +78,31 @@ const UserList = ({ users, onUserClick}) => {
           textAlign: "center",
           paddingBottom: "10px",
           borderBottom: "0.1px solid #B0BEC5",
-          display: "flex", // Using flex to align items horizontally
-          justifyContent: "center", // Center the content
-          alignItems: "center", // Vertically align items
+          display: "flex", 
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
         Messages
         <span
           style={{
-            marginLeft: "80px", // Space between the text and icon
-            marginTop: "5px", // Center the icon vertically
-            marginBottom: "-5px", // Center the icon vertically
-            cursor: "pointer", // Make it clickable
+            marginLeft: "80px", 
+            marginTop: "5px",
+            marginBottom: "-5px", 
+            cursor: "pointer", 
           }}
-          onClick={handleOpenNewChat} // Call the handler
+          onClick={handleOpenNewChat} 
         >
           <MdOutlineAddComment size={20} />
         </span>
       </h2>
 
-      {/* Render the newChat modal */}
       {showNewChat && (
         <div style={styles.modalBackdrop}>
           <div style={styles.modalContainer}>
             <NewChat
               caseType={globalCaseType}
-              users={userss}
               closeModal={handleCloseNewChat}
-              onUserListUpdate={handleUserListUpdate} // Pass the function to update the user list
             />
           </div>
         </div>
@@ -99,19 +123,35 @@ const UserList = ({ users, onUserClick}) => {
               borderRadius: "3px",
               color: "#000000",
             }}
-            onClick={() => onUserClick(chat)} // Call the function when the user is clicked
+            onClick={() => handleChatClick(chat)} // Call the function when the user is clicked
           >
             {/* Display user profile picture */}
-            <img
-              src={chat.image} // Use the dummy image URL based on user name
-              style={{
-                width: "30px",
-                height: "30px",
-                borderRadius: "50%",
-                marginRight: "10px",
-              }}
-            />
+            {chat.image ? (
+              <img
+                src={chat.image}
+                alt="Chat"
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  borderRadius: "50%",
+                  marginRight: "10px",
+                }}
+              />
+            ) : (
+              <MdGroups2
+                size={30}
+                style={{
+                  marginRight: "10px",
+                  color: "#032F50",
+                }}
+              />
+            )}
             {chat.name}
+            {unreadCounts[chat.chat_id] > 0 && (
+              <span style={{ marginLeft: "auto", backgroundColor: "red", color: "white", borderRadius: "80%", padding: "3px 7px", fontSize: "10px" }}>
+                {unreadCounts[chat.chat_id]}
+              </span>
+            )}
           </li>
         ))}
       </ul>

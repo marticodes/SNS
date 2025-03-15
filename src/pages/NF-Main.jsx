@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar/Full"; 
 import styled from "styled-components";
 import FeedMain from "../components/NF-NG/FeedMain";
 import EditPost from "../components/NF-NG/EditPost";
 import NewPost from "../components/NF-NG/NewPost";
+import axios from "axios";
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -18,7 +19,12 @@ const AppContainer = styled.div`
 
 const NFPage = () => {
   const navigate = useNavigate(); 
+  const userID = parseInt(localStorage.getItem("userID"), 10);
 
+  const [userInfo, setUserInfo] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  /*
   const userInfo = {
     user_name: "Jane Doe",
     profile_picture: "./src/dummy-profile-img.jpg",
@@ -117,6 +123,55 @@ const NFPage = () => {
       ],
     },
   ]);
+  */
+
+  useEffect(() => {
+    if (!userID) {
+      alert("User not logged in!");
+      navigate("/login");
+      return;
+    }
+
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3001/api/user/${userID}`);
+        setUserInfo(res.data);
+        console.log("✅ User Info:", res.data);
+      } catch (err) {
+        console.error("❌ Error fetching user:", err);
+      }
+    };
+
+    fetchUser();
+  }, [userID, navigate]);
+
+  const fetchFeedData = async () => {
+    try {
+      const followsRes = await axios.get(`http://localhost:3001/api/relations/all/${userID}/0`);
+      const followingIDs = followsRes.data.map((user) => user.user_id);
+
+      const userIdsToFetch = [...followingIDs, userID];
+
+      const postsPromises = userIdsToFetch.map((id) =>
+        axios.get(`http://localhost:3001/api/posts/all/${id}`).then((res) => res.data)
+      );
+
+      const postsResults = await Promise.all(postsPromises);
+
+      const allPosts = postsResults.flat();
+      const sortedPosts = allPosts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      setPosts(sortedPosts);
+      setFilteredPosts(sortedPosts); // if you're using filtered posts
+    } catch (error) {
+      console.error("❌ Error fetching feed data:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!userID) return;
+    fetchFeedData();
+  }, [userID]);
 
   const addNewPost = (newPost) => {
     setPosts((prev) => [newPost, ...prev]);
@@ -126,7 +181,7 @@ const NFPage = () => {
   const updatePost = (postId, updatedData) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
-        post.id === postId ? { ...post, ...updatedData } : post
+        post.post_id === postId ? { ...post, ...updatedData } : post
       )
     );
     navigate("/case/1");
@@ -134,16 +189,43 @@ const NFPage = () => {
 
   return (
     <>
-    <div style={{ position: "fixed", top: 0, left: 0, height: "100vh" }}>
-  <NavBar caseId={1} />
-</div>
-    <AppContainer>
-      <Routes>
-        <Route path="/" element={<FeedMain user={userInfo} posts={posts} setPosts={setPosts}/>} />
-        <Route path="new-post" element={<NewPost user={userInfo} addNewPost={addNewPost} setPosts={setPosts}/>} />
-        <Route path="edit-post/:postId" element={<EditPost user={userInfo} updatePost={updatePost} />} />
-      </Routes>
-    </AppContainer>
+      <div style={{ position: "fixed", top: 0, left: 0, height: "100vh" }}>
+        <NavBar caseId={1} />
+      </div>
+      <AppContainer>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <FeedMain
+                user={userInfo}
+                posts={posts}
+                fetchFeedData={fetchFeedData}
+              />
+            }
+          />
+          <Route
+            path="new-post"
+            element={
+              <NewPost
+                user={userInfo}
+                addNewPost={addNewPost}
+                fetchFeedData={fetchFeedData}
+              />
+            }
+          />
+          <Route
+            path="edit-post/:postId"
+            element={
+              <EditPost
+                user={userInfo}
+                updatePost={updatePost}
+                fetchFeedData={fetchFeedData}
+              />
+            }
+          />
+        </Routes>
+      </AppContainer>
     </>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import UserProfile from "./UserProfile";
@@ -136,21 +136,38 @@ const Button = styled.button`
   }
 `;
 
-const EditPost = ({ posts, updatePost }) => {
-  const navigate = useNavigate();
+const EditPost = ({ user, updatePost }) => {
   const { postId } = useParams();
-  const userID = parseInt(localStorage.getItem("userID"), 10);
+  const navigate = useNavigate();
 
-  const location = useLocation();
-  const originalPost = posts.find((post) => post.id === parseInt(postId));
+  const [postData, setPostData] = useState(null);
+  const [postText, setPostText] = useState("");
+  const [mediaFiles, setMediaFiles] = useState([]);
 
-  if (!originalPost) {
-    navigate("/case/1");
-    return null;
+  useEffect(() => {
+    if (!postId) return;
+
+    const fetchPostData = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3001/api/posts/id/${postId}`);
+        console.log("✅ Fetched post data:", res.data);
+
+        if (res.data) {
+          setPostData(res.data);
+          setPostText(res.data.content);
+          setMediaFiles(res.data.media_url || []);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching post:", error);
+      }
+    };
+
+    fetchPostData();
+  }, [postId]);
+  
+  if (!postData) {
+    return <p>Loading post data...</p>;
   }
-
-  const [postText, setPostText] = useState(originalPost.text);
-  const [mediaFiles, setMediaFiles] = useState(originalPost.images || []); 
 
   const handleTextChange = (e) => {
     setPostText(e.target.value);
@@ -158,30 +175,32 @@ const EditPost = ({ posts, updatePost }) => {
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    const fileURLs = files.map((file) => URL.createObjectURL(file)); 
-    setMediaFiles([...mediaFiles, ...fileURLs]);
+    const fileURLs = files.map((file) => URL.createObjectURL(file));
+    setMediaFiles((prev) => [...prev, ...fileURLs]);
   };
 
   const handleDeleteMedia = (index) => {
-    setMediaFiles((prev) => prev.filter((_, i) => i !== index)); 
+    setMediaFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSave = () => {
-    if (!userID) {
-      alert("User not logged in!");
+  const handleSaveChanges = async () => {
+    if (!postText.trim()) {
+      alert("Post content cannot be empty.");
       return;
     }
+
   
-    axios.post(`http://localhost:3001/api/posts/content`, {
-      post_id: postId,
-      content: postText,
-      user_id: userID,
-    })
-    .then(() => {
-      console.log("✅ Post updated successfully");
+    try {
+      const response = await axios.post('http://localhost:3001/api/posts/content', {
+        post_id: postId,
+        content: postText
+      });
+      console.log("✅ Post updated:", response.data);
+
       navigate("/case/1");
-    })
-    .catch((error) => console.error("❌ Update Error:", error));
+    } catch (error) {
+      console.error("❌ Error updating post:", error);
+    }
   };
 
   const handleCancel = () => {
@@ -190,28 +209,27 @@ const EditPost = ({ posts, updatePost }) => {
 
   return (
     <EditPostContainer>
-    <PostDiv>
+      <PostDiv>
       <Title>Edit Your Post</Title>
-      <UserProfile profileImg={originalPost.profileImg} userName={originalPost.userName} variant="header" />
-
+      <UserProfile profileImg={user.profile_picture} userName={user.user_name} variant="default"/>
+      
       <TextArea value={postText} onChange={handleTextChange} />
 
       <UploadContainer>
         <UploadLabel htmlFor="file-upload">Upload Images/Videos</UploadLabel>
-        <FileInput id="file-upload" type="file" multiple accept="image/*,video/*" onChange={handleFileUpload} />
+        <FileInput
+          id="file-upload"
+          type="file"
+          multiple
+          accept="image/*,video/*"
+          onChange={handleFileUpload}
+        />
       </UploadContainer>
 
       <PreviewContainer>
         {mediaFiles.map((file, index) => (
           <PreviewWrapper key={index}>
-            {file.includes("video") ? (
-              <PreviewVideo controls>
-                <source src={file} type="video/mp4" />
-                Your browser does not support the video tag.
-              </PreviewVideo>
-            ) : (
-              <PreviewImage src={file} alt={`Preview ${index}`} />
-            )}
+            <PreviewImage src={file} alt={`Preview ${index}`} />
             <DeleteButton onClick={() => handleDeleteMedia(index)}>✖</DeleteButton>
           </PreviewWrapper>
         ))}
@@ -219,7 +237,7 @@ const EditPost = ({ posts, updatePost }) => {
 
       <ButtonGroup>
         <Button cancel onClick={handleCancel}>Cancel</Button>
-        <Button onClick={handleSave}>Save Changes</Button>
+        <Button onClick={handleSaveChanges}>Save Changes</Button>
       </ButtonGroup>
       </PostDiv>
     </EditPostContainer>

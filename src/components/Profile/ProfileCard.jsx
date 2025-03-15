@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import FollowingPopup from "./FollowList";
 import ProfileEdit from "./EditProfile";
 
-const ProfileCard = ({ username, id, userid, userPic, bio, followers, following, relationship, isMyProfile, isPrivate, onDMClick, updateRelationshipStatus}) => {
+const ProfileCard = ({ username, id, userid, userPic, bio, followers, following, relationship, isMyProfile, isPrivate, updateRelationshipStatus}) => {
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [foll, setFoll] = useState(2); // 2 for followers, 0 for following
   const [isEditing, setIsEditing] = useState(false);
@@ -10,6 +10,10 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
 
   const handleClose = () => {
     setIsEditing(false);
+  };
+
+  const onDMClick = () => {
+
   };
 
   const handleSaveChanges = (updatedData) => {

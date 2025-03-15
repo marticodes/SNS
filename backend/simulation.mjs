@@ -16,6 +16,7 @@ import TraitDAO from './dao/trait_dao.mjs';
 import PersonaDAO from './dao/persona_dao.mjs';
 import SocialGroupDao from './dao/social_group_dao.mjs';
 import UserInterestDao from './dao/user_interest_dao.mjs';
+import fs from "fs/promises";
 
 
 
@@ -523,7 +524,7 @@ const Simulation = {
 
     },
 
-    async insertUserPipeline(userData){
+    async insertUserPipeline(userData) {
         try {
           // 1. Insert the basic user info into the user table
           const user_id = await UserDAO.insertUser(
@@ -532,24 +533,26 @@ const Simulation = {
             userData.email,
             userData.password,
             userData.user_bio,
-            userData.profile_picture,
+            userData.profile_picture
           );
-      
+    
           await TraitDAO.insertUserTraits(
             user_id,
-            userData.trait_id,
+            //userData.trait_id,
             userData.posting_trait,
             userData.commenting_trait,
             userData.reacting_trait,
             userData.messaging_trait,
-            userData.sharing_trait,
-            userData.other_trait,
+            userData.updating_trait,
+            userData.comm_trait,
+            userData.notification_trait
+        
           );
-      
-          await UserInterestDao.getUserInterests(user_id, userData.interest_name);
-          await PersonaDAO.insertUserPersona(userData.persona_id,userData.persona_name, user_id);   
-          await SocialGroupDao.insertUserSocialGroup(user_id, userData.social_group_id,userData.social_group_name);
-      
+    
+          await UserInterestDao.insertUserInterest(userData.interest_name, user_id);
+          await PersonaDAO.insertUserPersona(userData.persona_name, user_id);
+          await SocialGroupDao.insertUserSocialGroup(userData.social_group_name, user_id);
+
           console.log(`✅ Created Agent: ${userData.user_name} (ID: ${userData.id_name}) with full details`);
           return user_id;
         } catch (error) {
@@ -557,54 +560,40 @@ const Simulation = {
           throw error;
         }
       },
-      
-    async createAgent(agentIndex) {
-    const userData = {
-        id_name: `ID_${agentIndex}`,
-        user_name: `Agent_${agentIndex}`,
-        email: `agent${agentIndex}@sns.com`,
-        password: "password123",
-        user_bio: "This is a sample bio for our agent.",
-        profile_picture: "default_profile.jpg",
-        trait_id: "123",
-        posting_trait: `Trait_post_${agentIndex}`,
-        commenting_trait: `Trait_comment_${agentIndex}`,
-        reacting_trait: `Trait_react_${agentIndex}`,
-        messaging_trait: `Trait_message_${agentIndex}`,
-        sharing_trait: "great",
-        other_trait: `Trait_Other_${agentIndex}`,
-        // Sample interests array – you could generate random interests if needed
-        interest_name: "music",
-        // Example person details – adjust fields as per your person table schema
-        persona_id: "234",
-        persona_name: "outgoing",
-        // Example social groups that the user belongs to
-        social_group_name: "grad student",
-        social_group_id: "1"
-
-    };
     
-    return await this.insertUserPipeline(userData);
-    },
-      
-    async createAgents(numAgents) {
-        for (let i = 0; i < numAgents; i++) {
+      async createAgentsFromJson(filePath) {
         try {
-            await this.createAgent(i);
+          // Read and parse JSON file
+          const data = await fs.readFile(filePath, "utf-8");
+          const agents = JSON.parse(data);
+    
+          if (!Array.isArray(agents) || agents.length === 0) {
+            throw new Error("Invalid JSON structure: Expected an array of agents.");
+          }
+    
+          for (const agent of agents) {
+            try {
+              await this.insertUserPipeline(agent);
+            } catch (error) {
+              console.error(`❌ Error creating agent ${agent.id_name}:`, error);
+            }
+          }
+    
+          console.log(`✅ ${agents.length} Agents Created Successfully!`);
         } catch (error) {
-            console.error(`❌ Error creating agent ${i}:`, error);
+          console.error("❌ Failed to load agents from JSON file:", error);
         }
-        }
-    },
-      
-
-    async startSimulation() {
+      },
+    
+      async startSimulation() {
         console.log("🚀 Starting Simulation...");
-        
-        // Create agents dynamically when the simulation starts
-        await this.createAgents(10);
-        
-        console.log("✅ 10 Agents Created Successfully!");
+    
+        // Load agents from JSON file
+        await this.createAgentsFromJson("./agents.json");
+    
+        console.log("✅ Simulation Completed!");
+      }
     }
-};
-export default Simulation;
+    
+    export default Simulation;
+    

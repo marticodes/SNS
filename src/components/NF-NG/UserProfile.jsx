@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { BsThreeDotsVertical } from "react-icons/bs";
+import axios from "axios"; 
 
 const NavDiv = styled.div`
   display: flex;
@@ -77,14 +78,39 @@ const MenuItem = styled.li`
   }
 `;
 
-const UserProfile = ({ profileImg, userName, postDate, isOwner, post, variant = "default" }) => {
+const UserProfile = ({
+  user_id,
+  userName = "Unknown User",  // default fallback
+  profileImg,
+  postDate,
+  isOwner,
+  post,
+  variant = "default"
+}) => {
+  const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
-  const toggleMenu = () => {
-    setMenuOpen((prev) => !prev);
-  };
+  const defaultProfileImage = "/src/default-profile.png";
+
+  useEffect(() => {
+    if (!user_id) return;
+
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3001/api/user/${user_id}`);
+        console.log("✅ User fetched:", res.data);
+        setUser(res.data);
+      } catch (err) {
+        console.error("❌ Error fetching user:", err);
+      }
+    };
+
+    fetchUser();
+  }, [user_id]);
+
+  const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -94,14 +120,12 @@ const UserProfile = ({ profileImg, userName, postDate, isOwner, post, variant = 
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleMenuClick = (action, postId) => {
+  const handleMenuClick = (action) => {
     if (action === "edit") {
-      navigate(`/case/1/edit-post/${postId}`);
+      navigate(`/case/1/edit-post/${post.post_id}`);
     }
     setMenuOpen(false);
   };
@@ -109,14 +133,17 @@ const UserProfile = ({ profileImg, userName, postDate, isOwner, post, variant = 
   return (
     <NavDiv>
       <ProfileDiv>
-        <ProfileImg src={profileImg} alt={`${userName}'s profile`} />
+      <ProfileImg 
+        src={profileImg?.trim() ? profileImg : defaultProfileImage} 
+        alt={`${userName || "Unknown User"}'s profile`} 
+      />
         <TextContainer>
           <UserName>{userName}</UserName>
           {variant === "default" && <PostDate>{postDate}</PostDate>}
         </TextContainer>
       </ProfileDiv>
 
-      {variant === "default" && isOwner && (
+      {variant === "default" && (
         <>
           <MenuBtn onClick={toggleMenu}>
             <BsThreeDotsVertical />

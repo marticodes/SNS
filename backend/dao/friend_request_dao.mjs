@@ -32,6 +32,14 @@ const RequestDAO = {
                         resolve(false);
                     } else {
                         const id = this.lastID; 
+                        const timestamp = new Date().toISOString();
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                        db.run(log_sql, [ user_id_1,5, `Sent a friend request to user ${user_id_2}`, timestamp], function (log_err) {
+                            if (log_err) {
+                                return reject(log_err);
+                            }
+                        });
                         resolve(id);
                     }
                 });
@@ -48,6 +56,14 @@ const RequestDAO = {
                 if (err) {
                     return reject(err);
                 }
+                const timestamp = new Date().toISOString();
+                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                        db.run(log_sql, [ user_id_1, 5, `Deleted friend request to user ${user_id_2}`, timestamp], function (log_err) {
+                            if (log_err) {
+                                return reject(log_err);
+                            }
+                        });
                 resolve(this.changes > 0); 
             });
         });

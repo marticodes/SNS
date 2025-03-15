@@ -45,6 +45,28 @@ const UserInterestDAO = {
         });
     },
 
+    async insertUserInterest(interest_name, user_id){
+
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'INSERT INTO UserInterest (interest_name, user_id) VALUES (?,?)';
+                db.run(sql, [interest_name, user_id], function(err) { 
+                    if (err) {
+                        reject(err);
+                    } else if (this.changes === 0) { 
+                        resolve(false);
+                    } else {
+                        const id = this.lastID; 
+                        resolve(id);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    }
+
 };
 
 export default UserInterestDAO;

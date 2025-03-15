@@ -18,7 +18,8 @@ const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
   const [reaction, setReaction] = useState(null);
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [profilePosition, setProfilePosition] = useState({ x: 0, y: 0 });
-  const profileCardRef = useRef(null); // Ref for the profile card
+  const [userData, setUserData] = useState(null);
+  const profileCardRef = useRef(null);
   const timeoutRef = useRef(null);
 
   const handleEmojiClick = (emoji) => {
@@ -56,6 +57,23 @@ const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/api/user/${message.user_id}`);
+        if (!response.ok) throw new Error("Failed to fetch user info");
+        const data = await response.json();
+        setUserData(data);
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    };
+
+    if (message.user_id) {
+      fetchUserInfo();
+    }
+  }, [message.user_id]);
 
   const iconContainer = (
     <div
@@ -142,13 +160,14 @@ const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
         }}
       >
         <img
-          src={`https://i.pravatar.cc/40?u=${message.sender}`}
+          src={`https://i.pravatar.cc/40?u=${message.sender}`}   //CHANGE THIS WITH NEW IMAGES
           alt="User Avatar"
           style={{
             width: "100%",
             height: "100%",
             objectFit: "cover",
           }}
+          onClick={handleNameClick}
         />
       </div>
 
@@ -186,11 +205,10 @@ const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
             }}
           >
             <ProfileCard
-              username={message.sender}
+              username={userData.user_name}
               id={message.user_id}
-              userPic={`https://i.pravatar.cc/120?u=${message.sender}`}
-              bio = {`This is the bio of ${message.sender}`}
-              onDMClick={() => alert("DM button clicked")}     //CHANGE
+              userPic={userData.profile_picture}
+              bio={userData.user_bio}
             />
           </div>
         )}

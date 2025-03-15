@@ -137,7 +137,7 @@ const Button = styled.button`
   }
 `;
 
-const NewPost = ({ user, addNewPost }) => {
+const NewPost = ({ user, addNewPost, fetchFeedData }) => {
   const navigate = useNavigate();
   const [postText, setPostText] = useState("");
   const [mediaFiles, setMediaFiles] = useState([]); 
@@ -155,38 +155,35 @@ const NewPost = ({ user, addNewPost }) => {
     setMediaFiles((prev) => prev.filter((_, i) => i !== index)); 
   };
 
-  const handlePost = () => {
-    const userID = parseInt(localStorage.getItem("userID"), 10); 
-    if (!userID) {
-      alert("User not logged in!");
+  const handlePost = async () => {
+    const userID = parseInt(localStorage.getItem("userID"), 10);
+    if (!postText.trim() && mediaFiles.length === 0) {
+      alert("🚫 Post cannot be empty!");
       return;
     }
-  
-    const newPost = {
+
+    const newPostData = {
       parent_id: null,
       user_id: userID,
       content: postText,
-      topic: null,
-      media_type: mediaFiles.length > 0 ? "image" : null,
-      media_url: mediaFiles.length > 0 ? mediaFiles : [],
+      //media_type: mediaFiles.length > 0 ? "image" : null,
+      //media_url: mediaFiles.length > 0 ? JSON.stringify(mediaFiles) : null,
       timestamp: new Date().toISOString(),
-      duration: null,
-      visibility: "public",
-      comm_id: null,
+      duration: 0,
+      visibility: 2, 
+      comm_id: null
     };
-  
-    axios.post("http://localhost:3001/api/post/add", newPost)
-      .then((response) => {
-        console.log("✅ Post created:", response.data);
 
-        axios.get(`http://localhost:3001/api/posts/all/${userID}`)
-          .then((res) => setPosts(res.data))
-          .catch((error) => console.error("❌ Fetch Error:", error));
-  
-          setPosts((prevPosts) => [response.data, ...prevPosts]);
-          navigate("/case/1");
-      })
-      .catch((error) => console.error("❌ Post Error:", error));
+    console.log("🚀 Sending new post data:", newPostData);
+    try {
+      const response = await axios.post("http://localhost:3001/api/requests/add", newPostData);
+      console.log("✅ Post created:", response.data);
+      await fetchFeedData();
+      console.log("✅ Post created:", response.data);
+      navigate("/case/1"); 
+    } catch (error) {
+      console.error("❌ Error posting:", error);
+    }
   };
 
   const handleCancel = () => {
@@ -198,7 +195,7 @@ const NewPost = ({ user, addNewPost }) => {
     <NewPostContainer>
       <PostDiv>
       <Title>Create New Post</Title>
-      <UserProfile profileImg={user.profile_picture} userName={user.user_name} variant="header" />
+      <UserProfile profileImg={user.profile_picture} userName={user.user_name} variant="default" />
 
       <TextArea value={postText} onChange={handleTextChange} placeholder="Say Something..." />
 

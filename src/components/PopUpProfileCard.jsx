@@ -1,11 +1,39 @@
 import React, { useState, useEffect } from "react";
 import ProfileEdit from "./Profile/EditProfile";
+import { useNavigate } from "react-router-dom";
 
 const myID = parseInt(localStorage.getItem("userID"), 10);
 
-const ProfileCard = ({ idname, username, id, userPic, bio, onDMClick }) => {
+const ProfileCard = ({ idname, username, id, userPic, bio }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [relationship, setRelationship] = useState("Loading...");
+  const navigate = useNavigate();
+
+  const onDMClick = async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/chats/exist/${myID}/${id}`);
+      const data = await response.json();
+
+      if (response.ok && data) {
+        navigate(`/dms/${data}`);
+      } else {
+        const newChatResponse = await fetch("http://localhost:3001/api/chats/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id_1: myID, user_id_2: id, chat_name: null, chat_image: null }),
+        });
+
+        const newChatData = await newChatResponse.json();
+        if (newChatResponse.ok && newChatData?.ina) {
+          navigate(`/dms/${newChatData.ina}`);
+        } else {
+          console.error("Failed to create chat:", newChatData);
+        }
+      }
+    } catch (error) {
+      console.error("Error handling DM click:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchRelationship = async () => {
@@ -20,8 +48,6 @@ const ProfileCard = ({ idname, username, id, userPic, bio, onDMClick }) => {
 
   const getRelationshipStatus = async (myID, targetUserId) => {
     try {
-      console.log("myID:", myID);
-      console.log("targetUserId:", targetUserId);
       // Case 1: Check if I follow them
       let response = await fetch(`http://localhost:3001/api/relations/${myID}/${targetUserId}`);
       let data = await response.json();
@@ -32,7 +58,6 @@ const ProfileCard = ({ idname, username, id, userPic, bio, onDMClick }) => {
       // Case 2: Check if I requested them
       response = await fetch(`http://localhost:3001/api/requests/${targetUserId}`);
       data = await response.json();
-      console.log("Data:", data);
       if (response.ok && Array.isArray(data) && data.some(item => String(item) === String(myID))) {
         return "Requested";
       }

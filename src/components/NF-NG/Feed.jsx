@@ -15,15 +15,7 @@ const FeedDiv = styled.div`
   background-color: #ffffff;
 `;
 
-const Feed = ({commentType = "nested" }) => {
-  const [posts, setPosts] = useState([]);
-  const userID = parseInt(localStorage.getItem("userID"), 10);
-  useEffect(() => {
-    axios
-      .get(`http://localhost:3001/api/posts/all/${userID}`)
-      .then((response) => setPosts(response.data))
-      .catch((error) => console.error("Fetch Error:", error));
-  }, [userID]);
+const Feed = ({ posts = [], user, commentType = "nested" }) => {
 
   return (
     <>
@@ -32,7 +24,7 @@ const Feed = ({commentType = "nested" }) => {
       ) : (
         posts.map((post) => (
           <FeedDiv key={post.post_id}>
-            <Post post={post} user={userID} commentType={commentType} />
+            <Post post={post} user={user} commentType={commentType} />
           </FeedDiv>
         ))
       )}

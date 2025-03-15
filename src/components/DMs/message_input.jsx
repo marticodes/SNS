@@ -30,7 +30,7 @@ const MessageInput = ({ onSendMessage, replyTo, onCancelReply }) => {
             position: "relative",
           }}
         >
-          <strong>Replying to:</strong> {replyTo.sender}: {replyTo.text}
+          <strong>Replying to:</strong> {replyTo.text}
           <button
             onClick={onCancelReply}
             style={{

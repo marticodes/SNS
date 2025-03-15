@@ -30,14 +30,14 @@ const NotificationDAO = {
         return new Promise((resolve, reject) => {
             try {
                 const sql = 'SELECT * FROM Notification WHERE receiver_id = ?';
-                db.get(sql, [user_id], (err, row) => {
+                db.all(sql, [user_id], (err, rows) => {
                     if (err) {
                         reject(err);
-                    } else if (row.length === 0) {
+                    } else if (rows.length === 0) {
                         resolve(false);
                     } else {
-                        const notif = new Notification(row.notif_id, row.content, row.notif_type, row.sender_id, row.receiver_id, row.timestamp);
-                        resolve(notif);
+                        const notifs = rows.map(row => new Notification(row.notif_id, row.content, row.notif_type, row.sender_id, row.receiver_id, row.timestamp));
+                        resolve(notifs);
                     }
                 });
             } catch (error) {
@@ -87,6 +87,15 @@ const NotificationDAO = {
                 if (err) {
                     return reject(err);
                 }
+                //TODO
+                const timestamp = new Date().toISOString();
+                const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                                db.run(log_sql, [ 0 , 1, `Removed notification with id ${notif_id}`, timestamp], function (log_err) {
+                                    if (log_err) {
+                                        return reject(log_err);
+                                    }
+                                });
                 resolve(this.changes > 0); 
             });
         });

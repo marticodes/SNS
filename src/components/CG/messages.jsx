@@ -44,7 +44,7 @@ const MessageList = ({ messages, onReply, onReact }) => {
             message={message}
             onReply={onReply}
             onReact={onReact}
-            scrollToMessage={scrollToMessage} // Pass scroll function to SingleMessage
+            scrollToMessage={scrollToMessage}
           />
         </div>
       ))}

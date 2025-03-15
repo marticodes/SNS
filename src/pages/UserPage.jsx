@@ -138,6 +138,8 @@ const UserPage = () => {
 
   console.log("Relatioooon:", user.relationship);
 
+  
+
   const posts = [
     {
       id: 1,
@@ -162,10 +164,6 @@ const UserPage = () => {
       },
     },
   ];
-
-  const handleDMClick = () => {
-    navigate("/dms", { state: { chatUser: "Kim Seokjin" } });
-  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -194,7 +192,6 @@ const UserPage = () => {
             bio={user.user_bio}
             followers={followersCount} // Use followersCount here
             following={followingCount} // Use followingCount here
-            onDMClick={handleDMClick}
             isPrivate={user.isPrivate}
             relationship={user.relationship}
             isMyProfile={myUserId === userId}

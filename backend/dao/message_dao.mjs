@@ -43,6 +43,15 @@ const MessageDAO = {
                     resolve(this.lastID); // Get inserted message ID
                 });
             });
+
+            //Update chat time
+            await new Promise((resolve, reject) => { 
+                const chatTimeUpdate = 'UPDATE Chat SET timestamp=? WHERE chat_id=?';
+                db.run(chatTimeUpdate, [timestamp, chat_id], function (err) {
+                    if (err) return reject(err);
+                    resolve(this.changes > 0); 
+                });
+            });
     
             // Insert read receipts for all receivers
             const receiptQuery = 'INSERT INTO ReadReceipts (chat_id, user_id) VALUES (?, ?)';
@@ -54,6 +63,14 @@ const MessageDAO = {
                     });
                 });
             });
+
+            const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+            db.run(log_sql, [ sender_id, 3, `Sent a Message "${content}"`, timestamp], function (log_err) {
+                if (log_err) {
+                              return reject(log_err);
+                            }
+            });          
     
             await Promise.all(insertReceipts);
             return message_id;
@@ -119,6 +136,26 @@ const MessageDAO = {
                         resolve([]);
                     } else {
                         resolve(row.sender_id);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async getMessageByMessageId(message_id){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT * FROM Message WHERE message_id = ?';
+    
+                db.get(sql, [message_id], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (row.length === 0) {
+                        resolve([]);
+                    } else {
+                        resolve(new Message(row.message_id, row.chat_id, row.sender_id, row.reply_id, row.content, row.media_type, row.media_url, row.timestamp));
                     }
                 });
             } catch (error) {
