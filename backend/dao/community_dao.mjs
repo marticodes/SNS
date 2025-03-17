@@ -22,8 +22,7 @@ const CommunityDAO = {
         });
     },
 
-//TODO
-    async createNewChannel(comm_name, comm_image, comm_bio){
+    async createNewChannel(comm_name, comm_image, comm_bio, user_id = 0){
         return new Promise((resolve, reject) => {
             try {
                 const sql = 'INSERT INTO Community (comm_name, comm_image, comm_bio) VALUES (?,?,?)';
@@ -38,7 +37,7 @@ const CommunityDAO = {
                         const id = this.lastID; 
                         const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
                                     VALUES (?, ?, ?, ?)`;
-                        db.run(log_sql, [ 0, 5, `New community "${comm_name}" has been created`, timestamp], function (log_err) {
+                        db.run(log_sql, [ user_id, 5, `New community "${comm_name}" has been created`, timestamp], function (log_err) {
                             if (log_err) {
                                 return reject(log_err);
                             }

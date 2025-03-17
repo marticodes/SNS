@@ -39,7 +39,7 @@ const CMemberDAO = {
                         db.get(comm_sql, [comm_id], (err, row) => {
                             if (err) {
                                 reject(err);
-                            } else if (row.length === 0) {
+                            } else if (!row) {
                                 resolve(false);
                             } else {
                                 comm_name = row.comm_name;

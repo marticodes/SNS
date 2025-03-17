@@ -81,6 +81,8 @@ const ActionChoice = {
             random -= a.weight;
         }
 
+        // chosenAction = "Start new group chat";
+
         switch (chosenAction) {
              case "Update user bio":
                 await Simulation.updateAGUserBio(user_id, system_prompt);

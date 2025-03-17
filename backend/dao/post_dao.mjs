@@ -136,7 +136,7 @@ const PostDAO = {
         });
     },
 
-    async updatePostVisibility(post_id, visibility) {
+    async updatePostVisibility(post_id, visibility, user_id = 0) {
         return new Promise((resolve, reject) => {
             try {
                 const sql = 'UPDATE Post SET visibility=? WHERE post_id=?';
@@ -148,7 +148,7 @@ const PostDAO = {
 
                         const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
                                     VALUES (?, ?, ?, ?)`;
-                        db.run(log_sql, [ 0, 4, `Updated post visibility to type ${visibility}`, timestamp], function (log_err) {
+                        db.run(log_sql, [ user_id, 4, `Updated post visibility to type ${visibility}`, timestamp], function (log_err) {
                             if (log_err) {
                                         return reject(log_err);
                                         }
