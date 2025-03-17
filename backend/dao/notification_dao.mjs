@@ -80,7 +80,7 @@ const NotificationDAO = {
 
     },
 
-    async removeNotification(notif_id){
+    async removeNotification(notif_id, user_id = 0){
         return new Promise((resolve, reject) => {
             const sql = 'DELETE FROM Notification WHERE notif_id=?';
             db.run(sql, [notif_id], function (err) {
@@ -91,7 +91,7 @@ const NotificationDAO = {
                 const timestamp = new Date().toISOString();
                 const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
                                     VALUES (?, ?, ?, ?)`;
-                                db.run(log_sql, [ 0 , 1, `Removed notification with id ${notif_id}`, timestamp], function (log_err) {
+                                db.run(log_sql, [ user_id , 1, `Removed notification with id ${notif_id}`, timestamp], function (log_err) {
                                     if (log_err) {
                                         return reject(log_err);
                                     }

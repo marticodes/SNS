@@ -49,7 +49,7 @@ const ChatDAO = {
         });
     },
 
-    async insertGroupChat(user_ids, chat_name, chat_image) {
+    async insertGroupChat(user_ids, chat_name, chat_image, creator = 0) {
         return new Promise((resolve, reject) => {
             try {
                 db.run('BEGIN TRANSACTION');
@@ -81,7 +81,7 @@ const ChatDAO = {
 
                         const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
                                     VALUES (?, ?, ?, ?)`;
-                        db.run(log_sql, [user_ids[0], 3, `Created group chat with name ${chat_name}`, timestamp], function (log_err) {
+                        db.run(log_sql, [creator, 3, `Created group chat with name ${chat_name}`, timestamp], function (log_err) {
                             if (log_err) {
                                 return reject(log_err);
                             }
