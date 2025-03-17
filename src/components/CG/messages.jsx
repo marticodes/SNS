@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import SingleMessage from "./oneMessage";
 
-const MessageList = ({ messages, onReply, onReact }) => {
+const MessageList = ({ messages, onReply }) => {
   const messageListRef = useRef(null); 
   const messageRefs = useRef({}); // Store refs for each message
 
@@ -43,7 +43,6 @@ const MessageList = ({ messages, onReply, onReact }) => {
           <SingleMessage
             message={message}
             onReply={onReply}
-            onReact={onReact}
             scrollToMessage={scrollToMessage}
           />
         </div>

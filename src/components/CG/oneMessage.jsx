@@ -12,7 +12,7 @@ const formatTimestamp = (timestamp) => {
   });
 };
 
-const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
+const SingleMessage = ({ message, onReply, scrollToMessage }) => {
   const [hovered, setHovered] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [reaction, setReaction] = useState(null);
@@ -24,7 +24,6 @@ const SingleMessage = ({ message, onReply, onReact, scrollToMessage }) => {
 
   const handleEmojiClick = (emoji) => {
     setReaction(emoji.emoji);
-    if (onReact) onReact(message, emoji.emoji);
     setShowEmojiPicker(false);
   };
 
