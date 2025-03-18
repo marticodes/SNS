@@ -8,6 +8,7 @@ const SingleMessage = ({ message, isCurrentUser, onReply, scrollToMessage }) => 
   const [reaction, setReaction] = useState(null);
   const [replyMessage, setReplyMessage] = useState(null);
   const [emojiReactions, setEmojiReactions] = useState([]);
+  
 
   console.log(message);
 
