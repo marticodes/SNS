@@ -271,6 +271,17 @@ app.get('/api/posts/combined/search/:keyword',
     }
 );
 
+app.get('/api/posts/combined/search/comm/:keyword/:comm_id',
+  async (req, res) => {
+      try {
+        const posts = await postDao.searchinComminity(req.params.keyword, req.params.comm_id);
+        res.status(200).json(posts);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error listing posts ${err}` });
+      }
+    }
+);
+
 app.post('/api/post/add',
     async (req, res) => {
         try {
