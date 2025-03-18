@@ -22,7 +22,6 @@ const ChatPage = () => {
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [chatList, setchatList] = useState([]);
   
-
   useEffect(() => {
     setCurrentChatId(chatId);
   }, [chatId]);
@@ -202,7 +201,7 @@ const ChatPage = () => {
             />
             <MessageList
               messages={filteredMessages}
-              currentUser={currentUser}
+              chatId={currentChatId}
               onReply={handleMessageReply}
               isGroup={isGroup}
             />
