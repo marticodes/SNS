@@ -151,10 +151,7 @@ const UserProfile = ({
           {menuOpen && (
             <MenuPopup ref={menuRef}>
               <MenuItem onClick={() => handleMenuClick("edit")}>Edit</MenuItem>
-              <MenuItem onClick={() => handleMenuClick("block")}>Block</MenuItem>
-              <MenuItem onClick={() => handleMenuClick("share")}>Share URL</MenuItem>
-              <MenuItem onClick={() => handleMenuClick("report")}>Report</MenuItem>
-              <MenuItem onClick={() => handleMenuClick("unfollow")}>Unfollow</MenuItem>
+              <MenuItem onClick={() => handleMenuClick("block")}>Mute</MenuItem>
             </MenuPopup>
           )}
         </>
