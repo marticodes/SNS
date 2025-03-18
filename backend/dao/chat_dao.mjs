@@ -227,37 +227,54 @@ const ChatDAO = {
         });
     },
 
-    async deleteChat(chat_id){
-
+    async deleteChat() {
         return new Promise((resolve, reject) => {
-            const checkMessagesSql = 'SELECT COUNT(*) AS message_count FROM Message WHERE chat_id = ?';
-        
-            db.get(checkMessagesSql, [chat_id], (err, row) => {
+            const fetchChatIdsSql = 'SELECT chat_id FROM Chat';
+    
+            db.all(fetchChatIdsSql, [], (err, rows) => {
                 if (err) {
                     return reject(err);
                 }
-        
-                if (row.message_count === 0) {
-                    const deleteChatSql = 'DELETE FROM Chat WHERE chat_id = ?';
-        
-                    db.run(deleteChatSql, [chat_id], function (err) {
+    
+                if (rows.length === 0) {
+                    return resolve(false);
+                }
+    
+                let deletedChats = 0;
+                let totalChats = rows.length;
+    
+                rows.forEach((row) => {
+                    const chat_id = row.chat_id;
+    
+                    const checkMessagesSql = 'SELECT COUNT(*) AS message_count FROM Message WHERE chat_id = ?';
+                    db.get(checkMessagesSql, [chat_id], (err, msgRow) => {
                         if (err) {
                             return reject(err);
                         }
-                        resolve(this.changes > 0); 
+    
+                        if (msgRow.message_count === 0) {
+                            const deleteChatSql = 'DELETE FROM Chat WHERE chat_id = ?';
+                            db.run(deleteChatSql, [chat_id], function (err) {
+                                if (err) {
+                                    return reject(err);
+                                }
+                                if (this.changes > 0) {
+                                    deletedChats++;
+                                }
+                                if (--totalChats === 0) {
+                                    resolve(deletedChats > 0);
+                                }
+                            });
+                        } else {
+                            if (--totalChats === 0) {
+                                resolve(deletedChats > 0);
+                            }
+                        }
                     });
-                } else {
-                    resolve(false);
-                }
+                });
             });
         });
-        
-
-
     }
-    
-    
-
 
 };
 
