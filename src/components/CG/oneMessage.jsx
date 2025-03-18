@@ -134,6 +134,7 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
     }
   }, [message.user_id]);
 
+  console.log(userData);
 
   const iconContainer = (
     <div
@@ -220,7 +221,7 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
         }}
       >
         <img
-          src={userData.profile_picture}
+          src={userData?.profile_picture || "default-avatar.png"}
           alt="User Avatar"
           style={{
             width: "100%",

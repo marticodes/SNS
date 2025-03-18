@@ -47,9 +47,12 @@ const NewPostButton = styled.button`
   }
 `;
 
-const FeedMain = ({ user, posts, setPosts, fetchFeedData }) => {
+const FeedMain = ({ user, posts }) => {
   const [filteredPosts, setFilteredPosts] = useState(posts);
   const navigate = useNavigate(); 
+
+  console.log("FeedMain user", user);
+  console.log("FeedMain posts", posts);
 
   const userID = parseInt(localStorage.getItem("userID"), 10);
 
@@ -87,7 +90,7 @@ const FeedMain = ({ user, posts, setPosts, fetchFeedData }) => {
         <NewPostDiv>
           <NewPostButton onClick={handleNewPost}>+ New Post</NewPostButton>
         </NewPostDiv>
-        <Feed user={user} posts={filteredPosts} />
+        <Feed user={user} posts={posts} />
       </FeedContent>
     </FeedContainer>
   );

@@ -19,111 +19,43 @@ const AppContainer = styled.div`
 
 const NFPage = () => {
   const navigate = useNavigate(); 
-  const userID = parseInt(localStorage.getItem("userID"), 10);
+  //const userID = parseInt(localStorage.getItem("userID"), 10);     UNCOMMENT THIS LINE
+  const userID = 1; // REMOVE THIS LINE
 
   const [userInfo, setUserInfo] = useState(null);
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
-  /*
-  const userInfo = {
-    user_name: "Jane Doe",
-    profile_picture: "./src/dummy-profile-img.jpg",
-  };
 
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      profileImg: "./src/dummy-profile-img.jpg",
-      userName: "Jane Doe",
-      postDate: "2025-01-21",
-      text: "This is a sample feed post with images.",
-      hashtags: ["nature", "photo"],
-      images: [
-        "../src/dummy-feed-img-1.jpg",
-        "../src/dummy-feed-img-2.jpg",
-        "../src/dummy-feed-img-3.jpg",
-      ],
-      reactions: {
-        likedUsers: [
-          { profileImg: "./src/dummy-profile-img-2.jpg", userName: "John Smith" },
-          { profileImg: "./src/dummy-profile-img-4.jpeg", userName: "Alice Brown" },
-        ],
-        emojiReactions: [
-          { profileImg: "./src/dummy-profile-img-3.jpg", userName: "Bob Smith", emoji: "😂" },
-          { profileImg: "./src/dummy-profile-img-4.jpeg", userName: "Charlie Lee", emoji: "❤️" },
-        ],
-        upvotedUsers: 10,
-        downvotedUsers: 2,
-        shares: 3,
-      },
-      comments: [
-        {
-          id: 101,
-          profileImg: "./src/dummy-profile-img-2.jpg",
-          userName: "John Smith",
-          text: "Awesome post!",
-          replies: [
-            {
-              id: 201,
-              profileImg: "./src/dummy-profile-img-4.jpeg",
-              userName: "Alice Brown",
-              text: "Agreed!",
-            },
-          ],
-        },
-        {
-          id: 102,
-          profileImg: "./src/dummy-profile-img-4.jpeg",
-          userName: "Alice Brown",
-          text: "Really nice!",
-          replies: [],
-        },
-      ],
-    },
-    {
-      id: 2,
-      profileImg: "./src/dummy-profile-img-2.jpg",
-      userName: "John Smith",
-      postDate: "2025-01-21",
-      text: "This is a sample feed post with text only.",
-      images: [],
-      hashtags: ["example"],
-      reactions: {
-        likedUsers: [{ profileImg: "./src/dummy-profile-img-2.jpg", userName: "John Smith" }],
-        emojiReactions: [
-          { profileImg: "./src/dummy-profile-img-3.jpg", userName: "Bob Smith", emoji: "😂" },
-          { profileImg: "./src/dummy-profile-img-4.jpeg", userName: "Charlie Lee", emoji: "❤️" },
-        ],
-        upvotedUsers: 4,
-        downvotedUsers: 1,
-        shares: 2,
-      },
-      comments: [
-        {
-          id: 103,
-          profileImg: "./src/dummy-profile-img-2.jpg",
-          userName: "John Smith",
-          text: "Awesome post!",
-          replies: [
-            {
-              id: 202,
-              profileImg: "./src/dummy-profile-img-4.jpeg",
-              userName: "Alice Brown",
-              text: "Agreed!",
-            },
-          ],
-        },
-        {
-          id: 104,
-          profileImg: "./src/dummy-profile-img-4.jpeg",
-          userName: "Alice Brown",
-          text: "Really nice!",
-          replies: [],
-        },
-      ],
-    },
-  ]);
-  */
+  const fetchFeed = async (userId, feedType) => {
+    const baseUrl = "http://localhost:3001/api/recomm/feed";
+    let endpoint;
+  
+    switch (feedType) {
+      case 1:
+        endpoint = `${baseUrl}/friends/${userId}`;
+        break;
+      case 2:
+        endpoint = `${baseUrl}/interests/${userId}`;
+        break;
+      case 3:
+        endpoint = `${baseUrl}/combined/${userId}`;
+        break;
+      default:
+        throw new Error("Invalid feed type. Use 1 for friends, 2 for interests, or 3 for combined.");
+    }
+  
+    try {
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch feed: ${response.statusText}`);
+      }
+      const posts = await response.json();
+      return posts;
+    } catch (error) {
+      console.error("Error fetching feed:", error);
+      return { error: error.message };
+    }
+  };  
 
   useEffect(() => {
     if (!userID) {
@@ -145,28 +77,26 @@ const NFPage = () => {
     fetchUser();
   }, [userID, navigate]);
 
-  const fetchFeedData = async () => {
+  const fetchFeedData = async (feedType = 1) => {
     try {
-      const followsRes = await axios.get(`http://localhost:3001/api/relations/all/${userID}/0`);
-      const followingIDs = followsRes.data.map((user) => user.user_id);
+      const feedPosts = await fetchFeed(userID, feedType);
+      if (feedPosts.error) {
+        throw new Error(feedPosts.error);
+      }
 
-      const userIdsToFetch = [...followingIDs, userID];
+      console.log("✅ Feed Posts:", feedPosts);    //works correctly
 
-      const postsPromises = userIdsToFetch.map((id) =>
-        axios.get(`http://localhost:3001/api/posts/all/${id}`).then((res) => res.data)
-      );
-
-      const postsResults = await Promise.all(postsPromises);
-
-      const allPosts = postsResults.flat();
-      const sortedPosts = allPosts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-      setPosts(sortedPosts);
-      setFilteredPosts(sortedPosts); // if you're using filtered posts
+      setPosts(feedPosts);
+      setFilteredPosts(feedPosts);
     } catch (error) {
       console.error("❌ Error fetching feed data:", error);
     }
   };
+
+  useEffect(() => {
+    if (!userID) return;
+    fetchFeedData(); // Fetch friends feed by default
+  }, [userID]);
 
   useEffect(() => {
     if (!userID) return;
@@ -200,7 +130,6 @@ const NFPage = () => {
               <FeedMain
                 user={userInfo}
                 posts={posts}
-                fetchFeedData={fetchFeedData}
               />
             }
           />
