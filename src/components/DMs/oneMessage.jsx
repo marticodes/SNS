@@ -2,26 +2,24 @@ import React, { useState, useEffect } from "react";
 import { MdOutlineReply, MdOutlineEmojiEmotions } from "react-icons/md";
 import EmojiPicker from "emoji-picker-react";
 
-const SingleMessage = ({ message, isCurrentUser, onReply, scrollToMessage }) => {
+const SingleMessage = ({ message, isCurrentUser, onReply, scrollToMessage, chatId }) => {
   const [hovered, setHovered] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [reaction, setReaction] = useState(null);
   const [replyMessage, setReplyMessage] = useState(null);
   const [emojiReactions, setEmojiReactions] = useState([]);
-  
 
-  console.log(message);
+  const currentUserID = parseInt(localStorage.getItem("userID"), 10);
 
   useEffect(() => {
     const fetchReactions = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3001/api/reactions/messages/${message.chat_id}/${message.message_id}`
+          `http://localhost:3001/api/reactions/messages/${chatId}/${message.id}`
         );
         if (response.ok) {
           const data = await response.json();
 
-          // Map user IDs to their info
           const reactionsWithUserInfo = await Promise.all(
             data.emojiReactions.map(async (reaction) => {
               const users = await Promise.all(
@@ -47,10 +45,34 @@ const SingleMessage = ({ message, isCurrentUser, onReply, scrollToMessage }) => 
   }, [message.chat_id, message.message_id]);
 
 
-  const handleEmojiClick = (emoji) => {
-    setReaction(emoji.emoji); 
+  const handleEmojiClick = async (emoji) => {
+    try {
+      const response = await fetch("http://localhost:3001/api/reactions/message/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reaction_type: 4,
+          emote_type: emoji.emoji,
+          chat_id: chatId,
+          message_id: message.id,
+          user_id: currentUserID,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+  
+      if (response.ok) {
+        const newReaction = await response.json();
+        setEmojiReactions((prev) => [...prev, { emote_type: emoji.emoji, users: [currentUserID] }]);
+      } else {
+        console.error("Failed to add reaction");
+      }
+    } catch (error) {
+      console.error("Error adding reaction:", error);
+    }
+  
+    setReaction(emoji.emoji);
     setShowEmojiPicker(false);
-  };
+  };  
 
   const toggleEmojiPicker = () => {
     setShowEmojiPicker((prev) => !prev);
@@ -185,19 +207,35 @@ const SingleMessage = ({ message, isCurrentUser, onReply, scrollToMessage }) => 
           {message.text}
         </div>
 
-        {/* Reaction */}
-        {reaction && (
-          <div
-            style={{
-              marginTop: "5px",
-              fontSize: "20px",
-              textAlign: "right",
-              color: isCurrentUser ? "#fff" : "#000",
-            }}
-          >
-            {reaction}
+        {/* Display Reactions */}
+        {emojiReactions.length > 0 && (
+          <div style={{ marginTop: "5px", display: "flex", alignItems: "center", gap: "10px" }}>
+            {emojiReactions.map((reaction) => (
+              <div key={reaction.emote_type} style={{ display: "flex", alignItems: "center" }}>
+                {/* Emoji */}
+                <span style={{ fontSize: "20px" }}>{reaction.emote_type}</span>
+                {/* User Profile Pictures */}
+                <span style={{ fontSize: "14px", marginLeft: "5px", display: "flex", gap: "5px" }}>
+                  {reaction.users.map((user) => (
+                    <img
+                      key={user.user_id}
+                      src={user.profile_picture}
+                      alt={`Profile picture of ${user.user_name}`}
+                      title={user.user_name} // Tooltip with the user's name
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        cursor: "pointer", // Optional: indicates interactivity
+                      }}
+                    />
+                  ))}
+                </span>
+              </div>
+            ))}
           </div>
         )}
+
 
         {/* Timestamp */}
         <div

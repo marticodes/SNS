@@ -100,7 +100,7 @@ const NavBar = ({ caseId }) => {
                 username={userInfo.user_name}
                 id={UserId}
                 idname={userInfo.id_name}
-                userPic="https://via.placeholder.com/150" // CHANGE LETER IF WE HAVE IMAGES
+                userPic={userInfo.profile_picture}
                 bio={userInfo.user_bio}
               />
             </div>
@@ -130,7 +130,7 @@ const NavBar = ({ caseId }) => {
                 username={userInfo.user_name}
                 id={UserId}
                 idname={userInfo.id_name}
-                userPic="https://via.placeholder.com/150" // CHANGE LETER IF WE HAVE IMAGES
+                userPic={userInfo.profile_picture}
                 bio={userInfo.user_bio}
               />
             </div>

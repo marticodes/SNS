@@ -355,12 +355,6 @@ export default function NotificationPanel({ onClose }) {
               </p>
               <p style={timestampStyle}>{notification.timestamp}</p>
             </div>
-            <button
-              style={followButtonStyle}
-              onClick={() => handleFollowClick(notification.isPrivate, notification.myUserId, notification.sender_id)}   //FIX IS PRIVATE HERE
-            >
-              {followLabel}
-            </button>
           </div>
         );
       case 4:
