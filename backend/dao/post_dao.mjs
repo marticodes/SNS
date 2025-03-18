@@ -108,12 +108,39 @@ const PostDAO = {
 
     async searchCombined(keyword){
         return new Promise((resolve, reject) => {
-            try {         
+            try {
+                const searchTerm = `%${keyword}%`;         
                 const sql = `SELECT * FROM Post 
                 WHERE LOWER(content) LIKE LOWER(?)
                 OR topic=?
                 OR hashtag = ?`;
-                db.all(sql, [keyword, keyword, keyword], (err, rows) => {
+                db.all(sql, [keyword, searchTerm, keyword], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else if (rows.length === 0) {
+                        resolve([]);
+                    } else {
+                        const posts= rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id, row.hashtag));
+                        resolve(posts);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    },
+
+    async searchinComminity(keyword, comm_id){
+        return new Promise((resolve, reject) => {
+            try {         
+                const searchTerm = `%${keyword}%`;         
+                const sql = `SELECT * FROM Post 
+                WHERE comm_id = ?
+                AND (LOWER(content) LIKE LOWER(?)
+                OR topic=?)
+                `;
+                db.all(sql, [comm_id, searchTerm, keyword], (err, rows) => {
                     if (err) {
                         reject(err);
                     } else if (rows.length === 0) {
