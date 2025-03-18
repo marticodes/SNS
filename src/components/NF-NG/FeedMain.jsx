@@ -57,22 +57,7 @@ const FeedMain = ({ user, posts }) => {
   const userID = parseInt(localStorage.getItem("userID"), 10);
 
   const handleSearch = (result) => {
-    if (result.userName) {
-      setFilteredPosts(posts.filter((p) => p.userName === result.userName));
-    } else if (result.hashtags) {
-      setFilteredPosts(
-        posts.filter((p) =>
-          p.hashtags.some((hashtag) => result.hashtags.includes(hashtag))
-        )
-      );
-    } else if (result.query) {
-      setFilteredPosts(
-        posts.filter((p) =>
-          p.text.toLowerCase().includes(result.query.toLowerCase()) ||
-          p.hashtags.some((hashtag) => hashtag.toLowerCase().includes(result.query.toLowerCase()))
-        )
-      );
-    }
+    
   };
 
   const resetFeed = () => {

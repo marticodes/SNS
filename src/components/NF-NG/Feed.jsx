@@ -17,9 +17,6 @@ const FeedDiv = styled.div`
 
 const Feed = ({ posts, user, commentType = "nested" }) => {
 
-  console.log("Feed user", user);
-  console.log("Feed posts", posts);
-
   return (
     <>
       {posts.length === 0 ? (

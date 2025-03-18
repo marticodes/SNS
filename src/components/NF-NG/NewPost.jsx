@@ -195,7 +195,7 @@ const NewPost = ({ user, addNewPost, fetchFeedData }) => {
     <NewPostContainer>
       <PostDiv>
       <Title>Create New Post</Title>
-      <UserProfile profileImg={user.profile_picture} userName={user.user_name} variant="default" />
+      <UserProfile profileImg={user?.profile_picture} userName={user?.user_name} variant="default" />
 
       <TextArea value={postText} onChange={handleTextChange} placeholder="Say Something..." />
 
