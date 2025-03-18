@@ -106,6 +106,30 @@ const PostDAO = {
 
     },
 
+    async searchCombined(keyword){
+        return new Promise((resolve, reject) => {
+            try {         
+                const sql = `SELECT * FROM Post 
+                WHERE LOWER(content) LIKE LOWER(?)
+                OR topic=?
+                OR hashtag = ?`;
+                db.all(sql, [keyword, keyword, keyword], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else if (rows.length === 0) {
+                        resolve([]);
+                    } else {
+                        const posts= rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id, row.hashtag));
+                        resolve(posts);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    },
+
     //Set duration for ephemeral posts. For regular posts, send as 0
     async insertPost(parent_id, user_id, content, topic, media_type, media_url, timestamp, duration, visibility, comm_id) {
         return new Promise((resolve, reject) => {
@@ -203,15 +227,15 @@ const PostDAO = {
     async getPostIdsWithHashtag(content){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'SELECT post_id FROM Post WHERE hashtag = ?';
+                const sql = 'SELECT * FROM Post WHERE hashtag = ?';
                 db.all(sql, [content], (err, rows) => {
                     if (err) {
                         reject(err);
                     } else if (rows.length === 0) {
                         resolve(false);
                     } else {
-                        const post_ids = rows.map(row => row.post_id);
-                        resolve(post_ids);
+                        const post = rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id, row.hashtag));
+                        resolve(post);
                     }
                 });
             } catch (error) {
