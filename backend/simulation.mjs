@@ -45,10 +45,13 @@ async function makeAPIRequest(url, method, body) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
         });
+
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Request failed: ${response.status} - ${errorText}`);
         }
+        return await response.json();
+
     } catch (error) {
         console.error(`Error making API request to ${url}:`, error);
         return "Error processing request.";
@@ -483,7 +486,7 @@ const Simulation = {
             });
             await makeAPIRequest("http://localhost:3001/api/channels/add", "POST", { 
                 user_id: user_id,
-                comm_id: id,
+                comm_id: id.ina,
             });
         } catch (error) {
             console.error("Error adding new channel", error);
@@ -521,9 +524,33 @@ const Simulation = {
             console.error("Error reading message:", error);
         }
 
-    }
+    },
 
-    
+    async joinChannel(user_id, system_prompt){
+        let communities = await CommunityDAO.getAllUserCommunities(user_id);
+        if (!communities || communities.length === 0) {
+            console.error("No communities found.");
+            return null;
+        }
+        
+        let user_prompt = `You want to join a new community. Based on your personality, choose **one** from the list below.  
+        Be direct and reply with **only the community ID** of the selected community.  
+
+        Available communities:  
+        ${communities.map(comm => `ID: ${comm.comm_id} | Name: ${comm.comm_name} | Bio: ${comm.comm_bio}`).join('\n')}`;
+
+        let comm_id = await generateResponse(system_prompt, user_prompt);   
+        
+        try {
+            await makeAPIRequest("http://localhost:3001/api/channels/add", "POST", { 
+                user_id: user_id,
+                comm_id: comm_id,
+            });
+        } catch (error) {
+            console.error("Error adding new channel", error);
+        }
+    },
+
 
 };
 export default Simulation;

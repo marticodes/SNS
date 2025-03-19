@@ -2,6 +2,40 @@ import db from '../db.mjs';
 import Community from '../models/community_model.mjs';
 
 const CommunityDAO = {
+    
+    async getAllUserCommunities(user_id) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql1 = 'SELECT comm_id FROM CommunityMembership WHERE user_id = ?';
+                db.all(sql1, [user_id], (err, rows) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    let communityIds = rows.map(row => row.comm_id);
+                    console.log(communityIds);
+                    if (communityIds.length === 0) {
+                        communityIds = [0];
+                    }
+                    const placeholders = communityIds.map(() => '?').join(', ');
+                    const sql2 = `SELECT * FROM Community WHERE comm_id NOT IN (${placeholders})`;
+    
+                    db.all(sql2, communityIds, (err, communities) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        const commList = communities.map(row => new Community(row.comm_id, row.comm_name, row.comm_image, row.comm_bio));
+                    console.log(commList);
+                        
+                        resolve(commList);
+                    });
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+    
+    
     async getCommunityInfo(comm_id){
         return new Promise((resolve, reject) => {
             try {
