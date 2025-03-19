@@ -19,8 +19,8 @@ const AppContainer = styled.div`
 
 const NFPage = () => {
   const navigate = useNavigate(); 
-  //const userID = parseInt(localStorage.getItem("userID"), 10);     UNCOMMENT THIS LINE
-  const userID = 1; // REMOVE THIS LINE
+  const userID = parseInt(localStorage.getItem("userID"), 10);    
+  //const userID = 1; // REMOVE THIS LINE
 
   const [userInfo, setUserInfo] = useState(null);
   const [posts, setPosts] = useState([]);
