@@ -82,7 +82,7 @@ const ActionChoice = {
             random -= a.weight;
         }
 
-        chosenAction = "Create new channel";
+        // chosenAction = "Create new channel";
 
         switch (chosenAction) {
              case "Update user bio":
