@@ -123,6 +123,7 @@ const Comments = ({ post_id, user_id, isNested = false }) => {
   const [newComment, setNewComment] = useState('');
   const [newReply, setNewReply] = useState('');
   const [replyIndex, setReplyIndex] = useState(null);
+  const [mediaFiles, setMediaFiles] = useState([]); 
 
   const addComment = () => {
     if (newComment.trim()) {
@@ -160,9 +161,9 @@ const Comments = ({ post_id, user_id, isNested = false }) => {
     fetchComments();
   }, [post_id]);
 
-  const fetchComments = async () => {
+  const fetchComments = async (post_id) => {
     try {
-      const res = await axios.get(`http://localhost:3001/api/comments/all/0/${post_id}`); // parent_id = 0 or null for top-level comments
+      const res = await axios.get(`http://localhost:3001/api/comments/all/${post_id}/1`); // parent_id = 0 or null for top-level comments
       console.log("✅ Comments fetched:", res.data);
       const nested = buildNestedComments(res.data);
       setComments(nested);
@@ -196,14 +197,14 @@ const Comments = ({ post_id, user_id, isNested = false }) => {
 
     try {
       const payload = {
-        parent_id: 0,
+        parent_id: post_id,
         user_id: user_id,
         content: newComment,
-        media_type: null,
+        media_type: mediaFiles.length > 0 ? 1 : 0,
         media_url: null,
         timestamp: new Date().toISOString(),
         visibility: 1,
-        post: post_id
+        post: 1
       };
 
       await axios.post('http://localhost:3001/api/post/comment/add', payload);
@@ -228,7 +229,7 @@ const Comments = ({ post_id, user_id, isNested = false }) => {
         media_url: null,
         timestamp: new Date().toISOString(),
         visibility: 1,
-        post: post_id
+        post: 0
       };
 
       await axios.post('http://localhost:3001/api/post/comment/add', payload);
