@@ -63,90 +63,43 @@ const SearchButton = styled.button`
   }
 `;
 
-const SearchResults = styled.ul`
-  width: 50%;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  margin-top: 5px;
-  padding: 0;
-  list-style: none;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 10;
-  color: #000000;
-  position: absolute;
-  top: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-`;
-
-const SearchResultItem = styled.li`
+const ResetButton = styled.button`
   padding: 10px;
+  margin-left: 0.5rem;
+  border: none;
+  background-color:rgb(84, 166, 252);
+  color: white;
+  font-size: 1rem;
+  border-radius: 5px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid #ddd;
-  color: #000000;
-
   &:hover {
-    background: #f0f0f0;
+    background-color:rgb(24, 133, 250);
   }
 `;
 
-const ProfileImage = styled.img`
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-`;
-
-const FeedSearch = ({ posts, users, onSearch, onUserClick, resetFeed }) => {
+const FeedSearch = ({ onSearch, resetFeed }) => {
   const [query, setQuery] = useState("");
-  const [filteredResults, setFilteredResults] = useState([]);
-
-  const handleSearch = (event) => {
-    const searchText = event.target.value?.toLowerCase() || ""; 
-    setQuery(searchText);
-  
-    if (searchText.trim() === "") {
-      setFilteredResults([]);
-      return;
-    }
-  
-    const matchedUsers = users?.filter((user) =>
-      user?.userName?.toLowerCase().includes(searchText) 
-    ) || [];
-  
-    const matchedPosts = posts?.filter((post) =>
-      post?.text?.toLowerCase().includes(searchText) || 
-      post?.hashtags?.some((hashtag) => hashtag?.toLowerCase().includes(searchText)) // ✅ Safe check
-    ) || [];
-  
-    setFilteredResults([...matchedUsers, ...matchedPosts]);
-  };
-
-  const handleResultClick = (result) => {
-    if (result.userName) {
-      onUserClick(result.userName);
-    } else if (result.type === "hashtag") {
-      onSearch({ hashtags: [result.value] });
-    }
-    setQuery(result.userName || `#${result.value}`);
-    setFilteredResults([]);
-  };
 
   const handleSearchSubmit = () => {
-    onSearch({ query });
-    setFilteredResults([]);
+    if (query.trim() === "") {
+      resetFeed();
+    } else {
+      onSearch(query);
+      localStorage.setItem("SearchedWord", query); // Store search word in localStorage 
+      onSearch(query);
+    }
   };
 
   const handleResetFeed = () => {
     setQuery("");
-    setFilteredResults([]);
     resetFeed();
+    localStorage.removeItem("SearchedWord");
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSearchSubmit(); 
+    }
   };
 
   return (
@@ -154,28 +107,22 @@ const FeedSearch = ({ posts, users, onSearch, onUserClick, resetFeed }) => {
       <SearchContainer>
         <SearchInput
           type="text"
-          placeholder="Search posts or users..."
+          placeholder="Search posts..."
           value={query}
-          onChange={handleSearch}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyPress={handleKeyPress}
         />
-        <SearchButton onClick={handleSearchSubmit}><FaSearch/></SearchButton>
-        </SearchContainer>
-        {filteredResults.length > 0 && (
-          <SearchResults>
-            {filteredResults.map((result, index) => (
-              <SearchResultItem key={index} onClick={() => handleResultClick(result)}>
-                {result.profileImg ? (
-                  <>
-                    <ProfileImage src={result.profileImg} alt={result.userName} />
-                    {result.userName}
-                  </>
-                ) : (
-                  <>#{result.hashtags[0]}</>
-                )}
-              </SearchResultItem>
-            ))}
-          </SearchResults>
-        )}
+        <SearchButton onClick={handleSearchSubmit}>
+          <FaSearch />
+        </SearchButton>
+        {query && (
+        <ResetButton
+          onClick={handleResetFeed}
+        >
+          Reset
+        </ResetButton>
+      )}
+      </SearchContainer>
     </FeedHeader>
   );
 };

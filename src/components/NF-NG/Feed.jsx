@@ -17,10 +17,32 @@ const FeedDiv = styled.div`
 
 const Feed = ({ posts, user, commentType = "nested" }) => {
 
+  const searchedWord = localStorage.getItem("SearchedWord");
+  console.log("Searched Word:", searchedWord);
+
+
   return (
     <>
       {posts.length === 0 ? (
-        <p>No results found.</p>
+        searchedWord ? (
+          <div style={{ textAlign: "center", marginTop: "20px" }}>
+            <h1 style={{ color: "black", fontSize: "20px" }}>
+              Hm...we couldn’t find any results for "{searchedWord}".
+            </h1>
+            <p style={{ color: "black", fontSize: "14px" }}>
+              Double-check your spelling or try different keywords.
+            </p>
+          </div>
+        ) : (
+          <div style={{ textAlign: "center", marginTop: "20px" }}>
+            <h1 style={{ color: "black", fontSize: "20px" }}>
+              Oops, it seems like there is no post for you!
+            </h1>
+            <p style={{ color: "black", fontSize: "14px" }}>
+              Try adding more friends or making a search!
+            </p>
+          </div>
+        )
       ) : (
         posts.map((post) => (
           <FeedDiv key={post.post_id}>

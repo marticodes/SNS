@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
 import FeedSearch from "./FeedSearch";
@@ -48,34 +48,55 @@ const NewPostButton = styled.button`
 `;
 
 const FeedMain = ({ user, posts }) => {
-  const [filteredPosts, setFilteredPosts] = useState(posts);
+  const [filteredPosts, setFilteredPosts] = useState(posts || []);
   const navigate = useNavigate(); 
+  const location = useLocation(); // To detect current route
 
-  console.log("FeedMain user", user);
-  console.log("FeedMain posts", posts);
+  // Reset posts when navigating to the home page
+  useEffect(() => {
+    if (location.pathname === "/case/1") {
+      setFilteredPosts(posts); 
+    }
+  }, [location.pathname, posts]);
 
-  const userID = parseInt(localStorage.getItem("userID"), 10);
+  // Debug log
+  console.log("FeedMain initial posts:", posts);
 
-  const handleSearch = (result) => {
-    
+  const handleSearch = async (searchQuery) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/posts/combined/search/${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const searchedPosts = await response.json();
+
+
+
+      console.log("Searched posts from API:", searchedPosts);
+
+      setFilteredPosts(searchedPosts);
+    } catch (error) {
+      console.error("Error fetching searched posts:", error);
+    }
   };
 
   const resetFeed = () => {
-    setFilteredPosts(posts);
+    setFilteredPosts(posts); // Reset to original posts
   };
 
   const handleNewPost = () => {
     navigate("/case/1/new-post");
+    resetFeed();
   };
 
   return (
     <FeedContainer>
       <FeedContent>
-        <FeedSearch posts={posts} users={[user]} onSearch={handleSearch} resetFeed={resetFeed} />
+        <FeedSearch onSearch={handleSearch} resetFeed={resetFeed} />
         <NewPostDiv>
           <NewPostButton onClick={handleNewPost}>+ New Post</NewPostButton>
         </NewPostDiv>
-        <Feed user={user} posts={posts} />
+        <Feed user={user} posts={filteredPosts} />
       </FeedContent>
     </FeedContainer>
   );

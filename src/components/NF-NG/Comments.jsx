@@ -142,7 +142,6 @@ const Comments = ({ post_id, user_id, isNested = false }) => {
     const fetchUserData = async () => {
       try {
         const res = await axios.get(`http://localhost:3001/api/user/${user_id}`);
-        console.log("✅ User data fetched:", res.data);
         setUserData(res.data);
       } catch (error) {
         console.error("❌ Error fetching user data:", error);
