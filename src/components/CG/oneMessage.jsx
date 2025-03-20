@@ -19,13 +19,73 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [profilePosition, setProfilePosition] = useState({ x: 0, y: 0 });
   const [userData, setUserData] = useState(null);
+  const [emojiReactions, setEmojiReactions] = useState([]);
   const profileCardRef = useRef(null);
   const timeoutRef = useRef(null);
 
-  const handleEmojiClick = (emoji) => {
-    setReaction(emoji.emoji);
-    setShowEmojiPicker(false);
-  };
+  const currentUserID = parseInt(localStorage.getItem("userID"), 10);
+  
+    useEffect(() => {
+      const fetchReactions = async () => {
+        try {
+          const response = await fetch(
+            `http://localhost:3001/api/reactions/posts/${message.post_id}` 
+          );
+          if (response.ok) {
+            const data = await response.json();
+  
+            const reactionsWithUserInfo = await Promise.all(
+              data.emojiReactions.map(async (reaction) => {
+                const users = await Promise.all(
+                  reaction.user_id.map(async (userId) => {
+                    const userResponse = await fetch(`http://localhost:3001/api/user/${userId}`);
+                    return userResponse.ok ? await userResponse.json() : null;
+                  })
+                );
+                return { ...reaction, users: users.filter((user) => user) };
+              })
+            );
+  
+            setEmojiReactions(reactionsWithUserInfo);
+          } else {
+            console.error("Failed to fetch reactions");
+          }
+        } catch (error) {
+          console.error("Error fetching reactions:", error);
+        }
+      };
+  
+      fetchReactions();
+    }, [message.chat_id, message.message_id]);
+  
+  
+    const handleEmojiClick = async (emoji) => {
+      try {
+        const response = await fetch("http://localhost:3001/api/reactions/post/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reaction_type: 4,
+            emote_type: emoji.emoji,
+            post_id: message.post_id,
+            user_id: currentUserID,
+            timestamp: new Date().toISOString(),
+          }),
+        });
+    
+        if (response.ok) {
+          const newReaction = await response.json();
+          setEmojiReactions((prev) => [...prev, { emote_type: emoji.emoji, users: [currentUserID] }]);
+        } else {
+          console.error("Failed to add reaction");
+        }
+      } catch (error) {
+        console.error("Error adding reaction:", error);
+      }
+    
+      setReaction(emoji.emoji);
+      setShowEmojiPicker(false);
+    };
 
   const toggleEmojiPicker = (e) => {
     e.stopPropagation();
@@ -73,6 +133,8 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
       fetchUserInfo();
     }
   }, [message.user_id]);
+
+  console.log(userData);
 
   const iconContainer = (
     <div
@@ -159,7 +221,7 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
         }}
       >
         <img
-          src={`https://i.pravatar.cc/40?u=${message.sender}`}   //CHANGE THIS WITH NEW IMAGES
+          src={userData?.profile_picture || "default-avatar.png"}
           alt="User Avatar"
           style={{
             width: "100%",
@@ -195,7 +257,7 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
 
         {showProfileCard && (
           <div
-            ref={profileCardRef} // Attach ref to profile card container
+            ref={profileCardRef}
             style={{
               position: "absolute",
               top: profilePosition.y,
@@ -253,18 +315,35 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
 
           {message.text}
 
-          {reaction && (
-            <div
-              style={{
-                marginTop: "5px",
-                fontSize: "20px",
-                textAlign: "right",
-                color: "#000",
-              }}
-            >
-              {reaction}
-            </div>
-          )}
+          {/* Display Reactions */}
+        {emojiReactions.length > 0 && (
+          <div style={{ marginTop: "5px", display: "flex", alignItems: "center", gap: "10px" }}>
+            {emojiReactions.map((reaction) => (
+              <div key={reaction.emote_type} style={{ display: "flex", alignItems: "center" }}>
+                {/* Emoji */}
+                <span style={{ fontSize: "20px" }}>{reaction.emote_type}</span>
+                {/* User Profile Pictures */}
+                <span style={{ fontSize: "14px", marginLeft: "5px", display: "flex", gap: "5px" }}>
+                  {reaction.users.map((user) => (
+                    <img
+                      key={user.user_id}
+                      src={user.profile_picture}
+                      alt={`Profile picture of ${user.user_name}`}
+                      title={user.user_name} // Tooltip with the user's name
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        cursor: "pointer", // Optional: indicates interactivity
+                      }}
+                    />
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
         </div>
       </div>
     </div>
@@ -272,7 +351,3 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
 };
 
 export default SingleMessage;
-
-
-
-

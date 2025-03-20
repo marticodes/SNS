@@ -157,6 +157,12 @@ const NewPost = ({ user, addNewPost, fetchFeedData }) => {
 
   const handlePost = async () => {
     const userID = parseInt(localStorage.getItem("userID"), 10);
+    if (!userID) {
+      console.error("❌ User ID missing!");
+      alert("User not logged in!");
+      return;
+    }
+  
     if (!postText.trim() && mediaFiles.length === 0) {
       alert("🚫 Post cannot be empty!");
       return;
@@ -166,23 +172,19 @@ const NewPost = ({ user, addNewPost, fetchFeedData }) => {
       parent_id: null,
       user_id: userID,
       content: postText,
-      //media_type: mediaFiles.length > 0 ? "image" : null,
-      //media_url: mediaFiles.length > 0 ? JSON.stringify(mediaFiles) : null,
       timestamp: new Date().toISOString(),
+      media_type: mediaFiles.length > 0 ? 1 : 0,
       duration: 0,
-      visibility: 2, 
-      comm_id: null
+      visibility: 2,
+      comm_id: null,
     };
-
-    console.log("🚀 Sending new post data:", newPostData);
+  
     try {
-      const response = await axios.post("http://localhost:3001/api/requests/add", newPostData);
-      console.log("✅ Post created:", response.data);
+      const response = await axios.post("http://localhost:3001/api/post/add", newPostData);
       await fetchFeedData();
-      console.log("✅ Post created:", response.data);
-      navigate("/case/1"); 
+      navigate("/case/1");
     } catch (error) {
-      console.error("❌ Error posting:", error);
+      console.error("❌ Error posting:", error.message);
     }
   };
 
@@ -195,7 +197,7 @@ const NewPost = ({ user, addNewPost, fetchFeedData }) => {
     <NewPostContainer>
       <PostDiv>
       <Title>Create New Post</Title>
-      <UserProfile profileImg={user.profile_picture} userName={user.user_name} variant="default" />
+      <UserProfile profileImg={user?.profile_picture} userName={user?.user_name} variant="default" />
 
       <TextArea value={postText} onChange={handleTextChange} placeholder="Say Something..." />
 

@@ -67,6 +67,7 @@ const ActionChoice = {
              {action: "Update restriction", weight: user_trait.updating_trait},
              {action: "View a story", weight: user_trait.comm_trait},
              {action: "Read unread messages", weight: user_trait.notification_trait},//
+             {action: "Join channel", weight: user_trait.comm_trait},
         ];       
         
         let totalWeight = actions.reduce((sum, a) => sum + a.weight, 0);
@@ -80,6 +81,8 @@ const ActionChoice = {
             }
             random -= a.weight;
         }
+
+        // chosenAction = "Create new channel";
 
         switch (chosenAction) {
              case "Update user bio":
@@ -148,6 +151,10 @@ const ActionChoice = {
         
             case "Read unread messages":
                 await Simulation.readAGMessages(user_id);
+                break;
+
+            case "Join channel":
+                await Simulation.joinChannel(user_id, system_prompt);
                 break;
         
             default:

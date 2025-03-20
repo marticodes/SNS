@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
 import FeedSearch from "./FeedSearch";
@@ -47,43 +47,52 @@ const NewPostButton = styled.button`
   }
 `;
 
-const FeedMain = ({ user, posts, setPosts, fetchFeedData }) => {
-  const [filteredPosts, setFilteredPosts] = useState(posts);
+const FeedMain = ({ user, posts }) => {
+  const [filteredPosts, setFilteredPosts] = useState(posts || []);
   const navigate = useNavigate(); 
+  const location = useLocation(); // To detect current route
 
-  const userID = parseInt(localStorage.getItem("userID"), 10);
+  // Reset posts when navigating to the home page
+  useEffect(() => {
+    if (location.pathname === "/case/1") {
+      setFilteredPosts(posts); 
+    }
+  }, [location.pathname, posts]);
 
-  const handleSearch = (result) => {
-    if (result.userName) {
-      setFilteredPosts(posts.filter((p) => p.userName === result.userName));
-    } else if (result.hashtags) {
-      setFilteredPosts(
-        posts.filter((p) =>
-          p.hashtags.some((hashtag) => result.hashtags.includes(hashtag))
-        )
-      );
-    } else if (result.query) {
-      setFilteredPosts(
-        posts.filter((p) =>
-          p.text.toLowerCase().includes(result.query.toLowerCase()) ||
-          p.hashtags.some((hashtag) => hashtag.toLowerCase().includes(result.query.toLowerCase()))
-        )
-      );
+  // Debug log
+  console.log("FeedMain initial posts:", posts);
+
+  const handleSearch = async (searchQuery) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/posts/combined/search/${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const searchedPosts = await response.json();
+
+
+
+      console.log("Searched posts from API:", searchedPosts);
+
+      setFilteredPosts(searchedPosts);
+    } catch (error) {
+      console.error("Error fetching searched posts:", error);
     }
   };
 
   const resetFeed = () => {
-    setFilteredPosts(posts);
+    setFilteredPosts(posts); // Reset to original posts
   };
 
   const handleNewPost = () => {
     navigate("/case/1/new-post");
+    resetFeed();
   };
 
   return (
     <FeedContainer>
       <FeedContent>
-        <FeedSearch posts={posts} users={[user]} onSearch={handleSearch} resetFeed={resetFeed} />
+        <FeedSearch onSearch={handleSearch} resetFeed={resetFeed} />
         <NewPostDiv>
           <NewPostButton onClick={handleNewPost}>+ New Post</NewPostButton>
         </NewPostDiv>

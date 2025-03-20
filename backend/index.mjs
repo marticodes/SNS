@@ -260,6 +260,28 @@ app.get('/api/posts/keyword/:keyword',
       }
 );
 
+app.get('/api/posts/combined/search/:keyword',
+  async (req, res) => {
+      try {
+        const posts = await postDao.searchCombined(req.params.keyword);
+        res.status(200).json(posts);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error listing posts ${err}` });
+      }
+    }
+);
+
+app.get('/api/posts/combined/search/comm/:keyword/:comm_id',
+  async (req, res) => {
+      try {
+        const posts = await postDao.searchinComminity(req.params.keyword, req.params.comm_id);
+        res.status(200).json(posts);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error listing posts ${err}` });
+      }
+    }
+);
+
 app.post('/api/post/add',
     async (req, res) => {
         try {
@@ -274,7 +296,7 @@ app.post('/api/post/add',
 app.post('/api/posts/visibility',
     async (req, res) => {
         try {
-          const set = await postDao.updatePostVisibility(req.body.post_id, req.body.visibility);
+          const set = await postDao.updatePostVisibility(req.body.post_id, req.body.visibility, req.body.user_id);
           res.status(201).json({set});
         } catch (err) {
           res.status(503).json({ error: `BE: Error updating visibility ${err}` });
@@ -582,7 +604,7 @@ app.delete('/api/read/receipts/delete',
 app.delete('/api/chat/delete/',
   async (req, res) => {
       try {
-        const ina = await chatDao.deleteChat(req.body.chat_id);
+        const ina = await chatDao.deleteChat();
         res.status(200).json({ina});
       } catch (err) {
         res.status(503).json({ error: `BE: Error deleting chat ${err}` });
@@ -681,7 +703,7 @@ app.post('/api/chats/add',
 app.post('/api/chats/group/add',
   async (req, res) => {
       try {
-        const ina = await chatDao.insertGroupChat(req.body.user_ids, req.body.chat_name, req.body.chat_image);
+        const ina = await chatDao.insertGroupChat(req.body.user_ids, req.body.chat_name, req.body.chat_image, req.body.creator);
         res.status(201).json({ina});
       } catch (err) {
         res.status(503).json({ error: `BE: Error inserting group chat ${err}` });
@@ -838,7 +860,7 @@ app.get('/api/channels/:user_id/',
 app.post('/api/channels/create',
     async (req, res) => {
         try {
-          const ina = await communityDao.createNewChannel(req.body.comm_name, req.body.comm_image, req.body.comm_bio);
+          const ina = await communityDao.createNewChannel(req.body.comm_name, req.body.comm_image, req.body.comm_bio, req.body.user_id);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error creating channel ${err}` });
@@ -919,7 +941,7 @@ app.get('/api/notifs/type/:notif_type/:receiver_id',
 app.delete('/api/notifs/delete',
     async (req, res) => {
         try {
-          const ina = await notificationDao.removeNotification(req.body.notif_id);
+          const ina = await notificationDao.removeNotification(req.body.notif_id, req.body.user_id);
           res.status(200).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error deleting notification ${err}` });

@@ -4,8 +4,8 @@ import GroupMessage from "./groupMessage";
 
 const myID = parseInt(localStorage.getItem("userID"), 10);
 
-const MessageList = ({ messages, onReply, isGroup }) => {
-  const messageListRef = useRef(null); 
+const MessageList = ({ messages, onReply, isGroup, chatId }) => {
+  const messageListRef = useRef(null);
 
   useEffect(() => {
     if (messageListRef.current) {
@@ -27,6 +27,7 @@ const MessageList = ({ messages, onReply, isGroup }) => {
         ? messages.map((message) => (
             <GroupMessage
               message={message}
+              chatId={chatId}
               isCurrentUser={message.sender === Number(myID)}
               onReply={(msg) => onReply(msg)}
             />
@@ -34,6 +35,7 @@ const MessageList = ({ messages, onReply, isGroup }) => {
         : messages.map((message) => (
             <SingleMessage
               message={message}
+              chatId = {chatId}
               isCurrentUser={message.sender === Number(myID)}
               onReply={(msg) => onReply(msg)}
             />

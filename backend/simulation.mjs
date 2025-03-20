@@ -50,10 +50,13 @@ async function makeAPIRequest(url, method, body) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
         });
+
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Request failed: ${response.status} - ${errorText}`);
         }
+        return await response.json();
+
     } catch (error) {
         console.error(`Error making API request to ${url}:`, error);
         return "Error processing request.";
@@ -341,6 +344,7 @@ const Simulation = {
             await makeAPIRequest("http://localhost:3001/api/posts/visibility", "POST", { 
                 post_id: sel_post.post_id,
                 visibility: Math.floor(Math.random() * 4),
+                user_id: user_id
             });
         } catch (error) {
             console.error("Error updating visibility:", error);
@@ -463,7 +467,8 @@ const Simulation = {
             await makeAPIRequest("http://localhost:3001/api/chats/group/add", "POST", { 
                 user_ids: sel_fren,
                 chat_name: name,
-                chat_image: null
+                chat_image: null,
+                user_id: user_id
             });
         } catch (error) {
             console.error("Error adding new chat", error);
@@ -481,11 +486,12 @@ const Simulation = {
             let id = await makeAPIRequest("http://localhost:3001/api/channels/create", "POST", { 
                 comm_name: name,
                 comm_bio: bio,
-                comm_image: null
+                comm_image: null,
+                user_id: user_id
             });
             await makeAPIRequest("http://localhost:3001/api/channels/add", "POST", { 
                 user_id: user_id,
-                comm_id: id,
+                comm_id: id.ina,
             });
         } catch (error) {
             console.error("Error adding new channel", error);
@@ -601,7 +607,34 @@ const Simulation = {
         await this.createAgentsFromJson("./agents.json");
     
         console.log("✅ Simulation Completed!");
-      }
+      },
+      
+      async joinChannel(user_id, system_prompt){
+        let communities = await CommunityDAO.getAllUserCommunities(user_id);
+        if (!communities || communities.length === 0) {
+            console.error("No communities found.");
+            return null;
+        }
+        
+        let user_prompt = `You want to join a new community. Based on your personality, choose **one** from the list below.  
+        Be direct and reply with **only the community ID** of the selected community.  
+
+        Available communities:  
+        ${communities.map(comm => `ID: ${comm.comm_id} | Name: ${comm.comm_name} | Bio: ${comm.comm_bio}`).join('\n')}`;
+
+        let comm_id = await generateResponse(system_prompt, user_prompt);   
+        
+        try {
+            await makeAPIRequest("http://localhost:3001/api/channels/add", "POST", { 
+                user_id: user_id,
+                comm_id: comm_id,
+            });
+        } catch (error) {
+            console.error("Error adding new channel", error);
+        }
+    }
+
+
     }
     
     export default Simulation;
