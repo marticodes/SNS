@@ -127,7 +127,6 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
   const [newReply, setNewReply] = useState('');
   const [replyIndex, setReplyIndex] = useState(null);
   const [mediaFiles, setMediaFiles] = useState([]); 
-  const [userData, setUserData] = useState(null);
   let user_id = parseInt(localStorage.getItem("userID"), 10);
 
   useEffect(() => {
@@ -137,28 +136,11 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
 
     }, [parentId]);
 
-    useEffect(() => {
-      const fetchUserData = async () => {
-        if (!user_id) return; 
-        try {
-          const response = await fetch(`http://localhost:3001/api/user/${user_id}`);
-          const data = await response.json();
-          setUserData(data);
-        } catch (error) {
-          console.error("❌ Error fetching user data:", error);
-        }
-      };
-  
-      fetchUserData();
-    }, []); 
 
   useEffect(() => {
     fetchComments();
   }, [post_id]);
 
-  useEffect(() => {
-    fetchComments();
-  }, [post_id]);
 
   const fetchComments = async () => {
     try {
@@ -194,26 +176,26 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
   };
 
   const buildNestedComments = (comments) => {
-  console.log("🚀 Raw comments before nesting:", comments);
+    console.log("🚀 Raw comments before nesting:", comments);
 
-  const commentMap = {};
-  const nestedComments = [];
+    const commentMap = {};
+    const nestedComments = [];
 
-  comments.forEach(comment => {
-    comment.replies = [];
-    commentMap[comment.comment_id] = comment;
-  });
+    comments.forEach(comment => {
+      comment.replies = [];
+      commentMap[comment.comment_id] = comment;
+    });
 
-  comments.forEach(comment => {
-    if (comment.post == 0) {
-      commentMap[comment.parent_id].replies.push(comment);
-    } else {
-      nestedComments.push(comment);
-    }
-  });
+    comments.forEach(comment => {
+      if (comment.post == 0) {
+        commentMap[comment.parent_id].replies.push(comment);
+      } else {
+        nestedComments.push(comment);
+      }
+    });
 
-  console.log("✅ Nested comments:", nestedComments);
-  return nestedComments;
+    console.log("✅ Nested comments:", nestedComments);
+    return nestedComments;
 };
 
 
@@ -294,7 +276,6 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
     <CommentsSection>
       {/* New Comment */}
       <UserComment>
-        <ProfileImage src={userData.profile_picture} alt={`${userData.user_name}'s profile`} />
         <TextArea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
@@ -316,14 +297,15 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
               <ReplyButton onClick={() => setReplyIndex(comment.comment_id)}>
                 Reply
               </ReplyButton>
+              
             )}
           </TextContent>
         </CommentContent>
 
             {/* Reply input */}
-            {isNested && replyIndex === index && (
+            {isNested && replyIndex == comment.comment_id && (
               <UserComment>
-                <ProfileImage src={comment.profileImg} alt={`${comment.userName}'s profile`} />
+                {/* <ProfileImage src={comment.profileImg} alt={`${comment.userName}'s profile`} /> */}
                 <TextArea
                   value={newReply}
                   onChange={(e) => setNewReply(e.target.value)}
