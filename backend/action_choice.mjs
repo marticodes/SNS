@@ -159,7 +159,7 @@ const ActionChoice = {
 };
 
 
-async function testUserBio(user_id = 5) {
+async function testUserBio(user_id) {
     
     const user_trait = await TraitDAO.getUserTraits(user_id);
         const persona = await PersonaDAO.getUserPersona(user_id);
@@ -175,11 +175,12 @@ async function testUserBio(user_id = 5) {
         The above characteristics are simply used to describe who you are as a person and should not be repeated in every generation
         
         Your responses should reflect this background **naturally** without explicitly listing and without using all of the attributes. Instead, adopt a tone, style, and perspective that aligns with this persona. You SHOULD NOT mention every attribute—just let them subtly shape the way you respond.`
-    Simulation.createAGChannel(user_id, system_prompt);
-}
+        Simulation.generatePost(user_id, system_prompt);
+    }
 
-ActionChoice.performRandomAction(1);
-
+//ActionChoice.performRandomAction(1);
+//testUserBio(2)
 
 
 export default ActionChoice;
+export { testUserBio };

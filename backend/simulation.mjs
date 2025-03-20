@@ -17,6 +17,7 @@ import PersonaDAO from './dao/persona_dao.mjs';
 import SocialGroupDao from './dao/social_group_dao.mjs';
 import UserInterestDao from './dao/user_interest_dao.mjs';
 import fs from "fs/promises";
+import ActionLogsDAO from './dao/action_logs_dao.mjs';
 
 
 
@@ -523,6 +524,14 @@ const Simulation = {
         }
 
     },
+    async logAction(user_id, action_type, content) {
+        try {
+            const timestamp = new Date().toISOString();
+            await ActionLogsDAO.insertActionLog(user_id, action_type, content, timestamp);
+        } catch (error) {
+            console.error("Error logging action:", error);
+        }
+    },
 
     async insertUserPipeline(userData) {
         try {
@@ -596,4 +605,4 @@ const Simulation = {
     }
     
     export default Simulation;
-    
+
