@@ -214,8 +214,6 @@ const countTotalComments = (comments) => {
       {isCommentSectionOpen && (
         <Comments
           post_id={post_id}
-          userProfile={userData?.profile_picture || "/default-profile.png"}
-          userName={userData?.user_name || "Unknown User"}
           initialComments={comments}
           isNested={commentType === 'nested'}
         />
