@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
 import UserProfile from './UserProfile';
+import { useParams } from 'react-router-dom';
 
 const CommentsSection = styled.div`
   margin-top: 1rem;
@@ -118,12 +119,24 @@ const RepliesList = styled.div`
 `;
 
 // Component
-const Comments = ({ post_id, user_id, isNested = false }) => {
+const Comments = ({ post_id = 1, user_Profile=1, user_Name=1, isNested = false }) => {
+  const { parentId, is_post} = useParams();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [currentPostId, setCurrentPostId] = useState(null);
   const [newReply, setNewReply] = useState('');
   const [replyIndex, setReplyIndex] = useState(null);
   const [mediaFiles, setMediaFiles] = useState([]); 
+  let user_id = parseInt(localStorage.getItem("userID"), 10);
+
+  useEffect(() => {
+    setCurrentPostId(parentId);
+    console.log('here')
+    console.log(parentId);
+
+    }, [parentId]);
+
+  
 
   const addComment = () => {
     if (newComment.trim()) {
@@ -160,8 +173,9 @@ const Comments = ({ post_id, user_id, isNested = false }) => {
     fetchComments();
   }, [post_id]);
 
-  const fetchComments = async (post_id) => {
+  const fetchComments = async () => {
     try {
+      console.log()
       const res = await axios.get(`http://localhost:3001/api/comments/all/${post_id}/1`); // parent_id = 0 or null for top-level comments
       console.log("✅ Comments fetched:", res.data);
       const nested = buildNestedComments(res.data);
@@ -172,24 +186,28 @@ const Comments = ({ post_id, user_id, isNested = false }) => {
   };
 
   const buildNestedComments = (comments) => {
-    const commentMap = {};
-    const nestedComments = [];
+  console.log("🚀 Raw comments before nesting:", comments);
 
-    comments.forEach(comment => {
-      comment.replies = [];
-      commentMap[comment.comment_id] = comment;
-    });
+  const commentMap = {};
+  const nestedComments = [];
 
-    comments.forEach(comment => {
-      if (comment.parent_id && commentMap[comment.parent_id]) {
-        commentMap[comment.parent_id].replies.push(comment);
-      } else if (comment.parent_id === 0 || !comment.parent_id) {
-        nestedComments.push(comment);
-      }
-    });
+  comments.forEach(comment => {
+    comment.replies = [];
+    commentMap[comment.comment_id] = comment;
+  });
 
-    return nestedComments;
-  };
+  comments.forEach(comment => {
+    if (comment.post == 0) {
+      commentMap[comment.parent_id].replies.push(comment);
+    } else {
+      nestedComments.push(comment);
+    }
+  });
+
+  console.log("✅ Nested comments:", nestedComments);
+  return nestedComments;
+};
+
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
