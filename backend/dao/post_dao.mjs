@@ -131,12 +131,12 @@ const PostDAO = {
     async searchCombined(keyword){
         return new Promise((resolve, reject) => {
             try {
-                const searchTerm = `%${keyword}%`;         
+                const searchTerm = `%${keyword.toLowerCase()}%`;       
                 const sql = `SELECT * FROM Post 
-                WHERE LOWER(content) LIKE LOWER(?)
+                WHERE LOWER(content) LIKE ?
                 OR topic=?
                 OR hashtag = ?`;
-                db.all(sql, [keyword, searchTerm, keyword], (err, rows) => {
+                db.all(sql, [searchTerm, keyword, keyword], (err, rows) => {
                     if (err) {
                         reject(err);
                     } else if (rows.length === 0) {
