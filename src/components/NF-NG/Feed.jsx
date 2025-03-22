@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
-import axios from "axios";
 import Post from "./Post";
 
 // Styled Components
@@ -15,11 +14,35 @@ const FeedDiv = styled.div`
   background-color: #ffffff;
 `;
 
-const Feed = ({ posts, user, commentType = "nested" }) => {
-
+const Feed = ({ posts, user, commentType = "nested", isProfilePage = false }) => {
   const searchedWord = localStorage.getItem("SearchedWord");
-  console.log("Searched Word:", searchedWord);
 
+  useEffect(() => {
+    if (isProfilePage) {
+      localStorage.removeItem("SearchedWord");
+      console.log("Cleared SearchedWord from localStorage for profile page");
+    }
+  }, [isProfilePage]);
+
+  const noPostsMessage = isProfilePage ? (
+    <div style={{ textAlign: "center", marginTop: "20px" }}>
+      <h1 style={{ color: "black", fontSize: "20px" }}>
+        No posts in your profile yet!
+      </h1>
+      <p style={{ color: "black", fontSize: "14px" }}>
+        Try creating your first post to share something with your friends.
+      </p>
+    </div>
+  ) : (
+    <div style={{ textAlign: "center", marginTop: "20px" }}>
+      <h1 style={{ color: "black", fontSize: "20px" }}>
+        Oops, it seems like there is no post for you!
+      </h1>
+      <p style={{ color: "black", fontSize: "14px" }}>
+        Try adding more friends or making a search!
+      </p>
+    </div>
+  );
 
   return (
     <>
@@ -34,14 +57,7 @@ const Feed = ({ posts, user, commentType = "nested" }) => {
             </p>
           </div>
         ) : (
-          <div style={{ textAlign: "center", marginTop: "20px" }}>
-            <h1 style={{ color: "black", fontSize: "20px" }}>
-              Oops, it seems like there is no post for you!
-            </h1>
-            <p style={{ color: "black", fontSize: "14px" }}>
-              Try adding more friends or making a search!
-            </p>
-          </div>
+          noPostsMessage
         )
       ) : (
         posts.map((post) => (
