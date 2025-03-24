@@ -15,6 +15,11 @@ import ReceiptsDAO from './dao/read_receipts_dao.mjs';
 import TraitDAO from './dao/trait_dao.mjs';
 import PersonaDAO from './dao/persona_dao.mjs';
 import SocialGroupDao from './dao/social_group_dao.mjs';
+import UserInterestDao from './dao/user_interest_dao.mjs';
+import fs from "fs/promises";
+import ActionLogsDAO from './dao/action_logs_dao.mjs';
+
+
 
 import { OPENAI_API_KEY } from './apiKey.mjs';
 import FeedDAO from "./dao/feed_dao.mjs";
@@ -98,7 +103,7 @@ const Simulation = {
     async updateAGUserBio(user_id, system_prompt) {
         try {
             const prev_bio = await UserDAO.getUserInfo(user_id).then(user => user.user_bio);
-            const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio.`;
+            const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio. Make sure it is within 100 characters.`;
             const new_bio = await generateResponse(system_prompt, user_prompt);
             
             await makeAPIRequest("http://localhost:3001/api/user/update/bio", "POST", { user_id, user_bio: new_bio });
@@ -553,8 +558,86 @@ const Simulation = {
         }
 
     },
+    async logAction(user_id, action_type, content) {
+        try {
+            const timestamp = new Date().toISOString();
+            await ActionLogsDAO.insertActionLog(user_id, action_type, content, timestamp);
+        } catch (error) {
+            console.error("Error logging action:", error);
+        }
+    },
 
-    async joinChannel(user_id, system_prompt){
+    async insertUserPipeline(userData) {
+        try {
+          // 1. Insert the basic user info into the user table
+          const user_id = await UserDAO.insertUser(
+            userData.id_name,
+            userData.user_name,
+            userData.email,
+            userData.password,
+            userData.user_bio,
+            userData.profile_picture
+          );
+    
+          await TraitDAO.insertUserTraits(
+            user_id,
+            //userData.trait_id,
+            userData.posting_trait,
+            userData.commenting_trait,
+            userData.reacting_trait,
+            userData.messaging_trait,
+            userData.updating_trait,
+            userData.comm_trait,
+            userData.notification_trait
+        
+          );
+    
+          await UserInterestDao.insertUserInterest(userData.interest_name, user_id);
+          await PersonaDAO.insertUserPersona(userData.persona_name, user_id);
+          await SocialGroupDao.insertUserSocialGroup(userData.social_group_name, user_id);
+
+          console.log(`✅ Created Agent: ${userData.user_name} (ID: ${userData.id_name}) with full details`);
+          return user_id;
+        } catch (error) {
+          console.error(`❌ Error creating agent ${userData.user_name}:`, error);
+          throw error;
+        }
+      },
+    
+      async createAgentsFromJson(filePath) {
+        try {
+          // Read and parse JSON file
+          const data = await fs.readFile(filePath, "utf-8");
+          const agents = JSON.parse(data);
+    
+          if (!Array.isArray(agents) || agents.length === 0) {
+            throw new Error("Invalid JSON structure: Expected an array of agents.");
+          }
+    
+          for (const agent of agents) {
+            try {
+              await this.insertUserPipeline(agent);
+            } catch (error) {
+              console.error(`❌ Error creating agent ${agent.id_name}:`, error);
+            }
+          }
+    
+          console.log(`✅ ${agents.length} Agents Created Successfully!`);
+        } catch (error) {
+          console.error("❌ Failed to load agents from JSON file:", error);
+        }
+      },
+    
+      async startSimulation() {
+        console.log("🚀 Starting Simulation...");
+    
+        // Load agents from JSON file
+        await this.createAgentsFromJson("./agents.json");
+    
+        console.log("✅ Simulation Completed!");
+      },
+      
+      async joinChannel(user_id, system_prompt){
         let communities = await CommunityDAO.getAllUserCommunities(user_id);
         if (!communities || communities.length === 0) {
             console.error("No communities found.");
@@ -577,8 +660,10 @@ const Simulation = {
         } catch (error) {
             console.error("Error adding new channel", error);
         }
-    },
+    }
 
 
-};
-export default Simulation;
+    }
+    
+    export default Simulation;
+
