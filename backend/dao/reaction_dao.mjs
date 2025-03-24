@@ -4,6 +4,7 @@ import Post from '../models/post_model.mjs';
 import PostDAO from './post_dao.mjs';
 import CommentDAO from './comment_dao.mjs';
 import MessageDAO from './message_dao.mjs';
+import { check } from 'express-validator';
 
 async function makeAPIRequest(url, method, body) {
     try {
@@ -241,6 +242,91 @@ const ReactionDAO = {
             }
         });
     },
+
+    async checkReactPost(user_id, post_id) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = `
+                    SELECT reaction_type, emote_type 
+                    FROM Reaction 
+                    WHERE user_id = ?
+                    AND post_id = ?
+                `;
+    
+                db.all(sql, [user_id, post_id], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        const reactions = rows.map(row => ({
+                            reaction_type: row.reaction_type, 
+                            emote_type: row.emote_type
+                        }));
+                        resolve(reactions);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+    
+
+    async checkReactComment(user_id, comment_id){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = `
+                    SELECT reaction_type, emote_type 
+                    FROM Reaction 
+                    WHERE user_id = ?
+                    AND comment_id = ?
+                `;
+    
+                db.all(sql, [user_id, comment_id], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        const reactions = rows.map(row => ({
+                            reaction_type: row.reaction_type, 
+                            emote_type: row.emote_type
+                        }));
+                        resolve(reactions);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    },
+
+    async checkReactMsg(user_id, chat_id, message_id){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = `
+                    SELECT reaction_type, emote_type 
+                    FROM Reaction 
+                    WHERE user_id = ?
+                    AND chat_id = ?
+                    AND message_id = ?
+                `;
+    
+                db.all(sql, [user_id, chat_id, message_id], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        const reactions = rows.map(row => ({
+                            reaction_type: row.reaction_type, 
+                            emote_type: row.emote_type
+                        }));
+                        resolve(reactions);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    }
 
 };
 

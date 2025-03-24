@@ -63,9 +63,8 @@ async function makeAPIRequest(url, method, body) {
 }
 
 async function selectPostFromFeed(user_id) {
-    const feed = Math.random() < 0.5 
-        ? await FeedDAO.getFeedFromFriends(user_id) 
-        : await FeedDAO.getInterestBasedFeed(user_id);
+    const feed = await FeedDAO.getcombinedFeedforAction(user_id);
+    // console.log(feed);
 
     if (!feed || feed.length === 0) {
         console.error("No posts found in feed.");
@@ -75,9 +74,9 @@ async function selectPostFromFeed(user_id) {
     return feed[Math.floor(Math.random() * feed.length)];
 }
 
-async function selectCommentOnPost(post_id) {
-    const feed = await CommentDAO.getAllComments(post_id, 1);
-
+async function selectCommentOnPost(post_id, user_id) {
+    const feed = await CommentDAO.getAllCommentsForAction(post_id, 1, user_id);
+    // console.log(feed);
     if (!feed || feed.length === 0) {
         console.error("No comments found in post.");
         return null;
@@ -88,7 +87,6 @@ async function selectCommentOnPost(post_id) {
 
 async function selectChatFromInbox(user_id) {
     const feed = await ChatDAO.getAllChatIds(user_id);
-
     if (!feed || feed.length === 0) {
         console.error("No chats found.");
         return null;
@@ -143,7 +141,7 @@ const Simulation = {
             const sel_post = await selectPostFromFeed(user_id);
             if (!sel_post) return;
 
-            const sel_comment =  await selectCommentOnPost(sel_post.post_id);
+            const sel_comment =  await selectCommentOnPost(sel_post.post_id, user_id);
             if (sel_comment == null) {
                 console.log("No comment to reply to");
                 return;
@@ -177,7 +175,7 @@ const Simulation = {
                 return;
             }
 
-            const sel_messages =  await MessageDAO.getMessageContentByChatId(sel_chat_id);
+            const sel_messages =  await MessageDAO.getMessagesByChatId(sel_chat_id);
 
             let last_messages = "";
 
@@ -185,7 +183,15 @@ const Simulation = {
                 last_messages = "No messages";
             }
             
-            else last_messages = sel_messages.slice(-10); // Get the last 10 messages (or fewer if not available)
+            else last_messages = sel_messages.slice(-5); 
+            
+            if(sel_messages.length > 0){
+                const lastMessage = last_messages[last_messages.length - 1]; // Get the last message
+                if (lastMessage.sender_id === user_id) {
+                    console.log("Last message is from the agent. No response generated.");
+                    return;
+    }
+            }
 
             let people = await ChatDAO.getChatMembers(sel_chat_id);
 
@@ -197,9 +203,16 @@ const Simulation = {
             );
             let social_groups = await SocialGroupDao.getGroupsByIds(people);
 
-            const user_prompt = `You are about to send a message in a conversation in a chatroom. The last messages in the chatroom were: "${last_messages}". 
-            There are "${people.length}" people involved in the conversation. Your closeness levels to the people on a scale of 1 to 10 are "${closeness_levels}". 
-            You belong to "${social_groups}" soial groups together. 
+            const formattedMessages = last_messages
+            .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
+            .join("\n");
+
+            const user_prompt = `There is a conversation happening in the chatroom.
+            The last messages in the chatroom were: "${formattedMessages}"
+            The messages provided will give you context. Your user_id is ${user_id}. Please message naturally and be mindful of which messages are sent by you and which are sent by the other members.
+            If there is a conversation that is already happening, respond to it instead of starting a new question.
+            Your closeness levels to the people in the chatroom on a scale of 1 to 10 are "${closeness_levels}". 
+            You belong to "${social_groups}" soial groups together.
             Using the provided information as a premise to adopt a tone and style, generate a message to contribute to the ongoing conversation or start a new conversation as you see fit.`;
             
             const message = await generateResponse(system_prompt, user_prompt);
@@ -484,6 +497,7 @@ const Simulation = {
         Using the provided information as a premise, generate a name for the group chat. Be straightforward and reply with just the name`;
         
         const name = await generateResponse(system_prompt, user_prompt);
+        sel_fren.push(user_id);
         try {
             await makeAPIRequest("http://localhost:3001/api/chats/group/add", "POST", { 
                 user_ids: sel_fren,
