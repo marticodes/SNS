@@ -59,9 +59,6 @@ const FeedMain = ({ user, posts }) => {
     }
   }, [location.pathname, posts]);
 
-  // Debug log
-  console.log("FeedMain initial posts:", posts);
-
   const handleSearch = async (searchQuery) => {
     try {
       const response = await fetch(`http://localhost:3001/api/posts/combined/search/${encodeURIComponent(searchQuery)}`);
@@ -69,8 +66,6 @@ const FeedMain = ({ user, posts }) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const searchedPosts = await response.json();
-
-
 
       console.log("Searched posts from API:", searchedPosts);
 

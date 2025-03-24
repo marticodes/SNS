@@ -130,15 +130,21 @@ const UserProfile = ({
     setMenuOpen(false);
   };
 
+  const handleUserClick = () => {
+    console.log("User clicked");
+    navigate(`/user/${user_id}`);
+  };
+
   return (
     <NavDiv>
       <ProfileDiv>
       <ProfileImg 
         src={profileImg?.trim() ? profileImg : defaultProfileImage} 
         alt={`${userName || "Unknown User"}'s profile`} 
+        onClick={handleUserClick}
       />
         <TextContainer>
-          <UserName>{userName}</UserName>
+          <UserName onClick={handleUserClick}>{userName}</UserName>
           {variant === "default" && <PostDate>{postDate}</PostDate>}
         </TextContainer>
       </ProfileDiv>

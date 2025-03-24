@@ -75,9 +75,30 @@ const UserPage = () => {
   const [followersCount, setFollowersCount] = useState(0); // State for followers count
   const [followingCount, setFollowingCount] = useState(0); // State for following count
   const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState([]);
 
   const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
   const myUserId = localStorage.getItem("userID");
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/api/posts/all/${userId}`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setPosts(data); // Set posts state with the fetched data
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      }
+    };
+  
+    if (userId) {
+      fetchPosts();
+    }
+  }, [userId]); // Fetch posts whenever userId changes
+  
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -138,33 +159,6 @@ const UserPage = () => {
 
   console.log("Relatioooon:", user.relationship);
 
-  
-
-  const posts = [
-    {
-      id: 1,
-      profileImg: "./src/dummy-profile-img.jpg",
-      userName: "Jane Doe",
-      postDate: "2025-01-21",
-      text: "This is a sample feed post with images.",
-      hashtags: ["nature", "photo"],
-      images: [
-        "../src/dummy-feed-img-1.jpg",
-        "../src/dummy-feed-img-2.jpg",
-        "../src/dummy-feed-img-3.jpg",
-      ],
-      reactions: {
-        likedUsers: [
-          { profileImg: "./src/dummy-profile-img-2.jpg", userName: "John Smith" },
-          { profileImg: "./src/dummy-profile-img-4.jpeg", userName: "Alice Brown" },
-        ],
-        upvotedUsers: 10,
-        downvotedUsers: 2,
-        shares: 3,
-      },
-    },
-  ];
-
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -202,7 +196,7 @@ const UserPage = () => {
           {user.relationship === "Unfollow" || !user.isPrivate || (myUserId === userId) ? (
             <>
               <h2 style={feedTitleStyle}>Posts</h2>
-              <Feed user={user} posts={posts} />
+              <Feed user={user} posts={posts} isProfilePage = {true}/>
             </>
           ) : (
             <div style={privateProfileStyle}>
