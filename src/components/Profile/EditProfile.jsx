@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 
-const caseId = localStorage.getItem("selectedCase");
+const caseId = parseInt(localStorage.getItem("selectedCase"), 10);
 
 const ProfileEdit = ({
   userId,
@@ -11,32 +11,42 @@ const ProfileEdit = ({
   onClose,
 }) => {
   const [bio, setBio] = useState(initialBio || "");
-  const [privateProfile, setPrivateProfile] = useState(initialPrivateProfile || false);
+  const [privateProfile, setPrivateProfile] = useState(initialPrivateProfile || 0);
   const [profileImage, setProfileImage] = useState(initialImage || "https://via.placeholder.com/150");
   const [errorMessage, setErrorMessage] = useState("");
 
   const fileInputRef = useRef(null);
 
  const handleConfirmChanges = async () => {
-    setErrorMessage("");
-    try {
-      await fetch("http://localhost:3001/api/user/update/bio", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, user_bio: bio }),
-      }) ;
+  setErrorMessage("");
+  try {
+    // Update bio
+    await fetch("http://localhost:3001/api/user/update/bio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, user_bio: bio }),
+    });
 
-      await fetch("http://localhost:3001/api/user/update/picture", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, profile_picture: profileImage }),
-      });
+    // Update profile picture
+    await fetch("http://localhost:3001/api/user/update/picture", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, profile_picture: profileImage }),
+    });
 
-      onSave({ bio, privateProfile, profileImage });
-    } catch (error) {
-      setErrorMessage("Error saving changes. Please try again.");
-    }
-  };
+    // Update visibility
+    await fetch("http://localhost:3001/api/user/update/visibility", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, visibility: privateProfile}),
+    });
+
+    onSave({ bio, privateProfile, profileImage });
+    window.location.reload();
+  } catch (error) {
+    setErrorMessage("Error saving changes. Please try again.");
+  }
+};
 
   const handleEditImage = () => {
     fileInputRef.current.click();
@@ -90,8 +100,8 @@ const ProfileEdit = ({
           <div className="input-group toggle-group">
             <label>Private Profile</label>
             <div
-              className={`toggle ${privateProfile ? "active" : ""}`}
-              onClick={() => setPrivateProfile(!privateProfile)}
+              className={`toggle ${privateProfile === 1 ? "active" : "inactive"}`}
+              onClick={() => setPrivateProfile(privateProfile === 1 ? 0 : 1)}
             >
               <div className="toggle-thumb"></div>
             </div>

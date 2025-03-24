@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import axios from "axios";
 import Post from "./Post";
 
 // Styled Components
@@ -15,14 +14,72 @@ const FeedDiv = styled.div`
   background-color: #ffffff;
 `;
 
-const Feed = ({ posts, user, commentType = "nested" }) => {
-
+const Feed = ({ postss, user, commentType = "nested", isProfilePage = false }) => {
+  const [posts, setPosts] = useState(postss);
+  const [activeHashtag, setActiveHashtag] = useState(null);
   const searchedWord = localStorage.getItem("SearchedWord");
-  console.log("Searched Word:", searchedWord);
 
+  useEffect(() => {
+    setPosts(postss);
+  }, [postss]);
+
+  const hashtagClick = async (hashtag) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/hashtags/post/${hashtag}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch posts for hashtag");
+      }
+      const fetchedPosts = await response.json();
+      setPosts(fetchedPosts);
+      setActiveHashtag(hashtag); // Set the active hashtag
+    } catch (error) {
+      console.error("Error fetching posts for hashtag:", error);
+    }
+  };
+
+  const clearHashtag = () => {
+    setActiveHashtag(null); // Reset the active hashtag
+    setPosts(postss); // Revert to the original posts
+  };
+
+  useEffect(() => {
+    if (isProfilePage) {
+      localStorage.removeItem("SearchedWord");
+      console.log("Cleared SearchedWord from localStorage for profile page");
+    }
+  }, [isProfilePage]);
+
+  const noPostsMessage = isProfilePage ? (
+    <div style={{ textAlign: "center", marginTop: "20px" }}>
+      <h1 style={{ color: "black", fontSize: "20px" }}>
+        No posts in your profile yet!
+      </h1>
+      <p style={{ color: "black", fontSize: "14px" }}>
+        Try creating your first post to share something with your friends.
+      </p>
+    </div>
+  ) : (
+    <div style={{ textAlign: "center", marginTop: "20px" }}>
+      <h1 style={{ color: "black", fontSize: "20px" }}>
+        Oops, it seems like there is no post for you!
+      </h1>
+      <p style={{ color: "black", fontSize: "14px" }}>
+        Try adding more friends or making a search!
+      </p>
+    </div>
+  );
 
   return (
     <>
+      {/* Show the active hashtag with an "X" to clear it */}
+      {activeHashtag && (
+        <div style={{ textAlign: "center", marginTop: "1px"}}>
+          <button style={{ color: "white", backgroundColor: "#7cb0e8"}} onClick={clearHashtag}>
+            #{activeHashtag}<span style={{ color: "white", marginLeft: "10px" }}>X</span>
+          </button>
+        </div>
+      )}
+
       {posts.length === 0 ? (
         searchedWord ? (
           <div style={{ textAlign: "center", marginTop: "20px" }}>
@@ -34,19 +91,17 @@ const Feed = ({ posts, user, commentType = "nested" }) => {
             </p>
           </div>
         ) : (
-          <div style={{ textAlign: "center", marginTop: "20px" }}>
-            <h1 style={{ color: "black", fontSize: "20px" }}>
-              Oops, it seems like there is no post for you!
-            </h1>
-            <p style={{ color: "black", fontSize: "14px" }}>
-              Try adding more friends or making a search!
-            </p>
-          </div>
+          noPostsMessage
         )
       ) : (
         posts.map((post) => (
           <FeedDiv key={post.post_id}>
-            <Post post={post} user={user} commentType={commentType} />
+            <Post
+              post={post}
+              user={user}
+              commentType={commentType}
+              hashtagClick={hashtagClick}
+            />
           </FeedDiv>
         ))
       )}
