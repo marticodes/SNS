@@ -62,6 +62,8 @@ const ActionChoice = {
              {action: "Update post visibility", weight: user_trait.updating_trait},//
              {action: "React", weight: user_trait.reacting_trait},
              {action: "Send friend request", weight: user_trait.comm_trait},
+             {action: "Accept friend request", weight: user_trait.comm_trait},
+             {action: "Delete friend request", weight: user_trait.comm_trait},
              {action: "Delete relation", weight: user_trait.notification_trait},
              {action: "Update relation", weight: user_trait.updating_trait},
              {action: "Update restriction", weight: user_trait.updating_trait},
@@ -131,6 +133,14 @@ const ActionChoice = {
         
             case "Send friend request":
                 await Simulation.sendRequest(user_id);
+                break;
+
+            case "Accept friend request":
+                await Simulation.acceptRequest(user_id);
+                break;
+
+            case "Delete friend request":
+                await Simulation.deleteRequest(user_id);
                 break;
         
             case "Delete relation":
