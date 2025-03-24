@@ -22,6 +22,43 @@ const CommentDAO = {
         });
     },
 
+    async getAllCommentsForAction(comment_id, post, user_id){
+        return new Promise((resolve, reject) => {
+            try {         
+                const sql = 'SELECT * FROM Comment WHERE parent_id=? AND post =? AND user_id != ?';
+                db.all(sql, [comment_id, post, user_id], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else if (rows.length === 0) {
+                        resolve([]);
+                    } else {
+                        const comments= rows.map(row => new Comment(row.comment_id, row.parent_id, row.user_id, row.content, row.media_type, row.media_url, row.timestamp, row.reaction, row.visibility, row.post));
+                        resolve(comments);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async checkIfComment(post_id, post, user_id){
+        return new Promise((resolve, reject) => {
+            try {         
+                const sql = 'SELECT * FROM Comment WHERE parent_id=? AND post =? AND user_id = ?';
+                db.all(sql, [post_id, post, user_id], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(rows.length > 0);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
     async getCommentByID(comment_id){
         return new Promise((resolve, reject) => {
             try {         

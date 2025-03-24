@@ -88,7 +88,7 @@ const ActionChoice = {
             random -= a.weight;
         }
         
-        chosenAction = "React";
+        chosenAction = "Add comment on post";
 
         // Fallback
         if (!chosenAction) {
@@ -166,7 +166,7 @@ const ActionChoice = {
     },
 };
 
-ActionChoice.performRandomAction(1);
+ActionChoice.performRandomAction(10);
 
 export default ActionChoice;
 

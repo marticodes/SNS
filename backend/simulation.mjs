@@ -63,9 +63,8 @@ async function makeAPIRequest(url, method, body) {
 }
 
 async function selectPostFromFeed(user_id) {
-    const feed = Math.random() < 0.5 
-        ? await FeedDAO.getFeedFromFriends(user_id) 
-        : await FeedDAO.getInterestBasedFeed(user_id);
+    const feed = await FeedDAO.getcombinedFeedforAction(user_id);
+    // console.log(feed);
 
     if (!feed || feed.length === 0) {
         console.error("No posts found in feed.");
@@ -75,9 +74,9 @@ async function selectPostFromFeed(user_id) {
     return feed[Math.floor(Math.random() * feed.length)];
 }
 
-async function selectCommentOnPost(post_id) {
-    const feed = await CommentDAO.getAllComments(post_id, 1);
-
+async function selectCommentOnPost(post_id, user_id) {
+    const feed = await CommentDAO.getAllCommentsForAction(post_id, 1, user_id);
+    // console.log(feed);
     if (!feed || feed.length === 0) {
         console.error("No comments found in post.");
         return null;
@@ -143,7 +142,7 @@ const Simulation = {
             const sel_post = await selectPostFromFeed(user_id);
             if (!sel_post) return;
 
-            const sel_comment =  await selectCommentOnPost(sel_post.post_id);
+            const sel_comment =  await selectCommentOnPost(sel_post.post_id, user_id);
             if (sel_comment == null) {
                 console.log("No comment to reply to");
                 return;
