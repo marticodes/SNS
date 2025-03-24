@@ -240,22 +240,26 @@ const RelationDAO = {
 
         return new Promise((resolve, reject) => {
             const sql = `
-                SELECT p.user_id
+                SELECT DISTINCT ui.user_id
+                FROM UserInterest ui
+                WHERE ui.interest_name = (
+                    SELECT interest_name
+                    FROM UserInterest
+                    WHERE user_id = ?
+                )
+                AND ui.user_id != ?
+
+                UNION
+
+                SELECT DISTINCT p.user_id
                 FROM Post p
-                JOIN UserInterest ui ON p.topic = ui.interest_name
-                WHERE 
-                    ui.user_id = ?  
-                    AND p.user_id NOT IN ( 
-                        SELECT CASE 
-                                WHEN r.user_id_1 = ? THEN r.user_id_2 
-                                ELSE r.user_id_1 
-                            END 
-                        FROM Relations r 
-                        WHERE (r.user_id_1 = ? OR r.user_id_2 = ?) 
-                            AND r.relation_type IN (0, 1, 2)  
-                    )
-                    AND p.visibility = 2
-                ORDER BY p.timestamp DESC;
+                WHERE p.topic = (
+                    SELECT interest_name
+                    FROM UserInterest
+                    WHERE user_id = ?
+                )
+                AND p.user_id != ?;
+
             `;
     
             db.all(sql, [user_id, user_id, user_id, user_id], (err, rows) => {
