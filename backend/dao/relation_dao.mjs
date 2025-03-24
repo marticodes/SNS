@@ -237,7 +237,6 @@ const RelationDAO = {
     },
 
     async getRecommendedFriends(user_id){
-
         return new Promise((resolve, reject) => {
             const sql = `
                 SELECT DISTINCT ui.user_id
@@ -248,9 +247,15 @@ const RelationDAO = {
                     WHERE user_id = ?
                 )
                 AND ui.user_id != ?
-
+    
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM FriendRequest fr
+                    WHERE (fr.user_id_1 = ? AND fr.user_id_2 = ui.user_id)
+                )
+    
                 UNION
-
+    
                 SELECT DISTINCT p.user_id
                 FROM Post p
                 WHERE p.topic = (
@@ -258,21 +263,25 @@ const RelationDAO = {
                     FROM UserInterest
                     WHERE user_id = ?
                 )
-                AND p.user_id != ?;
-
+                AND p.user_id != ?
+    
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM FriendRequest fr
+                    WHERE (fr.user_id_1 = ? AND fr.user_id_2 = p.user_id)
+                );
             `;
     
-            db.all(sql, [user_id, user_id, user_id, user_id], (err, rows) => {
+            db.all(sql, [user_id, user_id, user_id, user_id, user_id, user_id], (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
-                    const users= rows.map(row => row.user_id);
+                    const users = rows.map(row => row.user_id);
                     resolve(users);
                 }
             });
         });
-
-    },
+    }    
 
 };
 

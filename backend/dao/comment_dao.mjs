@@ -22,6 +22,26 @@ const CommentDAO = {
         });
     },
 
+    async getCommentByID(comment_id){
+        return new Promise((resolve, reject) => {
+            try {         
+                const sql = 'SELECT * FROM Comment WHERE comment_id = ?';
+                db.get(sql, [comment_id], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve([]);
+                    } else {
+                        const comments= new Comment(row.comment_id, row.parent_id, row.user_id, row.content, row.media_type, row.media_url, row.timestamp, row.reaction, row.visibility, row.post);
+                        resolve(comments);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
     async insertComment(parent_id, user_id, content, media_type, media_url, timestamp, visibility, post) {
         return new Promise((resolve, reject) => {
             try {

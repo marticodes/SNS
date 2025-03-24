@@ -66,6 +66,8 @@ const ActionChoice = {
             { action: "Update post visibility", weight: logistic(user_trait.updating_trait) },
             { action: "React", weight: logistic(user_trait.reacting_trait) },
             { action: "Send friend request", weight: logistic(user_trait.comm_trait) },
+            {action: "Accept friend request", weight: logistic(user_trait.comm_trait)},
+            {action: "Delete friend request", weight: logistic(user_trait.comm_trait)},
             { action: "Delete relation", weight: logistic(user_trait.notification_trait) },
             { action: "Update relation", weight: logistic(user_trait.updating_trait) },
             { action: "Update restriction", weight: logistic(user_trait.updating_trait) },
@@ -85,6 +87,9 @@ const ActionChoice = {
             }
             random -= a.weight;
         }
+        
+        chosenAction = "React";
+
         // Fallback
         if (!chosenAction) {
             if (!chosenAction) {
@@ -127,6 +132,15 @@ const ActionChoice = {
             case "Send friend request":
                 await Simulation.sendRequest(user_id);
                 break;
+
+            case "Accept friend request":
+                await Simulation.acceptRequest(user_id);
+                break;
+
+            case "Delete friend request":
+                await Simulation.deleteRequest(user_id);
+                break;
+        
             case "Delete relation":
                 await Simulation.deleteAGRelation(user_id);
                 break;
@@ -151,6 +165,8 @@ const ActionChoice = {
         }
     },
 };
+
+ActionChoice.performRandomAction(1);
 
 export default ActionChoice;
 

@@ -152,7 +152,7 @@ const MessageDAO = {
                 db.get(sql, [message_id], (err, row) => {
                     if (err) {
                         reject(err);
-                    } else if (row.length === 0) {
+                    } else if (!row) {
                         resolve([]);
                     } else {
                         resolve(new Message(row.message_id, row.chat_id, row.sender_id, row.reply_id, row.content, row.media_type, row.media_url, row.timestamp));

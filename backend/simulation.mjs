@@ -20,7 +20,6 @@ import fs from "fs/promises";
 import ActionLogsDAO from './dao/action_logs_dao.mjs';
 
 
-
 import { OPENAI_API_KEY } from './apiKey.mjs';
 import FeedDAO from "./dao/feed_dao.mjs";
 
@@ -103,7 +102,7 @@ const Simulation = {
     async updateAGUserBio(user_id, system_prompt) {
         try {
             const prev_bio = await UserDAO.getUserInfo(user_id).then(user => user.user_bio);
-            const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio. Make sure it is within 100 characters.`;
+            const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio.`;
             const new_bio = await generateResponse(system_prompt, user_prompt);
             
             await makeAPIRequest("http://localhost:3001/api/user/update/bio", "POST", { user_id, user_bio: new_bio });
@@ -274,7 +273,7 @@ const Simulation = {
                 case 1:
                     choice = sel_post;
                     if (sel_post == null) {
-                        console.log("No posts to react on");
+                        console.log("No posts to react on.");
                         return;
                     }
                     link = "http://localhost:3001/api/reactions/post/add";
@@ -282,12 +281,12 @@ const Simulation = {
                     break;
                 case 2:
                     if (sel_post == null) {
-                        console.log("No posts to react on");
+                        console.log("No posts to react on.");
                         return;
                     }
                     choice = await selectCommentOnPost(sel_post.post_id);
                     if (choice == null) {
-                        console.log("No comments to react on");
+                        console.log("No comments to react on.");
                         return;
                     }
                     comment_id =  choice.comment_id;
@@ -295,7 +294,7 @@ const Simulation = {
                     break;
                 case 3:
                     let chat =  await selectChatFromInbox(user_id);
-                    if (chat == null) {
+                    if (chat == null || chat.length === 0) {
                         console.log("No chats found");
                         return;
                     }
@@ -305,10 +304,8 @@ const Simulation = {
                     if (!sel_messages || sel_messages.length === 0) {
                         return;
                     }
-                    else {
-                        choice = sel_messages.slice(-1);
-                        message_id = choice.message_id;
-                    }
+                    choice = sel_messages.slice(-1);
+                    message_id = choice[0].message_id;
                     break;
                 default:
                     console.error("Unexpected value:", sel);
@@ -544,7 +541,7 @@ const Simulation = {
         let frens = await RelationDAO.getRecommendedFriends(user_id);
         console.log(frens);
         if (!frens || frens.length === 0) {
-            console.error("No users found.");
+            console.error("No recommended friends.");
             return null;
         }
         let sel_fren = frens[Math.floor(Math.random() * frens.length)];
@@ -554,90 +551,56 @@ const Simulation = {
                 user_id_2: sel_fren
             });
         } catch (error) {
-            console.error("Error reading message:", error);
-        }
-
-    },
-    async logAction(user_id, action_type, content) {
-        try {
-            const timestamp = new Date().toISOString();
-            await ActionLogsDAO.insertActionLog(user_id, action_type, content, timestamp);
-        } catch (error) {
-            console.error("Error logging action:", error);
+            console.error("Error sending request:", error);
         }
     },
 
-    async insertUserPipeline(userData) {
+    async acceptRequest(user_id){
+        let frens = await RequestDAO.getRequests(user_id);
+        if (!frens || frens.length === 0) {
+            console.error("No requests found.");
+            return null;
+        }
+        let sel_fren = frens[Math.floor(Math.random() * frens.length)];
+        let closeness = Math.floor(Math.random() * 11);
         try {
-          // 1. Insert the basic user info into the user table
-          const user_id = await UserDAO.insertUser(
-            userData.id_name,
-            userData.user_name,
-            userData.email,
-            userData.password,
-            userData.user_bio,
-            userData.profile_picture
-          );
-    
-          await TraitDAO.insertUserTraits(
-            user_id,
-            //userData.trait_id,
-            userData.posting_trait,
-            userData.commenting_trait,
-            userData.reacting_trait,
-            userData.messaging_trait,
-            userData.updating_trait,
-            userData.comm_trait,
-            userData.notification_trait
-        
-          );
-    
-          await UserInterestDao.insertUserInterest(userData.interest_name, user_id);
-          await PersonaDAO.insertUserPersona(userData.persona_name, user_id);
-          await SocialGroupDao.insertUserSocialGroup(userData.social_group_name, user_id);
+            await makeAPIRequest("http://localhost:3001/api/relations/add", "POST", { 
+                user_id_1: sel_fren,
+                user_id_2: user_id,
+                relation_type: 2,
+                restricted: 0,
+                closeness: closeness,
+            });
 
-          console.log(`✅ Created Agent: ${userData.user_name} (ID: ${userData.id_name}) with full details`);
-          return user_id;
+            await makeAPIRequest("http://localhost:3001/api/requests/delete", "DELETE", { 
+                user_id_1: sel_fren,
+                user_id_2: user_id,
+            });
+
         } catch (error) {
-          console.error(`❌ Error creating agent ${userData.user_name}:`, error);
-          throw error;
+            console.error("Error accepting request:", error);
         }
-      },
-    
-      async createAgentsFromJson(filePath) {
+    },
+
+    async deleteRequest(user_id){
+        let frens = await RequestDAO.getRequests(user_id);
+        if (!frens || frens.length === 0) {
+            console.error("No requests found.");
+            return null;
+        }
+        let sel_fren = frens[Math.floor(Math.random() * frens.length)];
         try {
-          // Read and parse JSON file
-          const data = await fs.readFile(filePath, "utf-8");
-          const agents = JSON.parse(data);
-    
-          if (!Array.isArray(agents) || agents.length === 0) {
-            throw new Error("Invalid JSON structure: Expected an array of agents.");
-          }
-    
-          for (const agent of agents) {
-            try {
-              await this.insertUserPipeline(agent);
-            } catch (error) {
-              console.error(`❌ Error creating agent ${agent.id_name}:`, error);
-            }
-          }
-    
-          console.log(`✅ ${agents.length} Agents Created Successfully!`);
+            await makeAPIRequest("http://localhost:3001/api/requests/delete", "DELETE", { 
+                user_id_1: sel_fren,
+                user_id_2: user_id,
+            });
+
         } catch (error) {
-          console.error("❌ Failed to load agents from JSON file:", error);
+            console.error("Error deleting request:", error);
         }
-      },
-    
-      async startSimulation() {
-        console.log("🚀 Starting Simulation...");
-    
-        // Load agents from JSON file
-        await this.createAgentsFromJson("./agents.json");
-    
-        console.log("✅ Simulation Completed!");
-      },
-      
-      async joinChannel(user_id, system_prompt){
+    },
+
+    async joinChannel(user_id, system_prompt){
         let communities = await CommunityDAO.getAllUserCommunities(user_id);
         if (!communities || communities.length === 0) {
             console.error("No communities found.");
@@ -660,10 +623,8 @@ const Simulation = {
         } catch (error) {
             console.error("Error adding new channel", error);
         }
-    }
+    },
 
 
-    }
-    
-    export default Simulation;
-
+};
+export default Simulation;
