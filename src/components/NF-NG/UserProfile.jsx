@@ -100,7 +100,6 @@ const UserProfile = ({
     const fetchUser = async () => {
       try {
         const res = await axios.get(`http://localhost:3001/api/user/${user_id}`);
-        console.log("✅ User fetched:", res.data);
         setUser(res.data);
       } catch (err) {
         console.error("❌ Error fetching user:", err);

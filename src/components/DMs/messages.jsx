@@ -7,12 +7,6 @@ const myID = parseInt(localStorage.getItem("userID"), 10);
 const MessageList = ({ messages, onReply, isGroup, chatId }) => {
   const messageListRef = useRef(null);
 
-  useEffect(() => {
-    if (messageListRef.current) {
-      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
-    }
-  }, [messages]);
-
   return (
     <div
       ref={messageListRef}

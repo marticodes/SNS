@@ -248,7 +248,6 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     const fetchReactions = async () => {
       try {
         const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
-        console.log('✅ Reactions fetched:', res.data);
 
         setReactions(res.data || {});
         setLikeActive(res.data?.likedUsers?.includes(user_id));
