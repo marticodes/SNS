@@ -103,7 +103,7 @@ const Simulation = {
     async updateAGUserBio(user_id, system_prompt) {
         try {
             const prev_bio = await UserDAO.getUserInfo(user_id).then(user => user.user_bio);
-            const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio.`;
+            const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio. Make sure it is within 100 characters.`;
             const new_bio = await generateResponse(system_prompt, user_prompt);
             
             await makeAPIRequest("http://localhost:3001/api/user/update/bio", "POST", { user_id, user_bio: new_bio });

@@ -37,7 +37,6 @@ const ActionChoice = {
         
         Your responses should reflect this background **naturally** without explicitly listing and without using all of the attributes. Instead, adopt a tone, style, and perspective that aligns with this persona. You SHOULD NOT mention every attribute—just let them subtly shape the way you respond. Also no need for BOLD text in your responses.`;
 
-        // Handle user status changes based on activity level
         if (user_status === 0) {
             if (Math.random() < user_activity_level) {
                 return await UserDAO.updateUserStatus(user_id, 1);
@@ -55,7 +54,6 @@ const ActionChoice = {
             return 1 / (1 + Math.exp(-k * (value - t)));
         }
 
-        // Build the actions array using logistic-transformed trait values as weights
         const actions = [
             { action: "Update user bio", weight: logistic(user_trait.updating_trait) },
             { action: "Start new DM", weight: logistic(user_trait.comm_trait) },

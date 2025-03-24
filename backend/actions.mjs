@@ -31,7 +31,6 @@ async function ActionSimulation() {
         } catch (dbError) {
             console.error('Error querying user IDs:', dbError);
         }
-        // Wait 5 seconds before the next iteration of the simulation
         await new Promise(resolve => setTimeout(resolve, 2000));
     }
 }
