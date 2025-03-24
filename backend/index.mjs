@@ -397,6 +397,39 @@ app.get('/api/reactions/posts/:post_id',
       }
 );
 
+app.get('/api/reactions/posts/user/:user_id/:post_id',
+  async (req, res) => {
+      try {
+        const reactions = await reactionDao.checkReactPost(req.params.user_id, req.params.post_id);
+        res.status(200).json(reactions);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining post reactions ${err}` });
+      }
+    }
+);
+
+app.get('/api/reactions/comments/user/:user_id/:comment_id',
+  async (req, res) => {
+      try {
+        const reactions = await reactionDao.checkReactComment(req.params.user_id, req.params.comment_id);
+        res.status(200).json(reactions);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining comment reactions ${err}` });
+      }
+    }
+);
+
+app.get('/api/reactions/msg/user/:user_id/:chat_id/:message_id',
+  async (req, res) => {
+      try {
+        const reactions = await reactionDao.checkReactMsg(req.params.user_id, req.params.chat_id,req.params.message_id);
+        res.status(200).json(reactions);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error obtaining msg reactions ${err}` });
+      }
+    }
+);
+
 app.get('/api/reactions/comments/:comment_id',
     async (req, res) => {
         try {

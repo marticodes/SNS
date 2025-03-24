@@ -56,8 +56,8 @@ const ActionChoice = {
 
         const actions = [
             { action: "Update user bio", weight: logistic(user_trait.updating_trait) },
-            { action: "Start new DM", weight: logistic(user_trait.comm_trait) },
-            { action: "Start new group chat", weight: logistic(user_trait.comm_trait) },
+            { action: "Start new DM", weight: logistic(user_trait.messaging_trait) },
+            { action: "Start new group chat", weight: logistic(user_trait.messaging_trait) },
             { action: "Add comment on post", weight: logistic(user_trait.commenting_trait) },
             { action: "Add comment on comment", weight: logistic(user_trait.commenting_trait) },
             { action: "Create new channel", weight: logistic(user_trait.comm_trait) },
@@ -68,7 +68,7 @@ const ActionChoice = {
             { action: "Send friend request", weight: logistic(user_trait.comm_trait) },
             {action: "Accept friend request", weight: logistic(user_trait.comm_trait)},
             {action: "Delete friend request", weight: logistic(user_trait.comm_trait)},
-            { action: "Delete relation", weight: logistic(user_trait.notification_trait) },
+            { action: "Delete relation", weight: logistic(user_trait.comm_trait) },
             { action: "Update relation", weight: logistic(user_trait.updating_trait) },
             { action: "Update restriction", weight: logistic(user_trait.updating_trait) },
             { action: "View a story", weight: logistic(user_trait.comm_trait) },
@@ -88,12 +88,12 @@ const ActionChoice = {
             random -= a.weight;
         }
         
-        chosenAction = "Add comment on post";
+        // chosenAction = "Send message";
 
         // Fallback
         if (!chosenAction) {
             if (!chosenAction) {
-                chosenAction = "Send message";
+                chosenAction = "React";
             }        }
         switch (chosenAction) {
             case "Update user bio":
@@ -166,7 +166,7 @@ const ActionChoice = {
     },
 };
 
-ActionChoice.performRandomAction(10);
+// ActionChoice.performRandomAction(10);
 
 export default ActionChoice;
 
