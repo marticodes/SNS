@@ -43,6 +43,7 @@ const countTotalComments = (comments) => {
   };
 
 const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
+  console.log(post);
   const {
     post_id,
     user_id,  // Author of the post
@@ -51,10 +52,30 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
     hashtag,
     media_url,
     timestamp,
+    duration,
     comments = [] // Assuming comments are fetched here already
   } = post;
   const formattedDate = new Date(timestamp).toLocaleDateString();
   const [userData, setUserData] = useState(null);
+
+  const postTimestamp = new Date(timestamp);
+  const currentTime = new Date();
+  const timeRemaining = postTimestamp.getTime() + duration * 24 * 60 * 60 * 1000 - currentTime.getTime(); // duration in milliseconds
+
+  let timeLeft = '';
+
+  if (timeRemaining > 0) {
+    const hoursLeft = Math.floor(timeRemaining / (1000 * 60 * 60));
+    const minutesLeft = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hoursLeft > 0) {
+      timeLeft = `${hoursLeft} hours left`;
+    } else if (minutesLeft > 0) {
+      timeLeft = `${minutesLeft} minutes left`;
+    }
+  } else {
+    timeLeft = '';
+  }
 
   const [reactions, setReactions] = useState({
     likedUsers: [],
@@ -185,6 +206,7 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
       isOwner={isOwner}
       post={post}
       variant="default"
+      timeleft={timeLeft}
     />
     <ContentSection
       text={content}

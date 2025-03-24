@@ -196,7 +196,7 @@ const UserPage = () => {
           {user.relationship === "Unfollow" || !user.isPrivate || (myUserId === userId) ? (
             <>
               <h2 style={feedTitleStyle}>Posts</h2>
-              <Feed user={user} posts={posts} isProfilePage = {true}/>
+              <Feed user={user} postss={posts} isProfilePage = {true}/>
             </>
           ) : (
             <div style={privateProfileStyle}>
