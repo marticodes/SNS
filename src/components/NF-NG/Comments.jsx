@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
 import UserProfile from './UserProfile';
+import { useParams } from 'react-router-dom';
 
 const CommentsSection = styled.div`
   margin-top: 1rem;
@@ -118,53 +119,56 @@ const RepliesList = styled.div`
 `;
 
 // Component
-const Comments = ({ post_id, user_id, isNested = false }) => {
+const Comments = ({ post_id = 1, isNested = false }) =>  {
+  const { parentId, is_post} = useParams();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [currentPostId, setCurrentPostId] = useState(null);
   const [newReply, setNewReply] = useState('');
   const [replyIndex, setReplyIndex] = useState(null);
   const [mediaFiles, setMediaFiles] = useState([]); 
-
-  const addComment = () => {
-    if (newComment.trim()) {
-      setComments([
-        ...comments,
-        { userProfile, userName, text: newComment, replies: [] },
-      ]);
-      setNewComment('');
-    }
-  };
-
-  const [userData, setUserData] = useState({});
-  const userProfile = userData?.profile_picture || "/default-profile.png";
-  const userName = userData?.user_name || "Unknown User";
+  let user_id = parseInt(localStorage.getItem("userID"), 10);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const res = await axios.get(`http://localhost:3001/api/user/${user_id}`);
-        setUserData(res.data);
-      } catch (error) {
-        console.error("❌ Error fetching user data:", error);
-      }
-    };
+    setCurrentPostId(parentId);
+    console.log('here')
+    console.log(parentId);
 
-    if (user_id) fetchUserData();
-  }, [user_id]);
+    }, [parentId]);
+
 
   useEffect(() => {
     fetchComments();
   }, [post_id]);
 
-  useEffect(() => {
-    fetchComments();
-  }, [post_id]);
 
-  const fetchComments = async (post_id) => {
+  const fetchComments = async () => {
     try {
+      console.log()
       const res = await axios.get(`http://localhost:3001/api/comments/all/${post_id}/1`); // parent_id = 0 or null for top-level comments
       console.log("✅ Comments fetched:", res.data);
-      const nested = buildNestedComments(res.data);
+      
+      const commentsWithUserData = await Promise.all(
+        res.data.map(async (comment) => {
+          try {
+            const userRes = await axios.get(`http://localhost:3001/api/user/${comment.user_id}`);
+            return { 
+              ...comment, 
+              userName: userRes.data.user_name, 
+              profileImg: userRes.data.profile_picture || "/default-profile.png" 
+            };
+          } catch (error) {
+            console.error(`❌ Error fetching user data for user_id ${comment.user_id}:`, error);
+            return { 
+              ...comment, 
+              userName: "Unknown User", 
+              profileImg: "/default-profile.png" 
+            };
+          }
+        })
+      );
+      
+      const nested = buildNestedComments(commentsWithUserData);
       setComments(nested);
     } catch (error) {
       console.error("❌ Error fetching comments:", error);
@@ -172,6 +176,8 @@ const Comments = ({ post_id, user_id, isNested = false }) => {
   };
 
   const buildNestedComments = (comments) => {
+    console.log("🚀 Raw comments before nesting:", comments);
+
     const commentMap = {};
     const nestedComments = [];
 
@@ -181,15 +187,17 @@ const Comments = ({ post_id, user_id, isNested = false }) => {
     });
 
     comments.forEach(comment => {
-      if (comment.parent_id && commentMap[comment.parent_id]) {
+      if (comment.post == 0) {
         commentMap[comment.parent_id].replies.push(comment);
-      } else if (comment.parent_id === 0 || !comment.parent_id) {
+      } else {
         nestedComments.push(comment);
       }
     });
 
+    console.log("✅ Nested comments:", nestedComments);
     return nestedComments;
-  };
+};
+
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
@@ -268,7 +276,6 @@ const Comments = ({ post_id, user_id, isNested = false }) => {
     <CommentsSection>
       {/* New Comment */}
       <UserComment>
-        <ProfileImage src={userData.profile_picture} alt={`${userData.user_name}'s profile`} />
         <TextArea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
@@ -290,14 +297,15 @@ const Comments = ({ post_id, user_id, isNested = false }) => {
               <ReplyButton onClick={() => setReplyIndex(comment.comment_id)}>
                 Reply
               </ReplyButton>
+              
             )}
           </TextContent>
         </CommentContent>
 
             {/* Reply input */}
-            {isNested && replyIndex === index && (
+            {isNested && replyIndex == comment.comment_id && (
               <UserComment>
-                <ProfileImage src={userData.profile_picture} alt={`${userData.user_name}'s profile`} />
+                {/* <ProfileImage src={comment.profileImg} alt={`${comment.userName}'s profile`} /> */}
                 <TextArea
                   value={newReply}
                   onChange={(e) => setNewReply(e.target.value)}

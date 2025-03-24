@@ -45,7 +45,7 @@ const HashTag = styled.span`
 `;
 
 // Component
-const ContentSection = ({ text, hashtags, images = [] }) => {
+const ContentSection = ({ text, hashtags, images = [], hashtagClick }) => {
   return (
     <ContentDiv>
       {text && <Text>{text}</Text>}
@@ -59,7 +59,7 @@ const ContentSection = ({ text, hashtags, images = [] }) => {
       {Array.isArray(hashtags) && hashtags.length > 0 && (
         <HashTagContainer>
           {hashtags.map((hashtag, index) => (
-            <HashTag key={index}>#{hashtag}</HashTag>
+            <HashTag onClick={() => hashtagClick(hashtag)} key={index}>#{hashtag}</HashTag>
           ))}
         </HashTagContainer>
       )}

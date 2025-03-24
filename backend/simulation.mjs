@@ -69,7 +69,7 @@ async function selectPostFromFeed(user_id) {
         : await FeedDAO.getInterestBasedFeed(user_id);
 
     if (!feed || feed.length === 0) {
-        console.error("No posts found in feed. Cannot generate a comment.");
+        console.error("No posts found in feed.");
         return null;
     }
 
@@ -80,7 +80,7 @@ async function selectCommentOnPost(post_id) {
     const feed = await CommentDAO.getAllComments(post_id, 1);
 
     if (!feed || feed.length === 0) {
-        console.error("No comments found in post. Cannot generate a comment.");
+        console.error("No comments found in post.");
         return null;
     }
 
@@ -91,7 +91,7 @@ async function selectChatFromInbox(user_id) {
     const feed = await ChatDAO.getAllChatIds(user_id);
 
     if (!feed || feed.length === 0) {
-        console.error("No chats found. Cannot generate a message.");
+        console.error("No chats found.");
         return null;
     }
 
@@ -115,7 +115,10 @@ const Simulation = {
     async insertAGCommentOnPost(user_id, system_prompt) {
         try {
             const sel_post = await selectPostFromFeed(user_id);
-            if (!sel_post) return;
+            if (sel_post == null) {
+                console.log("No posts to comment on");
+                return;
+            }
             const closeness = await RelationDAO.getRelation(user_id, sel_post.user_id);
             const user_prompt = `You are about to comment on a post. The content of the post is: "${sel_post.content}". On a scale of 1 to 10, your closeness level with the person is "${closeness}". Generate a comment for the post.`;
             const comment = await generateResponse(system_prompt, user_prompt);
@@ -142,6 +145,10 @@ const Simulation = {
             if (!sel_post) return;
 
             const sel_comment =  await selectCommentOnPost(sel_post.post_id);
+            if (sel_comment == null) {
+                console.log("No comment to reply to");
+                return;
+            }
 
             const user_prompt = `You are about to comment on a comment to a post. The content of the post is: "${sel_post.content}". The content of the comment is: "${sel_comment.content}". Generate a comment for the comment "${sel_comment.content}".`;
             const comment = await generateResponse(system_prompt, user_prompt);
@@ -166,7 +173,10 @@ const Simulation = {
 
         try {
             const sel_chat_id = await selectChatFromInbox(user_id);
-            if (!sel_chat_id) return;
+            if (sel_chat_id == null) {
+                console.log("No chatrooms found");
+                return;
+            }
 
             const sel_messages =  await MessageDAO.getMessageContentByChatId(sel_chat_id);
 
@@ -186,7 +196,6 @@ const Simulation = {
                     return closeness;
                 })
             );
-
             let social_groups = await SocialGroupDao.getGroupsByIds(people);
 
             const user_prompt = `You are about to send a message in a conversation in a chatroom. The last messages in the chatroom were: "${last_messages}". 
@@ -223,7 +232,6 @@ const Simulation = {
             }
             else {
                 last_posts = sel_posts.map(post => post.content).slice(-10);
-                // console.log(last_posts); // This will be a list of post content
             }
 
             const user_prompt = `You are about to make a new post on social media. While making a post ensure that:
@@ -265,16 +273,32 @@ const Simulation = {
             switch (sel) {
                 case 1:
                     choice = sel_post;
+                    if (sel_post == null) {
+                        console.log("No posts to react on");
+                        return;
+                    }
                     link = "http://localhost:3001/api/reactions/post/add";
                     post_id = choice.post_id;
                     break;
                 case 2:
+                    if (sel_post == null) {
+                        console.log("No posts to react on");
+                        return;
+                    }
                     choice = await selectCommentOnPost(sel_post.post_id);
+                    if (choice == null) {
+                        console.log("No comments to react on");
+                        return;
+                    }
                     comment_id =  choice.comment_id;
                     link = "http://localhost:3001/api/reactions/comment/add"
                     break;
                 case 3:
                     let chat =  await selectChatFromInbox(user_id);
+                    if (chat == null) {
+                        console.log("No chats found");
+                        return;
+                    }
                     chat_id = chat;
                     link = "http://localhost:3001/api/reactions/message/add";
                     const sel_messages =  await MessageDAO.getMessagesByChatId(chat_id);
@@ -500,7 +524,10 @@ const Simulation = {
 
     async readAGMessages(user_id){
         let unread = await ReceiptsDAO.getUnreadChats(user_id);
-        if(!unread) return;
+        if (!unread || unread.length === 0) {
+            console.log('No unread chats');
+            return;
+        }
         let sel = unread[Math.floor(Math.random() * unread.length)];
         
         try {
@@ -515,6 +542,7 @@ const Simulation = {
 
     async sendRequest(user_id){
         let frens = await RelationDAO.getRecommendedFriends(user_id);
+        console.log(frens);
         if (!frens || frens.length === 0) {
             console.error("No users found.");
             return null;

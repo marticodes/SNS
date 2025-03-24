@@ -152,10 +152,5 @@ const ActionChoice = {
     },
 };
 
-
-// Uncomment the following lines to test actions
-// ActionChoice.performRandomAction(1);
-// testUserBio(2);
-
 export default ActionChoice;
 
