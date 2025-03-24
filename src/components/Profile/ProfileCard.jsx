@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import FollowingPopup from "./FollowList";
 import ProfileEdit from "./EditProfile";
 
@@ -7,13 +8,38 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
   const [foll, setFoll] = useState(2); // 2 for followers, 0 for following
   const [isEditing, setIsEditing] = useState(false);
   const myUserId = localStorage.getItem("userID");
+  const navigate = useNavigate();
+
+  console.log("is prvate:", isPrivate);
 
   const handleClose = () => {
     setIsEditing(false);
   };
 
-  const onDMClick = () => {
+  const onDMClick = async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/chats/exist/${myUserId}/${id}`);
+      const data = await response.json();
 
+      if (response.ok && data) {
+        navigate(`/dms/${data}`);
+      } else {
+        const newChatResponse = await fetch("http://localhost:3001/api/chats/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id_1: myUserId, user_id_2: id, chat_name: null, chat_image: null }),
+        });
+
+        const newChatData = await newChatResponse.json();
+        if (newChatResponse.ok && newChatData?.ina) {
+          navigate(`/dms/${newChatData.ina}`);
+        } else {
+          console.error("Failed to create chat:", newChatData);
+        }
+      }
+    } catch (error) {
+      console.error("Error handling DM click:", error);
+    }
   };
 
   const handleSaveChanges = (updatedData) => {
@@ -62,6 +88,8 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
             body: JSON.stringify({ notif_id: notifid }), 
           });
 
+          window.location.reload();
+
           break;
 
         case "Follow Back":
@@ -92,6 +120,7 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
               body: JSON.stringify({ notif_type: 3, sender_id: myUserId, receiver_id: id, timestamp: timestamp}),
             });
           }
+          window.location.reload();
           break;
 
         default: // "Unfollow"
@@ -100,6 +129,8 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_id_1: myUserId, user_id_2: id }),
           });
+
+          window.location.reload();
 
           break;
       }

@@ -137,10 +137,13 @@ const Button = styled.button`
   }
 `;
 
-const NewPost = ({ user, addNewPost, fetchFeedData }) => {
+const NewPost = ({ user, addNewPost, fetchFeedData, ephemeral = true }) => {
   const navigate = useNavigate();
   const [postText, setPostText] = useState("");
-  const [mediaFiles, setMediaFiles] = useState([]); 
+  const [mediaFiles, setMediaFiles] = useState([]);
+  const [isEphemeral, setIsEphemeral] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false); // State for pop-up
+
   const handleTextChange = (e) => {
     setPostText(e.target.value);
   };
@@ -174,7 +177,7 @@ const NewPost = ({ user, addNewPost, fetchFeedData }) => {
       content: postText,
       timestamp: new Date().toISOString(),
       media_type: mediaFiles.length > 0 ? 1 : 0,
-      duration: 0,
+      duration: isEphemeral ? 1 : 0,
       visibility: 2,
       comm_id: null,
     };
@@ -182,7 +185,13 @@ const NewPost = ({ user, addNewPost, fetchFeedData }) => {
     try {
       const response = await axios.post("http://localhost:3001/api/post/add", newPostData);
       await fetchFeedData();
-      navigate("/case/1");
+
+      setShowSuccessPopup(true); 
+
+      setTimeout(() => {
+        setShowSuccessPopup(false);
+        navigate("/case/1"); 
+      }, 2000); 
     } catch (error) {
       console.error("❌ Error posting:", error.message);
     }
@@ -196,39 +205,72 @@ const NewPost = ({ user, addNewPost, fetchFeedData }) => {
   return (
     <NewPostContainer>
       <PostDiv>
-      <Title>Create New Post</Title>
-      <UserProfile profileImg={user?.profile_picture} userName={user?.user_name} variant="default" />
+        <Title>Create New Post</Title>
+        <UserProfile profileImg={user?.profile_picture} userName={user?.user_name} variant="default" newpost={true} />
 
-      <TextArea value={postText} onChange={handleTextChange} placeholder="Say Something..." />
+        <TextArea value={postText} onChange={handleTextChange} placeholder="Say Something..." />
 
-      <UploadContainer>
-        <UploadLabel htmlFor="file-upload">Upload Images/Videos</UploadLabel>
-        <FileInput id="file-upload" type="file" multiple accept="image/*,video/*" onChange={handleFileUpload} />
-      </UploadContainer>
+        {ephemeral && (
+          <div style={{ marginBottom: '10px', alignSelf: 'center', color: 'black' }}>
+            <label style={{ color: 'black', alignSelf: 'center' }}>
+              Post is ephemeral (24 hours)?
+              <input
+                style={{ marginLeft: '10px', marginTop: '10px', color: 'white', transform: 'scale(1.3)', cursor: 'pointer' }}
+                type="checkbox"
+                checked={isEphemeral}
+                onChange={() => setIsEphemeral(!isEphemeral)}
+              />
+            </label>
+          </div>
+        )}
 
-      <PreviewContainer>
-        {mediaFiles.map((file, index) => (
-          <PreviewWrapper key={index}>
-            {file.includes("video") ? (
-              <PreviewVideo controls>
-                <source src={file} type="video/mp4" />
-                Your browser does not support the video tag.
-              </PreviewVideo>
-            ) : (
-              <PreviewImage src={file} alt={`Preview ${index}`} />
-            )}
-            <DeleteButton onClick={() => handleDeleteMedia(index)}>✖</DeleteButton>
-          </PreviewWrapper>
-        ))}
-      </PreviewContainer>
+        <UploadContainer>
+          <UploadLabel htmlFor="file-upload">Upload Images/Videos</UploadLabel>
+          <FileInput id="file-upload" type="file" multiple accept="image/*,video/*" onChange={handleFileUpload} />
+        </UploadContainer>
 
-      <ButtonGroup>
-        <Button cancel onClick={handleCancel}>Cancel</Button>
-        <Button onClick={handlePost}>Post</Button>
-      </ButtonGroup>
+        <PreviewContainer>
+          {mediaFiles.map((file, index) => (
+            <PreviewWrapper key={index}>
+              {file.includes("video") ? (
+                <PreviewVideo controls>
+                  <source src={file} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </PreviewVideo>
+              ) : (
+                <PreviewImage src={file} alt={`Preview ${index}`} />
+              )}
+              <DeleteButton onClick={() => handleDeleteMedia(index)}>✖</DeleteButton>
+            </PreviewWrapper>
+          ))}
+        </PreviewContainer>
+
+        {/* Success Popup */}
+        {showSuccessPopup && (
+          <SuccessPopup>Successfully uploaded!</SuccessPopup>
+        )}
+
+        <ButtonGroup>
+          <Button cancel onClick={handleCancel}>Cancel</Button>
+          <Button onClick={handlePost}>Post</Button>
+        </ButtonGroup>
       </PostDiv>
     </NewPostContainer>
   );
 };
+
+// Success Popup Style
+const SuccessPopup = styled.div`
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: green;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  z-index: 999;
+`;
 
 export default NewPost;

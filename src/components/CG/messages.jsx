@@ -5,12 +5,6 @@ const MessageList = ({ messages, onReply }) => {
   const messageListRef = useRef(null); 
   const messageRefs = useRef({}); // Store refs for each message
 
-  useEffect(() => {
-    if (messageListRef.current) {
-      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
-    }
-  }, [messages]);
-
   // Store refs for messages when they are loaded
   useEffect(() => {
     messages.forEach((msg) => {
