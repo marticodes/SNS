@@ -83,9 +83,10 @@ const UserProfile = ({
   userName = "Unknown User",  // default fallback
   profileImg,
   postDate,
-  isOwner,
   post,
-  variant = "default"
+  variant = "default",
+  newpost = false,
+  timeleft = "",
 }) => {
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -144,11 +145,15 @@ const UserProfile = ({
       />
         <TextContainer>
           <UserName onClick={handleUserClick}>{userName}</UserName>
-          {variant === "default" && <PostDate>{postDate}</PostDate>}
+          {variant === "default" && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <PostDate>{postDate} • {timeleft}</PostDate>
+            </div>
+          )}
         </TextContainer>
       </ProfileDiv>
 
-      {variant === "default" && (
+      {variant === "default" && !newpost && (
         <>
           <MenuBtn onClick={toggleMenu}>
             <BsThreeDotsVertical />
