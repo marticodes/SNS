@@ -43,7 +43,6 @@ const countTotalComments = (comments) => {
   };
 
 const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
-  console.log(post);
   const {
     post_id,
     user_id,  // Author of the post
@@ -53,7 +52,6 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
     media_url,
     timestamp,
     duration,
-    comments = [] // Assuming comments are fetched here already
   } = post;
   const formattedDate = new Date(timestamp).toLocaleDateString();
   const [userData, setUserData] = useState(null);
@@ -87,6 +85,8 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
   const [isCommentSectionOpen, setCommentSectionOpen] = useState(false);
   const [isSharePopupOpen, setSharePopupOpen] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState(null);
+  const [comments, setComments] = useState([]);
+
   
   useEffect(() => {
     const fetchUserData = async () => {
@@ -191,9 +191,29 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
     setSharePopupOpen((prev) => !prev);
   };
 
+  const fetchComments = async () => {
+    try {
+      const res = await axios.get(`http://localhost:3001/api/comments/all/${post_id}/1`);
+      console.log("✅ Comments fetched:", res.data);
+      setComments(res.data);
+    } catch (err) {
+      console.error("❌ Error fetching comments:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchComments();
+  }, [post_id]);
+  
+  
+
   const totalVotes = reactions.upvotes - reactions.downvotes;
-  const totalComments = countTotalComments(comments);
+  const totalComments = comments.length;
   const isOwner = userID === post.user_id;
+
+  console.log("Reactions:", reactions);
+
+  console.log(reactions.likedUsers.length);
 
 
   return (
@@ -217,7 +237,7 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
       <ReactionSummary
       post_id={post.id}
       reactions={reactions}
-      likes={reactions.likedUsers?.length}
+      likes={reactions.likedUsers.length}
       votes={totalVotes}
       comments={totalComments}
       />

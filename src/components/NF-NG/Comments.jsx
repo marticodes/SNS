@@ -147,6 +147,8 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
       console.log()
       const res = await axios.get(`http://localhost:3001/api/comments/all/${post_id}/1`); // parent_id = 0 or null for top-level comments
       console.log("✅ Comments fetched:", res.data);
+
+      //CAN YOU CHECK THIS API HERE ON TOP? IS IT WRONG?? SHOULD 1 GO BEFORE POST_ID?
       
       const commentsWithUserData = await Promise.all(
         res.data.map(async (comment) => {

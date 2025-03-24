@@ -211,6 +211,8 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     shares: 0
   });
 
+  const myUserID = parseInt(localStorage.getItem("userID"), 10);
+
   const [likeActive, setLikeActive] = useState(false);
   const [upvoteActive, setUpvoteActive] = useState(false);
   const [downvoteActive, setDownvoteActive] = useState(false);
@@ -270,7 +272,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
         reaction_type: 0,
         emote_type: null,
         post_id,
-        user_id,
+        user_id: myUserID,
         timestamp: new Date().toISOString(),
       });
 
@@ -288,7 +290,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
         reaction_type: 1,
         emote_type: null,
         post_id,
-        user_id,
+        user_id: myUserID,
         timestamp: new Date().toISOString(),
       });
 
@@ -306,7 +308,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
         reaction_type: 2,
         emote_type: null,
         post_id,
-        user_id,
+        user_id: myUserID,
         timestamp: new Date().toISOString(),
       });
 
@@ -329,7 +331,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
         reaction_type: 4,
         emote_type: emoji,
         post_id,
-        user_id,
+        user_id: myUserID,
         timestamp: new Date().toISOString(),
       });
 
