@@ -157,7 +157,7 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
           <LikeSpan onClick={() => setPopupOpen("like")}>
             <BiSolidLike />
           </LikeSpan>
-          <span>{reactions.likedUsers.length}</span>
+          <span>{likes}</span>
         </ReactionItem>
         <ReactionItem>
           <BiUpvote />

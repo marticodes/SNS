@@ -42,193 +42,235 @@ const countTotalComments = (comments) => {
     }, 0);
   };
 
-  const Post = ({ post, userID, commentType = 'flat' }) => {
-    const {
-      post_id,
-      user_id,  // Author of the post
-      content,
-      topic,
-      hashtag,
-      media_url,
-      timestamp,
-      comments = [] // Assuming comments are fetched here already
-    } = post;
-    const formattedDate = new Date(timestamp).toLocaleDateString();
-    const [userData, setUserData] = useState(null);
+const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
+  const {
+    post_id,
+    user_id,  // Author of the post
+    content,
+    topic,
+    hashtag,
+    media_url,
+    timestamp,
+    duration,
+  } = post;
+  const formattedDate = new Date(timestamp).toLocaleDateString();
+  const [userData, setUserData] = useState(null);
+
+  const postTimestamp = new Date(timestamp);
+  const currentTime = new Date();
+  const timeRemaining = postTimestamp.getTime() + duration * 24 * 60 * 60 * 1000 - currentTime.getTime(); // duration in milliseconds
+
+  let timeLeft = '';
+
+  if (timeRemaining > 0) {
+    const hoursLeft = Math.floor(timeRemaining / (1000 * 60 * 60));
+    const minutesLeft = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hoursLeft > 0) {
+      timeLeft = `${hoursLeft} hours left`;
+    } else if (minutesLeft > 0) {
+      timeLeft = `${minutesLeft} minutes left`;
+    }
+  } else {
+    timeLeft = '';
+  }
+
+  const [reactions, setReactions] = useState({
+    likedUsers: [],
+    emojiReactions: [],
+    upvotes: 0,
+    downvotes: 0,
+    shares: 0
+  });
+  const [isCommentSectionOpen, setCommentSectionOpen] = useState(false);
+  const [isSharePopupOpen, setSharePopupOpen] = useState(false);
+  const [selectedEmoji, setSelectedEmoji] = useState(null);
+  const [comments, setComments] = useState([]);
+
   
-    const [reactions, setReactions] = useState({
-      likedUsers: [],
-      emojiReactions: [],
-      upvotes: 0,
-      downvotes: 0,
-      shares: 0
-    });
-    const [isCommentSectionOpen, setCommentSectionOpen] = useState(false);
-    const [isSharePopupOpen, setSharePopupOpen] = useState(false);
-    const [selectedEmoji, setSelectedEmoji] = useState(null);
-    
-    useEffect(() => {
-      const fetchUserData = async () => {
-        try {
-          const res = await axios.get(`http://localhost:3001/api/user/${user_id}`);
-          setUserData(res.data);
-        } catch (error) {
-          console.error("❌ Error fetching user data:", error);
-        }
-      };
-  
-      fetchUserData();
-    }, [user_id]);
-    
-    useEffect(() => {
-    const fetchReactions = async () => {
-        try {
-          const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
-          console.log('✅ Reactions fetched:', res.data);
-          setReactions(res.data);
-        } catch (err) {
-          console.error('❌ Error fetching reactions:', err);
-        }
-      };
-  
-      fetchReactions();
-    }, [post_id]);
-  
-    const handleLike = async () => {
+  useEffect(() => {
+    const fetchUserData = async () => {
       try {
-        await axios.post('http://localhost:3001/api/reactions/post/add', {
-          reaction_type: 0,
-          emote_type: null,
-          post_id,
-          user_id: userID,
-          timestamp: Date.now(),
-        });
+        const res = await axios.get(`http://localhost:3001/api/user/${user_id}`);
+        setUserData(res.data);
+      } catch (error) {
+        console.error("❌ Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [user_id]);
   
-        // Refresh reactions after like
+  useEffect(() => {
+  const fetchReactions = async () => {
+      try {
         const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
         setReactions(res.data);
       } catch (err) {
-        console.error('❌ Like Error:', err);
+        console.error('❌ Error fetching reactions:', err);
       }
     };
-  
-    const handleUpvote = async (change = 1) => {
-      try {
-        await axios.post('http://localhost:3001/api/reactions/post/add', {
-          reaction_type: 1,
-          emote_type: null,
-          post_id,
-          user_id: userID,
-          timestamp: Date.now(),
-        });
-  
-        const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
-        setReactions(res.data);
-      } catch (err) {
-        console.error('❌ Upvote Error:', err);
-      }
-    };
-  
-    const handleDownvote = async (change = 1) => {
-      try {
-        await axios.post('http://localhost:3001/api/reactions/post/add', {
-          reaction_type: 2,
-          emote_type: null,
-          post_id,
-          user_id: userID,
-          timestamp: Date.now(),
-        });
-  
-        const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
-        setReactions(res.data);
-      } catch (err) {
-        console.error('❌ Downvote Error:', err);
-      }
-    };
-  
-    const handleEmojiSelect = async (emoji) => {
-      try {
-        await axios.post('http://localhost:3001/api/reactions/post/add', {
-          reaction_type: 4,
-          emote_type: emoji, 
-          post_id,
-          user_id: userID,
-          timestamp: Date.now(),
-        });
-  
-        const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
-        setReactions(res.data);
-      } catch (err) {
-        console.error('❌ Emoji Reaction Error:', err);
-      }
-    };
-  
-    const toggleCommentSection = () => {
-      setCommentSectionOpen((prev) => !prev);
-    };
-  
-    const toggleSharePopup = () => {
-      setSharePopupOpen((prev) => !prev);
-    };
 
-    const totalVotes = reactions.upvotes - reactions.downvotes;
-    const totalComments = countTotalComments(comments);
-    const isOwner = userID === post.user_id;
+    fetchReactions();
+  }, [post_id]);
 
+  const handleLike = async () => {
+    try {
+      await axios.post('http://localhost:3001/api/reactions/post/add', {
+        reaction_type: 0,
+        emote_type: null,
+        post_id,
+        user_id: userID,
+        timestamp: Date.now(),
+      });
 
-    return (
-      <PostContainer>
-      <UserProfile
-        user_id={user_id}
-        userName={userData?.user_name || "Unknown User"}
-        profileImg={userData?.profile_picture || "/default-profile.png"}
-        postDate={formattedDate}
-        isOwner={isOwner}
-        post={post}
-        variant="default"
-      />
-      <ContentSection
-        text={content}
-        hashtags={hashtag ? hashtag.split(",") : []}
-        images={media_url ? media_url.split(",").filter(Boolean) : []} //Need to check the backend
-      />
-        <ReactionSummary
-        post_id={post.id}
-        reactions={reactions}
-        likes={reactions.likedUsers?.length}
-        votes={totalVotes}
-        comments={totalComments}
-        />
-
-      <Reaction
-        user={user_id}
-        post_id={post_id}
-        reactions={reactions}
-        onLike={handleLike}
-        onUpvote={handleUpvote}
-        onDownvote={handleDownvote}
-        onEmojiSelect={handleEmojiSelect}
-        onCommentClick={toggleCommentSection}
-        onShareClick={toggleSharePopup}
-      />
-      {isCommentSectionOpen && (
-        <Comments
-          post_id={post_id}
-          initialComments={comments}
-          isNested={commentType === 'nested'}
-        />
-      )}
-    {isSharePopupOpen && (
-        <>
-          <Overlay onClick={toggleSharePopup} />
-          <SharePopup>
-            <h3>Share This Post</h3>
-            <button onClick={toggleSharePopup}>Close</button>
-          </SharePopup>
-        </>
-      )}
-    </PostContainer>
-    );
+      // Refresh reactions after like
+      const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
+      setReactions(res.data);
+    } catch (err) {
+      console.error('❌ Like Error:', err);
+    }
   };
+
+  const handleUpvote = async (change = 1) => {
+    try {
+      await axios.post('http://localhost:3001/api/reactions/post/add', {
+        reaction_type: 1,
+        emote_type: null,
+        post_id,
+        user_id: userID,
+        timestamp: Date.now(),
+      });
+
+      const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
+      setReactions(res.data);
+    } catch (err) {
+      console.error('❌ Upvote Error:', err);
+    }
+  };
+
+  const handleDownvote = async (change = 1) => {
+    try {
+      await axios.post('http://localhost:3001/api/reactions/post/add', {
+        reaction_type: 2,
+        emote_type: null,
+        post_id,
+        user_id: userID,
+        timestamp: Date.now(),
+      });
+
+      const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
+      setReactions(res.data);
+    } catch (err) {
+      console.error('❌ Downvote Error:', err);
+    }
+  };
+
+  const handleEmojiSelect = async (emoji) => {
+    try {
+      await axios.post('http://localhost:3001/api/reactions/post/add', {
+        reaction_type: 4,
+        emote_type: emoji, 
+        post_id,
+        user_id: userID,
+        timestamp: Date.now(),
+      });
+
+      const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
+      setReactions(res.data);
+    } catch (err) {
+      console.error('❌ Emoji Reaction Error:', err);
+    }
+  };
+
+  const toggleCommentSection = () => {
+    setCommentSectionOpen((prev) => !prev);
+  };
+
+  const toggleSharePopup = () => {
+    setSharePopupOpen((prev) => !prev);
+  };
+
+  const fetchComments = async () => {
+    try {
+      const res = await axios.get(`http://localhost:3001/api/comments/all/${post_id}/1`);
+      console.log("✅ Comments fetched:", res.data);
+      setComments(res.data);
+    } catch (err) {
+      console.error("❌ Error fetching comments:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchComments();
+  }, [post_id]);
   
-  export default Post;
+  
+
+  const totalVotes = reactions.upvotes - reactions.downvotes;
+  const totalComments = comments.length;
+  const isOwner = userID === post.user_id;
+
+  console.log("Reactions:", reactions);
+
+  console.log(reactions.likedUsers.length);
+
+
+  return (
+    <PostContainer>
+    <UserProfile
+      user_id={user_id}
+      userName={userData?.user_name || "Unknown User"}
+      profileImg={userData?.profile_picture || "/default-profile.png"}
+      postDate={formattedDate}
+      isOwner={isOwner}
+      post={post}
+      variant="default"
+      timeleft={timeLeft}
+    />
+    <ContentSection
+      text={content}
+      hashtags={hashtag ? hashtag.split(",") : []}
+      images={media_url ? media_url.split(",").filter(Boolean) : []} //Need to check the backend
+      hashtagClick={hashtagClick}
+    />
+      <ReactionSummary
+      post_id={post.id}
+      reactions={reactions}
+      likes={reactions.likedUsers.length}
+      votes={totalVotes}
+      comments={totalComments}
+      />
+
+    <Reaction
+      user={user_id}
+      post_id={post_id}
+      reactions={reactions}
+      onLike={handleLike}
+      onUpvote={handleUpvote}
+      onDownvote={handleDownvote}
+      onEmojiSelect={handleEmojiSelect}
+      onCommentClick={toggleCommentSection}
+      onShareClick={toggleSharePopup}
+    />
+    {isCommentSectionOpen && (
+      <Comments
+        post_id={post_id}
+        initialComments={comments}
+        isNested={commentType === 'nested'}
+      />
+    )}
+  {isSharePopupOpen && (
+      <>
+        <Overlay onClick={toggleSharePopup} />
+        <SharePopup>
+          <h3>Share This Post</h3>
+          <button onClick={toggleSharePopup}>Close</button>
+        </SharePopup>
+      </>
+    )}
+  </PostContainer>
+  );
+};
+
+export default Post;

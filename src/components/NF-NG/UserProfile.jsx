@@ -83,9 +83,10 @@ const UserProfile = ({
   userName = "Unknown User",  // default fallback
   profileImg,
   postDate,
-  isOwner,
   post,
-  variant = "default"
+  variant = "default",
+  newpost = false,
+  timeleft = "",
 }) => {
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -100,7 +101,6 @@ const UserProfile = ({
     const fetchUser = async () => {
       try {
         const res = await axios.get(`http://localhost:3001/api/user/${user_id}`);
-        console.log("✅ User fetched:", res.data);
         setUser(res.data);
       } catch (err) {
         console.error("❌ Error fetching user:", err);
@@ -130,20 +130,30 @@ const UserProfile = ({
     setMenuOpen(false);
   };
 
+  const handleUserClick = () => {
+    console.log("User clicked");
+    navigate(`/user/${user_id}`);
+  };
+
   return (
     <NavDiv>
       <ProfileDiv>
       <ProfileImg 
         src={profileImg?.trim() ? profileImg : defaultProfileImage} 
         alt={`${userName || "Unknown User"}'s profile`} 
+        onClick={handleUserClick}
       />
         <TextContainer>
-          <UserName>{userName}</UserName>
-          {variant === "default" && <PostDate>{postDate}</PostDate>}
+          <UserName onClick={handleUserClick}>{userName}</UserName>
+          {variant === "default" && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <PostDate>{postDate} • {timeleft}</PostDate>
+            </div>
+          )}
         </TextContainer>
       </ProfileDiv>
 
-      {variant === "default" && (
+      {variant === "default" && !newpost && (
         <>
           <MenuBtn onClick={toggleMenu}>
             <BsThreeDotsVertical />
