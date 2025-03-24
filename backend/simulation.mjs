@@ -273,7 +273,7 @@ const Simulation = {
                 case 1:
                     choice = sel_post;
                     if (sel_post == null) {
-                        console.log("No posts to react on");
+                        console.log("No posts to react on.");
                         return;
                     }
                     link = "http://localhost:3001/api/reactions/post/add";
@@ -281,12 +281,12 @@ const Simulation = {
                     break;
                 case 2:
                     if (sel_post == null) {
-                        console.log("No posts to react on");
+                        console.log("No posts to react on.");
                         return;
                     }
                     choice = await selectCommentOnPost(sel_post.post_id);
                     if (choice == null) {
-                        console.log("No comments to react on");
+                        console.log("No comments to react on.");
                         return;
                     }
                     comment_id =  choice.comment_id;
@@ -294,7 +294,7 @@ const Simulation = {
                     break;
                 case 3:
                     let chat =  await selectChatFromInbox(user_id);
-                    if (chat == null) {
+                    if (chat == null || chat.length === 0) {
                         console.log("No chats found");
                         return;
                     }
@@ -304,10 +304,8 @@ const Simulation = {
                     if (!sel_messages || sel_messages.length === 0) {
                         return;
                     }
-                    else {
-                        choice = sel_messages.slice(-1);
-                        message_id = choice.message_id;
-                    }
+                    choice = sel_messages.slice(-1);
+                    message_id = choice[0].message_id;
                     break;
                 default:
                     console.error("Unexpected value:", sel);
@@ -543,7 +541,7 @@ const Simulation = {
         let frens = await RelationDAO.getRecommendedFriends(user_id);
         console.log(frens);
         if (!frens || frens.length === 0) {
-            console.error("No users found.");
+            console.error("No recommended friends.");
             return null;
         }
         let sel_fren = frens[Math.floor(Math.random() * frens.length)];
@@ -553,43 +551,52 @@ const Simulation = {
                 user_id_2: sel_fren
             });
         } catch (error) {
-            console.error("Error reading message:", error);
+            console.error("Error sending request:", error);
         }
     },
 
     async acceptRequest(user_id){
-        let frens = await RelationDAO.getRecommendedFriends(user_id);
-        console.log(frens);
+        let frens = await RequestDAO.getRequests(user_id);
         if (!frens || frens.length === 0) {
-            console.error("No users found.");
+            console.error("No requests found.");
             return null;
         }
         let sel_fren = frens[Math.floor(Math.random() * frens.length)];
+        let closeness = Math.floor(Math.random() * 11);
         try {
-            await makeAPIRequest("http://localhost:3001/api/requests/add", "POST", { 
-                user_id_1: user_id,
-                user_id_2: sel_fren
+            await makeAPIRequest("http://localhost:3001/api/relations/add", "POST", { 
+                user_id_1: sel_fren,
+                user_id_2: user_id,
+                relation_type: 2,
+                restricted: 0,
+                closeness: closeness,
             });
+
+            await makeAPIRequest("http://localhost:3001/api/requests/delete", "DELETE", { 
+                user_id_1: sel_fren,
+                user_id_2: user_id,
+            });
+
         } catch (error) {
-            console.error("Error reading message:", error);
+            console.error("Error accepting request:", error);
         }
     },
 
     async deleteRequest(user_id){
-        let frens = await RelationDAO.getRecommendedFriends(user_id);
-        console.log(frens);
+        let frens = await RequestDAO.getRequests(user_id);
         if (!frens || frens.length === 0) {
-            console.error("No users found.");
+            console.error("No requests found.");
             return null;
         }
         let sel_fren = frens[Math.floor(Math.random() * frens.length)];
         try {
-            await makeAPIRequest("http://localhost:3001/api/requests/add", "POST", { 
-                user_id_1: user_id,
-                user_id_2: sel_fren
+            await makeAPIRequest("http://localhost:3001/api/requests/delete", "DELETE", { 
+                user_id_1: sel_fren,
+                user_id_2: user_id,
             });
+
         } catch (error) {
-            console.error("Error reading message:", error);
+            console.error("Error deleting request:", error);
         }
     },
 
