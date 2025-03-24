@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Post from "./Post";
 
@@ -14,8 +14,33 @@ const FeedDiv = styled.div`
   background-color: #ffffff;
 `;
 
-const Feed = ({ posts, user, commentType = "nested", isProfilePage = false }) => {
+const Feed = ({ postss, user, commentType = "nested", isProfilePage = false }) => {
+  const [posts, setPosts] = useState(postss);
+  const [activeHashtag, setActiveHashtag] = useState(null);
   const searchedWord = localStorage.getItem("SearchedWord");
+
+  useEffect(() => {
+    setPosts(postss);
+  }, [postss]);
+
+  const hashtagClick = async (hashtag) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/hashtags/post/${hashtag}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch posts for hashtag");
+      }
+      const fetchedPosts = await response.json();
+      setPosts(fetchedPosts);
+      setActiveHashtag(hashtag); // Set the active hashtag
+    } catch (error) {
+      console.error("Error fetching posts for hashtag:", error);
+    }
+  };
+
+  const clearHashtag = () => {
+    setActiveHashtag(null); // Reset the active hashtag
+    setPosts(postss); // Revert to the original posts
+  };
 
   useEffect(() => {
     if (isProfilePage) {
@@ -46,6 +71,15 @@ const Feed = ({ posts, user, commentType = "nested", isProfilePage = false }) =>
 
   return (
     <>
+      {/* Show the active hashtag with an "X" to clear it */}
+      {activeHashtag && (
+        <div style={{ textAlign: "center", marginTop: "1px"}}>
+          <button style={{ color: "white", backgroundColor: "#7cb0e8"}} onClick={clearHashtag}>
+            #{activeHashtag}<span style={{ color: "white", marginLeft: "10px" }}>X</span>
+          </button>
+        </div>
+      )}
+
       {posts.length === 0 ? (
         searchedWord ? (
           <div style={{ textAlign: "center", marginTop: "20px" }}>
@@ -62,7 +96,12 @@ const Feed = ({ posts, user, commentType = "nested", isProfilePage = false }) =>
       ) : (
         posts.map((post) => (
           <FeedDiv key={post.post_id}>
-            <Post post={post} user={user} commentType={commentType} />
+            <Post
+              post={post}
+              user={user}
+              commentType={commentType}
+              hashtagClick={hashtagClick}
+            />
           </FeedDiv>
         ))
       )}

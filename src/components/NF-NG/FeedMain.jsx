@@ -91,7 +91,7 @@ const FeedMain = ({ user, posts }) => {
         <NewPostDiv>
           <NewPostButton onClick={handleNewPost}>+ New Post</NewPostButton>
         </NewPostDiv>
-        <Feed user={user} posts={filteredPosts} />
+        <Feed user={user} postss={filteredPosts} />
       </FeedContent>
     </FeedContainer>
   );
