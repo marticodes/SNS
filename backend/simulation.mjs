@@ -178,9 +178,10 @@ const Simulation = {
             const sel_messages =  await MessageDAO.getMessagesByChatId(sel_chat_id);
 
             let last_messages = "";
+            let formattedMessages = "";
 
             if (!sel_messages || sel_messages.length === 0) {
-                last_messages = "No messages";
+                formattedMessages = "No messages";
             }
             
             else last_messages = sel_messages.slice(-5); 
@@ -190,7 +191,10 @@ const Simulation = {
                 if (lastMessage.sender_id === user_id) {
                     console.log("Last message is from the agent. No response generated.");
                     return;
-    }
+                }
+                formattedMessages = last_messages
+                .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
+                .join("\n");
             }
 
             let people = await ChatDAO.getChatMembers(sel_chat_id);
@@ -203,9 +207,7 @@ const Simulation = {
             );
             let social_groups = await SocialGroupDao.getGroupsByIds(people);
 
-            const formattedMessages = last_messages
-            .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
-            .join("\n");
+            
 
             const user_prompt = `There is a conversation happening in the chatroom.
             The last messages in the chatroom were: "${formattedMessages}"
@@ -235,7 +237,6 @@ const Simulation = {
 
     async generatePost(user_id, system_prompt) {
         try {
-
             const sel_posts =  await PostDAO.getAllPosts(user_id);
             let last_posts = "";
 
@@ -243,17 +244,38 @@ const Simulation = {
                 last_posts = "You have not made any posts so far. Make your first post.";
             }
             else {
-                last_posts = sel_posts.map(post => post.content).slice(-10);
+                 last_posts = sel_posts
+                .slice(-3) 
+                .map((post, index) => `(${index + 1}) ${post.content}`) 
+                .join("\n"); 
             }
 
             const user_prompt = `You are about to make a new post on social media. While making a post ensure that:
-            1. The theme of the post is only one. 
-            2. Make sure that your new post is signficantly different in content and context to your old posts. 
-            3. **Structure the post clearly.** Avoid adding multiple unrelated ideas in a single post.  
+            1. Focus on one clear theme—avoid mixing multiple ideas.  
+            2. Make it distinct from your previous posts in content, structure, storyline, context, and length.  
+            3. Do not use the same phrasings as the previous posts.
+            4. Keep it engaging while staying within three sentences. 
+            5. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
             The contents of some of your previous posts are:${last_posts}. 
-            Now, generate a new post that sticks to a single theme and maintains a coherent structure.`;
+            Now, generate a new post that sticks to a single theme.`;
             const new_post = await generateResponse(system_prompt, user_prompt);
-            
+            console.log(user_prompt);
+            // let sel_case = 3;
+
+
+            // switch (sel_case){
+            //     case 1:
+            //         comm_id = number or null;
+            //         if comm null, post regular post
+            //     case 2:
+            //         comm_id = number;
+            //         if comm == null: add a comm, return and continue
+            //     case 3:
+            //         comm_id = number;
+            //         if comm == null: add a comm, return and continue
+            // }
+
+
             const time = new Date().toISOString();
             await makeAPIRequest("http://localhost:3001/api/post/add", "POST", { 
                 parent_id: null,
@@ -447,7 +469,7 @@ const Simulation = {
         }
     },
 
-    async startAGDM(user_id){
+    async startAGDM(user_id, system_prompt){
         let frens = await RelationDAO.getUsersByRelation(user_id, 2);
         if (!frens || frens.length === 0) {
             console.error("No users found.");
@@ -472,6 +494,11 @@ const Simulation = {
             }
         
         }
+        else {
+            console.log("Chats already exist");
+            Simulation.insertAGMessage(user_id, system_prompt);
+        }
+
 
     },
 
@@ -483,6 +510,11 @@ const Simulation = {
         }
 
         let sel_fren = frens.sort(() => Math.random() - 0.5).slice(0, 3);
+        sel_fren.push(user_id);
+
+        let exist = await ChatDAO.checkExisitingGroupChat(sel_fren);
+        if (exist) {} 
+
         let closeness_levels = await Promise.all(
             sel_fren.map(async (person) => {
                 let closeness = await RelationDAO.getCloseness(user_id, person);
@@ -497,7 +529,6 @@ const Simulation = {
         Using the provided information as a premise, generate a name for the group chat. Be straightforward and reply with just the name`;
         
         const name = await generateResponse(system_prompt, user_prompt);
-        sel_fren.push(user_id);
         try {
             await makeAPIRequest("http://localhost:3001/api/chats/group/add", "POST", { 
                 user_ids: sel_fren,

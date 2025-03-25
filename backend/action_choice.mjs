@@ -88,7 +88,7 @@ const ActionChoice = {
             random -= a.weight;
         }
         
-        // chosenAction = "Send message";
+        chosenAction = "Send message";
 
         // Fallback
         if (!chosenAction) {
@@ -100,7 +100,7 @@ const ActionChoice = {
                 await Simulation.updateAGUserBio(user_id, system_prompt);
                 break;
             case "Start new DM":
-                await Simulation.startAGDM(user_id);
+                await Simulation.startAGDM(user_id, system_prompt);
                 break;
             case "Start new group chat":
                 await Simulation.startAGGroupChat(user_id, system_prompt);
@@ -166,7 +166,7 @@ const ActionChoice = {
     },
 };
 
-// ActionChoice.performRandomAction(10);
+ActionChoice.performRandomAction(10);
 
 export default ActionChoice;
 

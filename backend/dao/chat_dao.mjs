@@ -206,6 +206,38 @@ const ChatDAO = {
         });
     },
 
+    async checkExisitingGroupChat(user_ids) {
+        try {
+            if (!user_ids || user_ids.length === 0) return false; // No users provided
+    
+            // Get all chat IDs that contain any of the user_ids
+            const chatMemberships = await GCMembershipDAO.getChatsByUserIds(user_ids);
+            
+            // Group chats by chat_id
+            const chatGroups = new Map(); // { chat_id -> Set of user_ids }
+            
+            chatMemberships.forEach(({ chat_id, user_id }) => {
+                if (!chatGroups.has(chat_id)) {
+                    chatGroups.set(chat_id, new Set());
+                }
+                chatGroups.get(chat_id).add(user_id);
+            });
+    
+            // Check if any chat contains exactly all user_ids
+            for (const [chat_id, members] of chatGroups) {
+                if (members.size === user_ids.length && user_ids.every(id => members.has(id))) {
+                    return true; // Found a matching chat
+                }
+            }
+    
+            return false; // No matching chat found
+        } catch (error) {
+            console.error("Error checking existing group chat:", error);
+            return false;
+        }
+    },
+    
+
     async isExistingChat(user_id_1, user_id_2) {
         return new Promise((resolve, reject) => {
             const sql = `
