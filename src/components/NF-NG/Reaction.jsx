@@ -228,13 +228,12 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
   const [chatrooms, setChatrooms] = useState([]);
   const [loadingChats, setLoadingChats] = useState(false);
 
-  const userID = parseInt(localStorage.getItem("userID"), 10);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.get(`http://localhost:3001/api/user/${userID}`);
+        const res = await axios.get(`http://localhost:3001/api/user/${myUserID}`);
         setUser(res.data);
       } catch (error) {
         console.error("❌ Error fetching logged-in user:", error);
@@ -242,7 +241,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     };
 
     fetchUser();
-  }, [userID]);
+  }, [myUserID]);
 
   // Fetch reactions for post
 
@@ -252,9 +251,6 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
         const res = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
 
         setReactions(res.data || {});
-        setLikeActive(res.data?.likedUsers?.includes(user_id));
-        setUpvoteActive(res.data?.upvotesUsers?.includes(user_id));
-        setDownvoteActive(res.data?.downvotesUsers?.includes(user_id));
       } catch (err) {
         console.error('❌ Error fetching reactions:', err);
       }
@@ -263,59 +259,127 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     fetchReactions();
   }, [post_id, user_id]);
 
+  useEffect(() => {
+    const fetchReactions = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3001/api/reactions/posts/user/${myUserID}/${post_id}`);
+        const reactions = res.data || [];
+
+        setLikeActive(reactions.some(reaction => reaction.reaction_type === 0));
+        setUpvoteActive(reactions.some(reaction => reaction.reaction_type === 1));
+        setDownvoteActive(reactions.some(reaction => reaction.reaction_type === 2));
+  
+        const emojiReaction = reactions.find(reaction => reaction.reaction_type === 4);
+        setSelectedEmoji(emojiReaction?.emote_type || null);
+      } catch (err) {
+        console.error('❌ Error fetching reactions:', err);
+      }
+    };
+  
+    fetchReactions();
+  }, [myUserID, post_id]);  
+
   // LIKE reaction
   const toggleLike = async () => {
     try {
-      const timestamp = new Date().toISOString();
-
-      await axios.post(`http://localhost:3001/api/reactions/post/add`, {
-        reaction_type: 0,
-        emote_type: null,
-        post_id,
-        user_id: myUserID,
-        timestamp: new Date().toISOString(),
-      });
-
-      console.log("✅ Like reaction added");
+      if (likeActive) {
+        // Remove the like
+        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+          data: {
+            reaction_type: 0,
+            post_id,
+            user_id: myUserID,
+          },
+        });
+  
+        console.log("❌ Like reaction removed");
+      } else {
+        // Add the like
+        await axios.post(`http://localhost:3001/api/reactions/post/add`, {
+          reaction_type: 0,
+          emote_type: null,
+          post_id,
+          user_id: myUserID,
+          timestamp: new Date().toISOString(),
+        });
+  
+        console.log("✅ Like reaction added");
+      }
+  
+      // Toggle the state
       setLikeActive(!likeActive);
     } catch (err) {
-      console.error("❌ Error adding like reaction:", err);
+      console.error("❌ Error toggling like reaction:", err);
     }
-  };
+  };  
 
   // UPVOTE reaction
   const toggleUpvote = async () => {
     try {
-      await axios.post(`http://localhost:3001/api/reactions/post/add`, {
-        reaction_type: 1,
-        emote_type: null,
-        post_id,
-        user_id: myUserID,
-        timestamp: new Date().toISOString(),
-      });
+      if (upvoteActive) {
+        // Remove the upvote
+        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+          data: {
+            reaction_type: 1,
+            post_id,
+            user_id: myUserID,
+          },
+        });
 
+        console.log("❌ Upvote reaction removed");
+      } else {
+        // Add the upvote
+        await axios.post(`http://localhost:3001/api/reactions/post/add`, {
+          reaction_type: 1,
+          emote_type: null,
+          post_id,
+          user_id: myUserID,
+          timestamp: new Date().toISOString(),
+        });
+
+        console.log("✅ Upvote reaction added");
+      }
+
+      // Toggle the states
       setUpvoteActive(!upvoteActive);
       setDownvoteActive(false);
     } catch (err) {
-      console.error('❌ Error adding upvote reaction:', err);
+      console.error("❌ Error toggling upvote reaction:", err);
     }
   };
 
   // DOWNVOTE reaction
   const toggleDownvote = async () => {
     try {
-      await axios.post(`http://localhost:3001/api/reactions/post/add`, {
-        reaction_type: 2,
-        emote_type: null,
-        post_id,
-        user_id: myUserID,
-        timestamp: new Date().toISOString(),
-      });
+      if (downvoteActive) {
+        // Remove the downvote
+        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+          data: {
+            reaction_type: 2,
+            post_id,
+            user_id: myUserID,
+          },
+        });
 
+        console.log("❌ Downvote reaction removed");
+      } else {
+        // Add the downvote
+        await axios.post(`http://localhost:3001/api/reactions/post/add`, {
+          reaction_type: 2,
+          emote_type: null,
+          post_id,
+          user_id: myUserID,
+          timestamp: new Date().toISOString(),
+        });
+
+        console.log("✅ Downvote reaction added");
+      }
+
+      // Toggle the states
       setDownvoteActive(!downvoteActive);
       setUpvoteActive(false);
     } catch (err) {
-      console.error('❌ Error adding downvote reaction:', err);
+      console.error("❌ Error toggling downvote reaction:", err);
     }
   };
 
@@ -325,8 +389,9 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
   };
 
   // EMOJI select
-  const selectEmoji = async (emoji) => {
+  const addEmoji = async (emoji) => {
     try {
+      // Add the emoji reaction
       await axios.post(`http://localhost:3001/api/reactions/post/add`, {
         reaction_type: 4,
         emote_type: emoji,
@@ -335,10 +400,33 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
         timestamp: new Date().toISOString(),
       });
 
-      setSelectedEmoji(emoji);
-      setEmojiPickerOpen(false);
+      console.log("✅ Emoji reaction added");
+      setSelectedEmoji(emoji); // Set the selected emoji
+      setEmojiPickerOpen(false); // Close the emoji picker
     } catch (err) {
-      console.error('❌ Error adding emoji reaction:', err);
+      console.error("❌ Error adding emoji reaction:", err);
+    }
+  };
+
+  const deleteEmoji = async () => {
+    try {
+      if (selectedEmoji) {
+        // Remove the emoji reaction
+        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+          data: {
+            reaction_type: 4,
+            emote_type: selectedEmoji,
+            post_id,
+            user_id: myUserID,
+          },
+        });
+
+        console.log("❌ Emoji reaction removed");
+        setSelectedEmoji(null); // Clear the selected emoji
+        setEmojiPickerOpen(false); // Close the emoji picker
+      }
+    } catch (err) {
+      console.error("❌ Error deleting emoji reaction:", err);
     }
   };
 
@@ -413,22 +501,23 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     <>
       <ReactionSummaryContainer>
         <ReactionDiv>
-          <ReactionItem onClick={toggleLike}>
+        <ReactionItem onClick={toggleLike} style={{ color: likeActive ? 'blue' : 'black' }}>
             {likeActive ? <BiSolidLike /> : <BiLike />} Like
           </ReactionItem>
-          <ReactionItem onClick={toggleUpvote}>
+          <ReactionItem onClick={toggleUpvote} style={{ color: upvoteActive ? 'blue' : 'black' }}>
             {upvoteActive ? <BiSolidUpvote /> : <BiUpvote />} Upvote
           </ReactionItem>
-          <ReactionItem onClick={toggleDownvote}>
+          <ReactionItem onClick={toggleDownvote} style={{ color: downvoteActive ? 'blue' : 'black' }}>
             {downvoteActive ? <BiSolidDownvote /> : <BiDownvote />} Downvote
           </ReactionItem>
           <ReactionItem onClick={toggleEmojiPicker}>
-            <MdOutlineEmojiEmotions /> {selectedEmoji && <SelectedEmoji>{selectedEmoji}</SelectedEmoji>}
+            <MdOutlineEmojiEmotions />
           </ReactionItem>
+          {selectedEmoji && <SelectedEmoji onClick={deleteEmoji}>{selectedEmoji}</SelectedEmoji>}
 
           <EmojiPickerContainer show={emojiPickerOpen}>
             {['😀', '😍', '😂', '😢', '😡', '👍', '👏'].map((emoji) => (
-              <EmojiOption key={emoji} onClick={() => selectEmoji(emoji)}>
+              <EmojiOption key={emoji} onClick={() => addEmoji(emoji)}>
                 {emoji}
               </EmojiOption>
             ))}

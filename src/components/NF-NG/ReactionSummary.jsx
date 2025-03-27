@@ -129,12 +129,17 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
   const [usersData, setUsersData] = useState({});
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`)
-      .then(({ data }) => {
+    const fetchReactions = async () => {
+      try {
+        const { data } = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
         setReactions(data);
-        console.log("Reactions fetched:", data);
-      })
-      .catch((error) => console.error("Error fetching reactions:", error));
+      } catch (error) {
+        console.error("Error fetching reactions:", error);
+      }
+    };
+    fetchReactions();
+    const interval = setInterval(fetchReactions, 10000);
+    return () => clearInterval(interval);
   }, [post_id]);
 
     useEffect(() => {
@@ -174,7 +179,7 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
         ]),
       ];
       fetchUserData(allUserIds);
-    }, [reactions]);  
+    }, [reactions]);
 
   return (
     <ReactionSummaryContainer>
@@ -183,11 +188,11 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
           <LikeSpan onClick={() => setPopupOpen("like")}>
             <BiSolidLike />
           </LikeSpan>
-          <span>{likes}</span>
+          <span>{reactions.likedUsers.length}</span>
         </ReactionItem>
         <ReactionItem>
           <BiUpvote />
-          <span>{votes}</span>
+          <span>{reactions.upvotes - reactions.downvotes}</span>
           <BiDownvote />
         </ReactionItem>
         {selectedEmoji && (
