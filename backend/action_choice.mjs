@@ -61,6 +61,7 @@ const ActionChoice = {
             { action: "Add comment on post", weight: logistic(user_trait.commenting_trait) },
             { action: "Add comment on comment", weight: logistic(user_trait.commenting_trait) },
             { action: "Create new channel", weight: logistic(user_trait.comm_trait) },
+            { action: "Add channel post", weight: logistic(user_trait.posting_trait) },
             { action: "Send message", weight: logistic(user_trait.messaging_trait) },
             { action: "Add post", weight: logistic(user_trait.posting_trait) },
             { action: "Update post visibility", weight: logistic(user_trait.updating_trait) },
@@ -74,6 +75,7 @@ const ActionChoice = {
             { action: "View a story", weight: logistic(user_trait.comm_trait) },
             { action: "Read unread messages", weight: logistic(user_trait.notification_trait) },
             { action: "Join channel", weight: logistic(user_trait.comm_trait) },
+            { action: "Add a story", weight: logistic(user_trait.posting_trait)},
         ];
 
         let totalWeight = actions.reduce((sum, a) => sum + a.weight, 0);
@@ -88,7 +90,7 @@ const ActionChoice = {
             random -= a.weight;
         }
         
-        // chosenAction = "Send message";
+        // chosenAction = "Create new channel";
 
         // Fallback
         if (!chosenAction) {
@@ -99,11 +101,14 @@ const ActionChoice = {
             case "Update user bio":
                 await Simulation.updateAGUserBio(user_id, system_prompt);
                 break;
-            case "Start new DM":
-                await Simulation.startAGDM(user_id);
+            case "Send DM":
+                await Simulation.insertDM(user_id, system_prompt);
                 break;
-            case "Start new group chat":
-                await Simulation.startAGGroupChat(user_id, system_prompt);
+            case "Send message in group chat":
+                await Simulation.insertGroupChat(user_id, system_prompt);
+                break;
+            case "Send message":
+                await Simulation.insertAGMessage(user_id, system_prompt);
                 break;
             case "Add comment on post":
                 await Simulation.insertAGCommentOnPost(user_id, system_prompt);
@@ -114,8 +119,8 @@ const ActionChoice = {
             case "Create new channel":
                 await Simulation.createAGChannel(user_id, system_prompt);
                 break;
-            case "Send message":
-                await Simulation.insertAGMessage(user_id, system_prompt);
+            case "Add channel post":
+                await Simulation.addChannelPost(user_id, system_prompt);
                 break;
             case "Clear notification":
                 await NotificationDAO.removeNotification(user_id);
@@ -132,15 +137,12 @@ const ActionChoice = {
             case "Send friend request":
                 await Simulation.sendRequest(user_id);
                 break;
-
             case "Accept friend request":
                 await Simulation.acceptRequest(user_id);
                 break;
-
             case "Delete friend request":
                 await Simulation.deleteRequest(user_id);
                 break;
-        
             case "Delete relation":
                 await Simulation.deleteAGRelation(user_id);
                 break;
@@ -149,6 +151,9 @@ const ActionChoice = {
                 break;
             case "Update restriction":
                 await Simulation.deleteAGRestriction(user_id);
+                break;
+            case "Add a story":
+                await Simulation.addAGStory(user_id, system_prompt);
                 break;
             case "View a story":
                 await Simulation.viewAGStory(user_id);
