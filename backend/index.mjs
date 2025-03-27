@@ -397,6 +397,17 @@ app.get('/api/reactions/posts/:post_id',
       }
 );
 
+app.delete('/api/reactions/delete',
+  async (req, res) => {
+      try {
+        const ina = await reactionDao.removeReaction(req.body.reaction_type, req.body.post_id, req.body.user_id);
+        res.status(200).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error deleting reaction ${err}` });
+      }
+    }
+);
+
 app.get('/api/reactions/posts/user/:user_id/:post_id',
   async (req, res) => {
       try {

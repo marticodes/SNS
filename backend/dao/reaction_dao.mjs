@@ -134,6 +134,18 @@ const ReactionDAO = {
         });
     },
 
+    async removeReaction(reaction_type, post_id, user_id){
+        return new Promise((resolve, reject) => {
+            const sql = 'DELETE FROM Reaction WHERE reaction_type =? AND post_id=? AND user_id=?';
+            db.run(sql, [reaction_type, post_id, user_id], function (err) {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(this.changes > 0); 
+            });
+        });
+    },
+
     async insertPostReaction(reaction_type, emote_type, post_id, user_id, timestamp) {
         return new Promise((resolve, reject) => {
             try {

@@ -18,12 +18,12 @@ import SocialGroupDao from './dao/social_group_dao.mjs';
 import UserInterestDao from './dao/user_interest_dao.mjs';
 import fs from "fs/promises";
 import ActionLogsDAO from './dao/action_logs_dao.mjs';
-
-
+import natural from "natural";
 import { OPENAI_API_KEY } from './apiKey.mjs';
 import FeedDAO from "./dao/feed_dao.mjs";
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY});
+const { JaroWinklerDistance } = natural; 
 
 async function generateResponse(system_prompt, user_prompt) {
     try {
@@ -166,10 +166,16 @@ const Simulation = {
         }
     },
 
-    async insertAGMessage(user_id, system_prompt, receiver){
+    async insertAGMessage(user_id, system_prompt, receiver=null){
 
         try {
-
+            if(!receiver){
+                receiver = await selectChatFromInbox(user_id);
+                if (receiver == null) {
+                    console.log("No chatrooms found");
+                    return;
+                }
+            }
             const sel_messages =  await MessageDAO.getMessagesByChatId(receiver);
 
             let last_messages = "";
@@ -180,6 +186,7 @@ const Simulation = {
             }
             
             else last_messages = sel_messages.slice(-5); 
+            console.log(last_messages);
             
             if(sel_messages.length > 0){
                 const lastMessage = last_messages[last_messages.length - 1]; // Get the last message
@@ -193,6 +200,7 @@ const Simulation = {
             }
 
             let people = await ChatDAO.getChatMembers(receiver);
+            people = people.filter(id => id !== user_id);
 
             let closeness_levels = await Promise.all(
                 people.map(async (person) => {
@@ -202,14 +210,20 @@ const Simulation = {
             );
             let social_groups = await SocialGroupDao.getGroupsByIds(people);
 
-            
-
             const user_prompt = `There is a conversation happening in the chatroom.
             The last messages in the chatroom were: "${formattedMessages}"
-            The messages provided will give you context. Your user_id is ${user_id}. Please message naturally and be mindful of which messages are sent by you and which are sent by the other members.
+            The messages provided will give you context. Your user_id is ${user_id}. 
+            Please message naturally and be mindful of which messages are sent by you and which are sent by the other members.
             If there is a conversation that is already happening, respond to it instead of starting a new question.
+            Excluding you, there are "${people.length}" other people in the chatroom.
             Your closeness levels to the people in the chatroom on a scale of 1 to 10 are "${closeness_levels}". 
             You belong to "${social_groups}" soial groups together.
+            Rules:
+            1. Limit each message to 1-3 sentences (Vary within this range). 
+            2. DO NOT redundantly repeat or reiterate your partner's words.
+            3. Choose and reply to the core part of a message than responding to every line.
+            4. Make it distinct from the previous messages in phrasings, structure, and length. 
+            5. There is no need to speak in full sentences every time. 
             Using the provided information as a premise to adopt a tone and style, generate a message to contribute to the ongoing conversation or start a new conversation as you see fit.`;
             
             const message = await generateResponse(system_prompt, user_prompt);
@@ -227,7 +241,6 @@ const Simulation = {
         } catch (error) {
             console.error("Error adding message:", error);
         }
-
     },
 
     async generatePost(user_id, system_prompt) {
@@ -254,7 +267,6 @@ const Simulation = {
             The contents of some of your previous posts are:${last_posts}. 
             Now, generate a new post that sticks to a single theme.`;
             const new_post = await generateResponse(system_prompt, user_prompt);
-            console.log(user_prompt);
             // let sel_case = 3;
 
 
@@ -378,6 +390,36 @@ const Simulation = {
             });
         } catch (error) {
             console.error("Error viewing story:", error);
+        }
+
+    },
+
+    async addAGStory(user_id, system_prompt){
+        try {
+            const user_prompt = `You are about to make a new ephemeral post on social media. These are time-sensitive posts and will only be up for 24 hours.
+            While making an ephemeral post ensure that:
+            1. Focus on one clear theme—avoid mixing multiple ideas.  
+            2. Make it distinct from your previous posts in content, structure, storyline, context, and length.  
+            3. Do not use the same phrasings as the previous posts.
+            4. Keep it engaging while staying within three sentences. 
+            5. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
+            Now, generate a new post that sticks to a single theme.`;
+            const new_post = await generateResponse(system_prompt, user_prompt);
+
+            const time = new Date().toISOString();
+            await makeAPIRequest("http://localhost:3001/api/post/add", "POST", { 
+                parent_id: null,
+                user_id: user_id, 
+                content: new_post, 
+                topic: "", 
+                media_type: 0, 
+                media_url: "", 
+                timestamp: time, 
+                duration: 24, 
+                visibility: await UserDAO.getUserInfo(user_id).then(user => user.visibility), 
+                comm_id: null});
+        } catch (error) {
+            console.error("Error adding new ephemeral post:", error);
         }
 
     },
@@ -512,10 +554,8 @@ const Simulation = {
         let sel_fren = frens.sort(() => Math.random() - 0.5).slice(0, count);
 
         sel_fren.push(user_id);
-        console.log(sel_fren);
 
         let receiver = await ChatDAO.checkExistingGroupChat(sel_fren);
-        console.log(receiver);
 
 
         if (receiver){
@@ -559,8 +599,23 @@ const Simulation = {
         let user_prompt = `You are about to create a new community channel.
         Using the provided information as a premise, generate a name for the community channel. Be straightforward and reply with just the name`;
         let name = await generateResponse(system_prompt, user_prompt);
-        user_prompt = `You just created a channel ${name}. Now create a bio for this channel`;        
+        
+        user_prompt = `You just created a channel ${name}. Now create a bio for this channel. 
+        The bio should be a one-liner that describes the purpose of the channel.`;
         let bio = await generateResponse(system_prompt, user_prompt);
+
+        let current = await CommunityDAO.getAllCommunityBios();
+        console.log(current);
+
+        const similarityThreshold = 0.7;
+        for (const existingBio of current) {
+            const similarity = natural.JaroWinklerDistance(bio, existingBio);
+            if (similarity < similarityThreshold) {
+                console.log("Many communities exist with the same topic");
+                return ; 
+            }
+        }
+        
         try {
             let id = await makeAPIRequest("http://localhost:3001/api/channels/create", "POST", { 
                 comm_name: name,
@@ -574,6 +629,48 @@ const Simulation = {
             });
         } catch (error) {
             console.error("Error adding new channel", error);
+        }
+    },
+
+    async addChannelPost(user_id, system_prompt){
+        
+        let channels = await CommunityDAO.getAllUserCommunities(user_id);
+        console.log(channels);
+
+        
+        if (!channels || channels.length === 0) {
+            console.error("No communities found.");
+            return null;
+        }
+        
+        let sel_comm = channels[Math.floor(Math.random() * channels.length)];
+        console.log(sel_comm);
+        
+        const user_prompt = `You are about to make a new post in a community. 
+            The community name is ${sel_comm.comm_name}. This is a community with likeminded people who are passionate about ${sel_comm.comm_bio}.
+            While making a post ensure that:
+            1. Your post must be aligned with the community topic.
+            2. Focus on one clear theme—avoid mixing multiple ideas.  
+            3. Keep it engaging while staying within three sentences. 
+            4. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
+            Now, generate a new post that sticks to a single theme.`;
+            const new_post = await generateResponse(system_prompt, user_prompt);
+
+            const time = new Date().toISOString();
+        try{
+            await makeAPIRequest("http://localhost:3001/api/post/add", "POST", { 
+                parent_id: null,
+                user_id: user_id, 
+                content: new_post, 
+                topic: "", 
+                media_type: 0, 
+                media_url: "", 
+                timestamp: time, 
+                duration: 24, 
+                visibility: await UserDAO.getUserInfo(user_id).then(user => user.visibility), 
+                comm_id: sel_comm.comm_id});
+        } catch (error) {
+            console.error("Error adding new community post:", error);
         }
     },
 
@@ -597,7 +694,6 @@ const Simulation = {
 
     async sendRequest(user_id){
         let frens = await RelationDAO.getRecommendedFriends(user_id);
-        console.log(frens);
         if (!frens || frens.length === 0) {
             console.error("No recommended friends.");
             return null;

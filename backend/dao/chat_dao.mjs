@@ -96,24 +96,39 @@ const ChatDAO = {
         });
     },
 
-    async getChatMembers(chat_id){
+    async getChatMembers(chat_id) {
         return new Promise((resolve, reject) => {
             const sql = `
-                SELECT user_id
-                FROM GCMembership
+                SELECT group_chat, user_id_1, user_id_2 
+                FROM Chat 
                 WHERE chat_id = ?
             `;
     
-            db.all(sql, [chat_id], (err, rows) => {
+            db.get(sql, [chat_id], (err, chat) => {
                 if (err) {
                     reject(err);
+                } else if (!chat) {
+                    resolve([]); // Return empty array if chat_id is not found
+                } else if (chat.group_chat === 0) {
+                    resolve([chat.user_id_1, chat.user_id_2]); // Return single-element array for non-group chat
                 } else {
-                    const mems = rows.map(row => row.user_id);
-                    resolve(mems);
+                    const gcSql = `
+                        SELECT user_id
+                        FROM GCMembership
+                        WHERE chat_id = ?
+                    `;
+    
+                    db.all(gcSql, [chat_id], (err, rows) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            const members = rows.map(row => row.user_id);
+                            resolve(members);
+                        }
+                    });
                 }
             });
         });
-
     },
     
 
@@ -192,8 +207,8 @@ const ChatDAO = {
                 SELECT * 
                 FROM Chat 
                 WHERE 
-                    (user_id_1 = ? AND user_id_2 = ?) 
-                    OR (user_id_1 = ? AND user_id_2 = ?)
+                    ((user_id_1 = ? AND user_id_2 = ?)  
+                    OR (user_id_1 = ? AND user_id_2 = ?))  
                     AND group_chat = 0;
             `;
     
