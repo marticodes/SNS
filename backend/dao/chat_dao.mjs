@@ -1,5 +1,6 @@
 import db from '../db.mjs';
 import Chat from '../models/chat_model.mjs';
+import GCMembership from '../models/gc_membership_model.mjs';
 
 //When inserting, pass 0 for group_chat if DM. Otherwise, pass 1.
 //DM: chat_name is id_2's user_name + chat_image is id_2's profile_picture
@@ -206,15 +207,32 @@ const ChatDAO = {
         });
     },
 
-    async checkExisitingGroupChat(user_ids) {
-        try {
-            if (!user_ids || user_ids.length === 0) return false; // No users provided
+    async getChatsHelper(user_ids) {
+        if (!user_ids || user_ids.length === 0) return [];
     
-            // Get all chat IDs that contain any of the user_ids
-            const chatMemberships = await GCMembershipDAO.getChatsByUserIds(user_ids);
+        const placeholders = user_ids.map(() => "?").join(","); 
+        const sql = `SELECT chat_id, user_id FROM GCMembership WHERE user_id IN (${placeholders})`;
+    
+        try {
+            const rows = await new Promise((resolve, reject) => {
+                db.all(sql, user_ids, (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                });
+            });
+            return rows; 
+        } catch (error) {
+            console.error("Error fetching chat memberships:", error);
+            return [];
+        }
+    },
+    
+
+    async checkExistingGroupChat(user_ids) {
+        try {
+            const chatMemberships = await ChatDAO.getChatsHelper(user_ids);
             
-            // Group chats by chat_id
-            const chatGroups = new Map(); // { chat_id -> Set of user_ids }
+            const chatGroups = new Map(); 
             
             chatMemberships.forEach(({ chat_id, user_id }) => {
                 if (!chatGroups.has(chat_id)) {
@@ -223,19 +241,28 @@ const ChatDAO = {
                 chatGroups.get(chat_id).add(user_id);
             });
     
-            // Check if any chat contains exactly all user_ids
             for (const [chat_id, members] of chatGroups) {
-                if (members.size === user_ids.length && user_ids.every(id => members.has(id))) {
-                    return true; // Found a matching chat
+                let size = await ChatDAO.getChatMembers(chat_id);
+                if (size.length === user_ids.length) {
+                    const membersArray = Array.from(members);
+                    if (
+                        membersArray.every(id => user_ids.includes(id)) &&
+                        user_ids.every(id => membersArray.includes(id))
+
+                    ) {
+                        return chat_id;
+                    }
                 }
             }
     
-            return false; // No matching chat found
+            return 0; 
         } catch (error) {
             console.error("Error checking existing group chat:", error);
-            return false;
+            return 0;
         }
     },
+    
+    
     
 
     async isExistingChat(user_id_1, user_id_2) {

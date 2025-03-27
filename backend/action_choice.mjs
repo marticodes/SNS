@@ -88,7 +88,7 @@ const ActionChoice = {
             random -= a.weight;
         }
         
-        chosenAction = "Send message";
+        // chosenAction = "Send message in group chat";
 
         // Fallback
         if (!chosenAction) {
@@ -99,11 +99,11 @@ const ActionChoice = {
             case "Update user bio":
                 await Simulation.updateAGUserBio(user_id, system_prompt);
                 break;
-            case "Start new DM":
-                await Simulation.startAGDM(user_id, system_prompt);
+            case "Send DM":
+                await Simulation.insertDM(user_id, system_prompt);
                 break;
-            case "Start new group chat":
-                await Simulation.startAGGroupChat(user_id, system_prompt);
+            case "Send message in group chat":
+                await Simulation.insertGroupChat(user_id, system_prompt);
                 break;
             case "Add comment on post":
                 await Simulation.insertAGCommentOnPost(user_id, system_prompt);
@@ -113,9 +113,6 @@ const ActionChoice = {
                 break;
             case "Create new channel":
                 await Simulation.createAGChannel(user_id, system_prompt);
-                break;
-            case "Send message":
-                await Simulation.insertAGMessage(user_id, system_prompt);
                 break;
             case "Clear notification":
                 await NotificationDAO.removeNotification(user_id);

@@ -166,16 +166,11 @@ const Simulation = {
         }
     },
 
-    async insertAGMessage(user_id, system_prompt){
+    async insertAGMessage(user_id, system_prompt, receiver){
 
         try {
-            const sel_chat_id = await selectChatFromInbox(user_id);
-            if (sel_chat_id == null) {
-                console.log("No chatrooms found");
-                return;
-            }
 
-            const sel_messages =  await MessageDAO.getMessagesByChatId(sel_chat_id);
+            const sel_messages =  await MessageDAO.getMessagesByChatId(receiver);
 
             let last_messages = "";
             let formattedMessages = "";
@@ -197,7 +192,7 @@ const Simulation = {
                 .join("\n");
             }
 
-            let people = await ChatDAO.getChatMembers(sel_chat_id);
+            let people = await ChatDAO.getChatMembers(receiver);
 
             let closeness_levels = await Promise.all(
                 people.map(async (person) => {
@@ -221,7 +216,7 @@ const Simulation = {
 
             const time = new Date().toISOString();
             await makeAPIRequest("http://localhost:3001/api/messages/add", "POST", {
-                chat_id: sel_chat_id,
+                chat_id: receiver,
                 sender_id: user_id,
                 reply_id: null,
                 content: message,
@@ -469,7 +464,7 @@ const Simulation = {
         }
     },
 
-    async startAGDM(user_id, system_prompt){
+    async insertDM(user_id, system_prompt){
         let frens = await RelationDAO.getUsersByRelation(user_id, 2);
         if (!frens || frens.length === 0) {
             console.error("No users found.");
@@ -478,66 +473,84 @@ const Simulation = {
 
         let sel_fren = frens[Math.floor(Math.random() * frens.length)];
         let chat = await ChatDAO.checkExistingChat(user_id, sel_fren);
+        let chat_id = "";
+        if (chat) {
+            chat_id = chat.chat_id;
+            console.log("Chats exists");
 
-        if (!chat) {
+        }
+        else{
             console.log("No existing chat found. Creating a new one...");
             let user_info = await UserDAO.getUserInfo(sel_fren);
             try {
-                await makeAPIRequest("http://localhost:3001/api/chats/add", "POST", { 
+                let id = await makeAPIRequest("http://localhost:3001/api/chats/add", "POST", { 
                     user_id_1: user_id,
                     user_id_2: sel_fren,
                     chat_name: user_info.id_name, 
                     chat_image: user_info.profile_picture,
                 });
+                chat_id = id.ina;
             } catch (error) {
                 console.error("Error adding new chat", error);
             }
         
         }
-        else {
-            console.log("Chats already exist");
-            Simulation.insertAGMessage(user_id, system_prompt);
-        }
-
-
+        // console.log(chat_id);
+        Simulation.insertAGMessage(user_id, system_prompt, chat_id);
     },
 
-    async startAGGroupChat(user_id, system_prompt){
+    async insertGroupChat(user_id, system_prompt){
         let frens = await RelationDAO.getUsersByRelation(user_id, 2);
         if (!frens || frens.length === 0) {
             console.error("No users found.");
             return null;
         }
 
-        let sel_fren = frens.sort(() => Math.random() - 0.5).slice(0, 3);
+        if (frens.length < 2) return; 
+
+        let count = Math.floor(Math.random() * (frens.length - 1)) + 2;
+        let sel_fren = frens.sort(() => Math.random() - 0.5).slice(0, count);
+
         sel_fren.push(user_id);
+        console.log(sel_fren);
 
-        let exist = await ChatDAO.checkExisitingGroupChat(sel_fren);
-        if (exist) {} 
+        let receiver = await ChatDAO.checkExistingGroupChat(sel_fren);
+        console.log(receiver);
 
-        let closeness_levels = await Promise.all(
-            sel_fren.map(async (person) => {
-                let closeness = await RelationDAO.getCloseness(user_id, person);
-                return closeness;
-            })
-        );
 
-        let social_groups = await SocialGroupDao.getGroupsByIds(sel_fren);
-        const user_prompt = `You are about to create a group chat with "${sel_fren.length}" people. 
-        Your closeness levels to the people on a scale of 1 to 10 are "${closeness_levels}". 
-        You belong to "${social_groups}" soial groups together. 
-        Using the provided information as a premise, generate a name for the group chat. Be straightforward and reply with just the name`;
-        
-        const name = await generateResponse(system_prompt, user_prompt);
-        try {
-            await makeAPIRequest("http://localhost:3001/api/chats/group/add", "POST", { 
-                user_ids: sel_fren,
-                chat_name: name,
-                chat_image: null,
-                user_id: user_id
-            });
-        } catch (error) {
-            console.error("Error adding new chat", error);
+        if (receiver){
+            console.log("Chats exists");
+            Simulation.insertAGMessage(user_id, system_prompt, receiver);
+        } 
+
+        else{
+            let closeness_levels = await Promise.all(
+                sel_fren.map(async (person) => {
+                    let closeness = await RelationDAO.getCloseness(user_id, person);
+                    return closeness;
+                })
+            );
+
+            let social_groups = await SocialGroupDao.getGroupsByIds(sel_fren);
+            const user_prompt = `You are about to create a group chat with "${sel_fren.length}" people. 
+            Your closeness levels to the people on a scale of 1 to 10 are "${closeness_levels}". 
+            You belong to "${social_groups}" soial groups together. 
+            Using the provided information as a premise, generate a name for the group chat. Be straightforward and reply with just the name`;
+            
+            const name = await generateResponse(system_prompt, user_prompt);
+            try {
+                let id = await makeAPIRequest("http://localhost:3001/api/chats/group/add", "POST", { 
+                    user_ids: sel_fren,
+                    chat_name: name,
+                    chat_image: null,
+                    user_id: user_id
+                });
+                receiver = id.ina;
+
+            } catch (error) {
+                console.error("Error adding new chat", error);
+            }
+            Simulation.insertAGMessage(user_id, system_prompt, receiver);
         }
 
     },
