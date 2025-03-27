@@ -159,7 +159,8 @@ const UserProfile = ({
           <UserName onClick={handleUserClick}>{userName}</UserName>
           {variant === "default" && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <PostDate>{postDate} • {timeleft}</PostDate>
+              <PostDate>{postDate}</PostDate>
+              {timeleft && <span style={{ fontSize: 'smaller', fontWeight: 'bold', color: 'black', marginBottom: '2px' }}>• {timeleft}</span>}
             </div>
           )}
         </TextContainer>

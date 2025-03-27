@@ -87,6 +87,30 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
       setShowEmojiPicker(false);
     };
 
+    const computeTimeLeft = () => {
+      if (message.timestamp && message.duration) {
+        const postTimestamp = new Date(message.timestamp);
+        const currentTime = new Date();
+        const timeRemaining =
+          postTimestamp.getTime() +
+          message.duration * 24 * 60 * 60 * 1000 -
+          currentTime.getTime();
+  
+        if (timeRemaining > 0) {
+          const hoursLeft = Math.floor(timeRemaining / (1000 * 60 * 60));
+          const minutesLeft = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+          if (hoursLeft > 0) {
+            return `${hoursLeft} hours left`;
+          } else if (minutesLeft > 0) {
+            return `${minutesLeft} minutes left`;
+          }
+        }
+      }
+      return null;
+    };
+  
+    const timeLeft = computeTimeLeft();
+
   const toggleEmojiPicker = (e) => {
     e.stopPropagation();
     setShowEmojiPicker((prev) => !prev);
@@ -133,8 +157,6 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
       fetchUserInfo();
     }
   }, [message.user_id]);
-
-  console.log(userData);
 
   const iconContainer = (
     <div
@@ -252,6 +274,7 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
             }}
           >
             {formatTimestamp(message.timestamp)}
+            {timeLeft && ` • ${timeLeft}`}
           </span>
         </div>
 

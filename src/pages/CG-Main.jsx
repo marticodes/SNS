@@ -108,6 +108,7 @@ const CGPage = () => {
             sender: senderName,
             timestamp: msg.timestamp || "Unknown",
             replyTo,
+            duration: msg.duration,
           };
         })
       );
