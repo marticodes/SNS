@@ -211,7 +211,7 @@ const EditPost = ({ user, updatePost }) => {
     <EditPostContainer>
       <PostDiv>
       <Title>Edit Your Post</Title>
-      <UserProfile profileImg={user.profile_picture} userName={user.user_name} variant="default"/>
+      <UserProfile profileImg={user?.profile_picture} userName={user?.user_name} variant="default"/>
       
       <TextArea value={postText} onChange={handleTextChange} />
 

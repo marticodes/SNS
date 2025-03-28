@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import NavBar from "../components/NavBar/Full"; 
+import NavBar from "../components/NavBar/Small"; 
 import styled from "styled-components";
-import FeedMain from "../components/NF-NG/FeedMain";
-import EditPost from "../components/NF-NG/EditPost";
-import NewPost from "../components/NF-NG/NewPost";
+import FeedMain from "../components/NC/FeedMain.jsx";
+import EditPost from "../components/NC/EditPost.jsx";
+import NewPost from "../components/NC/NewPost.jsx";
+import UserList from "../components/CG/servers.jsx";
 import axios from "axios";
 
 const AppContainer = styled.div`
@@ -17,45 +18,14 @@ const AppContainer = styled.div`
   margin-left: 173px;
 `;
 
-const NFPage = () => {
-  const navigate = useNavigate(); 
-  const userID = parseInt(localStorage.getItem("userID"), 10);    
-  //const userID = 1; // REMOVE THIS LINE
+const NCPage = () => {
+  const navigate = useNavigate();
+  const userID = parseInt(localStorage.getItem("userID"), 10);
 
   const [userInfo, setUserInfo] = useState(null);
   const [posts, setPosts] = useState([]);
-  const [filteredPosts, setFilteredPosts] = useState([]);
-
-  const fetchFeed = async (userId, feedType) => {
-    const baseUrl = "http://localhost:3001/api/recomm/feed";
-    let endpoint;
-  
-    switch (feedType) {
-      case 1:
-        endpoint = `${baseUrl}/friends/${userId}`;
-        break;
-      case 2:
-        endpoint = `${baseUrl}/interests/${userId}`;
-        break;
-      case 3:
-        endpoint = `${baseUrl}/combined/${userId}`;
-        break;
-      default:
-        throw new Error("Invalid feed type. Use 1 for friends, 2 for interests, or 3 for combined.");
-    }
-  
-    try {
-      const response = await fetch(endpoint);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch feed: ${response.statusText}`);
-      }
-      const posts = await response.json();
-      return posts;
-    } catch (error) {
-      console.error("Error fetching feed:", error);
-      return { error: error.message };
-    }
-  };  
+  const [communities, setCommunities] = useState([]);
+  const [currentCommunity, setCurrentCommunity] = useState(null);
 
   useEffect(() => {
     if (!userID) {
@@ -74,32 +44,49 @@ const NFPage = () => {
       }
     };
 
+    const fetchCommunities = async () => {
+      try {
+        const res = await fetch(`http://localhost:3001/api/channels/${userID}/`);
+        const commIds = await res.json();
+        const commDetails = await Promise.all(
+          commIds.map(async (id) => {
+            const infoRes = await fetch(`http://localhost:3001/api/channels/info/${id}/`);
+            return infoRes.json();
+          })
+        );
+        setCommunities(commDetails);
+      } catch (error) {
+        console.error("Error fetching communities:", error);
+      }
+    };
+
     fetchUser();
+    fetchCommunities();
   }, [userID, navigate]);
 
-  const fetchFeedData = async (feedType = 1) => {
+  const fetchFeed = async (communityId) => {
     try {
-      const feedPosts = await fetchFeed(userID, feedType);
-      if (feedPosts.error) {
-        throw new Error(feedPosts.error);
+      const response = await fetch(`http://localhost:3001/api/channels/post/${communityId}/`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch feed: ${response.statusText}`);
       }
-
-      setPosts(feedPosts);
-      setFilteredPosts(feedPosts);
+      return await response.json();
     } catch (error) {
-      console.error("❌ Error fetching feed data:", error);
+      console.error("Error fetching feed:", error);
+      return [];
     }
   };
 
   useEffect(() => {
-    if (!userID) return;
-    fetchFeedData(); // Fetch friends feed by default
-  }, [userID]);
+    if (currentCommunity) {
+      const fetchFeedData = async () => {
+        const feedPosts = await fetchFeed(currentCommunity.comm_id);
+        setPosts(feedPosts);
+      };
 
-  useEffect(() => {
-    if (!userID) return;
-    fetchFeedData();
-  }, [userID]);
+      fetchFeedData();
+    }
+  }, [currentCommunity]);
 
   const addNewPost = (newPost) => {
     setPosts((prev) => [newPost, ...prev]);
@@ -120,16 +107,32 @@ const NFPage = () => {
       <div style={{ position: "fixed", top: 0, left: 0, height: "100vh" }}>
         <NavBar caseId={2} />
       </div>
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 70,
+          width: "251px",
+          height: "100%",
+          backgroundColor: "#f1f1f1",
+          overflowY: "auto",
+          zIndex: 100000,
+        }}
+      >
+        <UserList
+          users={communities.map((c) => c.comm_name)}
+          onUserClick={(name) => {
+            const selectedCommunity = communities.find((c) => c.comm_name === name);
+            setCurrentCommunity(selectedCommunity);
+          }}
+          ProfilePics={Object.fromEntries(communities.map((c) => [c.comm_name, c.comm_image]))}
+        />
+      </div>
       <AppContainer>
         <Routes>
           <Route
             path="/"
-            element={
-              <FeedMain
-                user={userInfo}
-                posts={posts}
-              />
-            }
+            element={<FeedMain user={userInfo} posts={posts} />}
           />
           <Route
             path="new-post"
@@ -137,7 +140,6 @@ const NFPage = () => {
               <NewPost
                 user={userInfo}
                 addNewPost={addNewPost}
-                fetchFeedData={fetchFeedData}
               />
             }
           />
@@ -147,7 +149,6 @@ const NFPage = () => {
               <EditPost
                 user={userInfo}
                 updatePost={updatePost}
-                fetchFeedData={fetchFeedData}
               />
             }
           />
@@ -157,4 +158,4 @@ const NFPage = () => {
   );
 };
 
-export default NFPage;
+export default NCPage;

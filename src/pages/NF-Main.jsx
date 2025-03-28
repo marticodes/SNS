@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar/Full"; 
 import styled from "styled-components";
-import FeedMain from "../components/NF-NG/FeedMain";
-import EditPost from "../components/NF-NG/EditPost";
-import NewPost from "../components/NF-NG/NewPost";
+import FeedMain from "../components/NF/FeedMain";
+import EditPost from "../components/NF/EditPost";
+import NewPost from "../components/NF/NewPost";
 import axios from "axios";
 
 const AppContainer = styled.div`

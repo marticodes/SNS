@@ -126,29 +126,60 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
     upvotes: 0,
     downvotes: 0,
   });
+  const [usersData, setUsersData] = useState({});
 
   useEffect(() => {
-    if (!post_id) return;
-
-    axios.get(`http://localhost:3001/api/posts/all/${post_id}`)
-      .then(({ data }) => {
+    const fetchReactions = async () => {
+      try {
+        const { data } = await axios.get(`http://localhost:3001/api/reactions/posts/${post_id}`);
         setReactions(data);
-      })
-      .catch((error) => console.error("Error fetching reactions:", error));
+      } catch (error) {
+        console.error("Error fetching reactions:", error);
+      }
+    };
+    fetchReactions();
+    const interval = setInterval(fetchReactions, 10000);
+    return () => clearInterval(interval);
   }, [post_id]);
 
-  useEffect(() => {
-    if (!reactions.emojiReactions || reactions.emojiReactions.length === 0) {
-      setSelectedEmoji(null);
-    } else {
-      // Find the emoji with the highest number of users
-      const mostFrequent = reactions.emojiReactions.reduce((prev, current) => {
-        return (prev.user_id.length > current.user_id.length) ? prev : current;
-      });
+    useEffect(() => {
+      if (!reactions.emojiReactions || reactions.emojiReactions.length === 0) {
+        setSelectedEmoji(null);
+      } else {
+        // Find the emoji with the highest number of users
+        const mostFrequent = reactions.emojiReactions.reduce((prev, current) => {
+          return (prev.user_id.length > current.user_id.length) ? prev : current;
+        });
+    
+        setSelectedEmoji(mostFrequent.emote_type);
+      }
+    }, [reactions.emojiReactions]);
+
+    useEffect(() => {
+      const fetchUserData = async (userIds) => {
+        try {
+          const userPromises = userIds.map((userId) =>
+            axios.get(`http://localhost:3001/api/user/${userId}`)
+          );
+          const userResponses = await Promise.all(userPromises);
+          const usersMap = userResponses.reduce((acc, res) => {
+            acc[res.data.user_id] = res.data;
+            return acc;
+          }, {});
+          setUsersData(usersMap);
+        } catch (err) {
+          console.error("Error fetching user data:", err);
+        }
+      };
   
-      setSelectedEmoji(mostFrequent.emote_type);
-    }
-  }, [reactions.emojiReactions]);
+      const allUserIds = [
+        ...new Set([
+          ...reactions.likedUsers,
+          ...reactions.emojiReactions.flatMap((reaction) => reaction.user_id),
+        ]),
+      ];
+      fetchUserData(allUserIds);
+    }, [reactions]);
 
   return (
     <ReactionSummaryContainer>
@@ -157,11 +188,11 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
           <LikeSpan onClick={() => setPopupOpen("like")}>
             <BiSolidLike />
           </LikeSpan>
-          <span>{likes}</span>
+          <span>{reactions.likedUsers.length}</span>
         </ReactionItem>
         <ReactionItem>
           <BiUpvote />
-          <span>{votes}</span>
+          <span>{reactions.upvotes - reactions.downvotes}</span>
           <BiDownvote />
         </ReactionItem>
         {selectedEmoji && (
@@ -186,12 +217,21 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
             <>
               <PopupTitle>People who liked this post</PopupTitle>
               <UserList>
-                {reactions.likedUsers.map((userId, index) => (
-                  <UserItem key={index}>
-                    <ProfileImage src={`/api/users/${userId}/profile_picture`} />
-                    User ID: {userId}
-                  </UserItem>
-                ))}
+                {reactions.likedUsers.map((userId, index) => {
+                  const user = usersData[userId];
+                  return (
+                    <UserItem key={index}>
+                      {user ? (
+                        <>
+                          <ProfileImage src={user.profile_picture} />
+                          {user.user_name}
+                        </>
+                      ) : (
+                        "Loading..."
+                      )}
+                    </UserItem>
+                  );
+                })}
               </UserList>
             </>
           )}
@@ -202,12 +242,21 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
                 {reactions.emojiReactions.map((reaction, index) => (
                   <div key={index}>
                     <h4>{reaction.emote_type}</h4>
-                    {reaction.user_id.map((userId, idx) => (
-                      <UserItem key={idx}>
-                        <ProfileImage src={`/api/users/${userId}/profile_picture`} />
-                        User ID: {userId}
-                      </UserItem>
-                    ))}
+                    {reaction.user_id.map((userId, idx) => {
+                      const user = usersData[userId];
+                      return (
+                        <UserItem key={idx}>
+                          {user ? (
+                            <>
+                              <ProfileImage src={user.profile_picture} />
+                              {user.user_name}
+                            </>
+                          ) : (
+                            "Loading..."
+                          )}
+                        </UserItem>
+                      );
+                    })}
                   </div>
                 ))}
               </UserList>

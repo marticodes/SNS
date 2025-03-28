@@ -78,6 +78,8 @@ const MenuItem = styled.li`
   }
 `;
 
+const myUserID = parseInt(localStorage.getItem("userID"), 10);
+
 const UserProfile = ({
   user_id,
   userName = "Unknown User",  // default fallback
@@ -123,15 +125,25 @@ const UserProfile = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleMenuClick = (action) => {
-    if (action === "edit") {
-      navigate(`/case/1/edit-post/${post.post_id}`);
+  const handleMenuClick = async (action) => {
+    try {
+      if (action === "edit") {
+        navigate(`/case/1/edit-post/${post.post_id}`);
+      } else if (action === "mute") {
+        await axios.post(`http://localhost:3001/api/relations/restriction/update`, {
+          user_id_1: myUserID, 
+          user_id_2: user_id, 
+          restricted: 2,
+        });
+        console.log("✅ User muted successfully");
+      }
+      setMenuOpen(false);
+    } catch (err) {
+      console.error(`❌ Error processing action "${action}":`, err);
     }
-    setMenuOpen(false);
   };
 
   const handleUserClick = () => {
-    console.log("User clicked");
     navigate(`/user/${user_id}`);
   };
 
@@ -147,7 +159,8 @@ const UserProfile = ({
           <UserName onClick={handleUserClick}>{userName}</UserName>
           {variant === "default" && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <PostDate>{postDate} • {timeleft}</PostDate>
+              <PostDate>{postDate}</PostDate>
+              {timeleft && <span style={{ fontSize: 'smaller', fontWeight: 'bold', color: 'black', marginBottom: '2px' }}>• {timeleft}</span>}
             </div>
           )}
         </TextContainer>
@@ -160,8 +173,10 @@ const UserProfile = ({
           </MenuBtn>
           {menuOpen && (
             <MenuPopup ref={menuRef}>
+              {myUserID === user_id ? (
               <MenuItem onClick={() => handleMenuClick("edit")}>Edit</MenuItem>
-              <MenuItem onClick={() => handleMenuClick("block")}>Mute</MenuItem>
+              ) : (
+              <MenuItem onClick={() => handleMenuClick("mute")}>Mute</MenuItem>)}
             </MenuPopup>
           )}
         </>

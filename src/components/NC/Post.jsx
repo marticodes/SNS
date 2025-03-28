@@ -194,7 +194,6 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
   const fetchComments = async () => {
     try {
       const res = await axios.get(`http://localhost:3001/api/comments/all/${post_id}/1`);
-      console.log("✅ Comments fetched:", res.data);
       setComments(res.data);
     } catch (err) {
       console.error("❌ Error fetching comments:", err);
@@ -205,16 +204,10 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
     fetchComments();
   }, [post_id]);
   
-  
 
   const totalVotes = reactions.upvotes - reactions.downvotes;
   const totalComments = comments.length;
   const isOwner = userID === post.user_id;
-
-  console.log("Reactions:", reactions);
-
-  console.log(reactions.likedUsers.length);
-
 
   return (
     <PostContainer>
@@ -235,7 +228,7 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
       hashtagClick={hashtagClick}
     />
       <ReactionSummary
-      post_id={post.id}
+      post_id={post_id}
       reactions={reactions}
       likes={reactions.likedUsers.length}
       votes={totalVotes}
