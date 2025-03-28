@@ -1,5 +1,6 @@
 import db from '../db.mjs';
 import Post from '../models/post_model.mjs';
+import CommentDAO from './comment_dao.mjs';
 
 const FeedDAO = {
     async  getFeedFromFriends(userId){
@@ -47,10 +48,11 @@ const FeedDAO = {
                     )
                     AND p.visibility = 2
                     AND p.duration IS NULL
+                    AND p.user_id !=?
                 ORDER BY p.timestamp DESC;
             `;
     
-            db.all(sql, [userId, userId, userId, userId], (err, rows) => {
+            db.all(sql, [userId, userId, userId, userId, userId], (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -70,6 +72,34 @@ const FeedDAO = {
             const combinedFeed = [...friendsFeed, ...interestFeed];
             combinedFeed.sort((a, b) => b.timestamp - a.timestamp);
             return combinedFeed;
+        } catch (err) {
+            throw err;
+        }
+    },
+
+    async getcombinedFeedforAction(userId){
+        try {
+            const [friendsFeed, interestFeed] = await Promise.all([
+                this.getFeedFromFriends(userId),
+                this.getInterestBasedFeed(userId)
+            ]);
+            const combinedFeed = [...friendsFeed, ...interestFeed];
+            combinedFeed.sort((a, b) => b.timestamp - a.timestamp);
+
+            // console.log(combinedFeed);
+
+            const filteredFeed = await Promise.all(
+                combinedFeed.map(async (post) => {
+                    // console.log(post.post_id);
+                    const hasComment = await CommentDAO.checkIfComment(post.post_id, 1, userId);
+                    return hasComment ? null : post;
+                })
+            );
+
+            // console.log(filteredFeed);
+            
+            
+            return filteredFeed.filter(post => post !== null);
         } catch (err) {
             throw err;
         }

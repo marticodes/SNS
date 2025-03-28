@@ -12,20 +12,17 @@ const CommunityDAO = {
                         return reject(err);
                     }
                     let communityIds = rows.map(row => row.comm_id);
-                    console.log(communityIds);
                     if (communityIds.length === 0) {
                         communityIds = [0];
                     }
                     const placeholders = communityIds.map(() => '?').join(', ');
-                    const sql2 = `SELECT * FROM Community WHERE comm_id NOT IN (${placeholders})`;
+                    const sql2 = `SELECT * FROM Community WHERE comm_id IN (${placeholders})`;
     
                     db.all(sql2, communityIds, (err, communities) => {
                         if (err) {
                             return reject(err);
                         }
                         const commList = communities.map(row => new Community(row.comm_id, row.comm_name, row.comm_image, row.comm_bio));
-                    console.log(commList);
-                        
                         resolve(commList);
                     });
                 });
@@ -78,6 +75,23 @@ const CommunityDAO = {
                         });
                         resolve(id);
                     }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async getAllCommunityBios() {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT comm_bio FROM Community';
+                db.all(sql, [], (err, rows) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    const bios = rows.map(row => row.comm_bio);
+                    resolve(bios);
                 });
             } catch (error) {
                 reject(error);

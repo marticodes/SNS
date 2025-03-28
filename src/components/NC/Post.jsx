@@ -51,10 +51,29 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
     hashtag,
     media_url,
     timestamp,
-    comments = [] // Assuming comments are fetched here already
+    duration,
   } = post;
   const formattedDate = new Date(timestamp).toLocaleDateString();
   const [userData, setUserData] = useState(null);
+
+  const postTimestamp = new Date(timestamp);
+  const currentTime = new Date();
+  const timeRemaining = postTimestamp.getTime() + duration * 24 * 60 * 60 * 1000 - currentTime.getTime(); // duration in milliseconds
+
+  let timeLeft = '';
+
+  if (timeRemaining > 0) {
+    const hoursLeft = Math.floor(timeRemaining / (1000 * 60 * 60));
+    const minutesLeft = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hoursLeft > 0) {
+      timeLeft = `${hoursLeft} hours left`;
+    } else if (minutesLeft > 0) {
+      timeLeft = `${minutesLeft} minutes left`;
+    }
+  } else {
+    timeLeft = '';
+  }
 
   const [reactions, setReactions] = useState({
     likedUsers: [],
@@ -66,6 +85,8 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
   const [isCommentSectionOpen, setCommentSectionOpen] = useState(false);
   const [isSharePopupOpen, setSharePopupOpen] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState(null);
+  const [comments, setComments] = useState([]);
+
   
   useEffect(() => {
     const fetchUserData = async () => {
@@ -170,10 +191,23 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
     setSharePopupOpen((prev) => !prev);
   };
 
-  const totalVotes = reactions.upvotes - reactions.downvotes;
-  const totalComments = countTotalComments(comments);
-  const isOwner = userID === post.user_id;
+  const fetchComments = async () => {
+    try {
+      const res = await axios.get(`http://localhost:3001/api/comments/all/${post_id}/1`);
+      setComments(res.data);
+    } catch (err) {
+      console.error("❌ Error fetching comments:", err);
+    }
+  };
 
+  useEffect(() => {
+    fetchComments();
+  }, [post_id]);
+  
+
+  const totalVotes = reactions.upvotes - reactions.downvotes;
+  const totalComments = comments.length;
+  const isOwner = userID === post.user_id;
 
   return (
     <PostContainer>
@@ -185,6 +219,7 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
       isOwner={isOwner}
       post={post}
       variant="default"
+      timeleft={timeLeft}
     />
     <ContentSection
       text={content}
@@ -193,9 +228,9 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
       hashtagClick={hashtagClick}
     />
       <ReactionSummary
-      post_id={post.id}
+      post_id={post_id}
       reactions={reactions}
-      likes={reactions.likedUsers?.length}
+      likes={reactions.likedUsers.length}
       votes={totalVotes}
       comments={totalComments}
       />

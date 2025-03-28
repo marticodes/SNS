@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import ProfileCard from "../components/Profile/ProfileCard";
 import NavBar from "../components/NavBar/Full";
-import Feed from "../components/NF-NG/Feed";
+import Feed from "../components/NF/Feed";
 
 const fetchRelation = async (userId, relationType) => {
   try {
@@ -196,7 +196,7 @@ const UserPage = () => {
           {user.relationship === "Unfollow" || !user.isPrivate || (myUserId === userId) ? (
             <>
               <h2 style={feedTitleStyle}>Posts</h2>
-              <Feed user={user} posts={posts} isProfilePage = {true}/>
+              <Feed user={user} postss={posts} isProfilePage = {true}/>
             </>
           ) : (
             <div style={privateProfileStyle}>
