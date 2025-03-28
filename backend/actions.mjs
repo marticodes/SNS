@@ -38,6 +38,7 @@ async function ActionSimulation() {
 // Start the simulation
 ActionSimulation().catch(error => console.error("Simulation error:", error));
 
-async function CreateAgent() {
+async function CreateAgentfromScratch() {
+
 
 }
