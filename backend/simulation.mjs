@@ -103,7 +103,7 @@ const Simulation = {
     async updateAGUserBio(user_id, system_prompt) {
         try {
             const prev_bio = await UserDAO.getUserInfo(user_id).then(user => user.user_bio);
-            const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio. Make sure it is within 100 characters.`;
+            const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio. Make sure it is within 100 - 120 characters. Change tone in each generation and mimic it to how users on social media like Instagram and TikTok interact.`;
             const new_bio = await generateResponse(system_prompt, user_prompt);
             
             await makeAPIRequest("http://localhost:3001/api/user/update/bio", "POST", { user_id, user_bio: new_bio });
@@ -150,7 +150,7 @@ const Simulation = {
                 return;
             }
 
-            const user_prompt = `You are about to comment on a comment to a post. The content of the post is: "${sel_post.content}". The content of the comment is: "${sel_comment.content}". Generate a comment for the comment "${sel_comment.content}".`;
+            const user_prompt = `You are about to comment on a comment to a post. The content of the post is: "${sel_post.content}". The content of the comment is: "${sel_comment.content}". Generate a comment for the comment "${sel_comment.content}". Change tone in each generation and mimic it to how users on social media like Instagram and TikTok interact.`;
             const comment = await generateResponse(system_prompt, user_prompt);
 
             const time = new Date().toISOString();
@@ -238,6 +238,7 @@ const Simulation = {
             1. The theme of the post is only one. 
             2. Make sure that your new post is signficantly different in content and context to your old posts. 
             3. **Structure the post clearly.** Avoid adding multiple unrelated ideas in a single post.  
+            4. Make sure that the post has newlines and paragraphs to make it more readable.
             The contents of some of your previous posts are:${last_posts}. 
             Now, generate a new post that sticks to a single theme and maintains a coherent structure.`;
             const new_post = await generateResponse(system_prompt, user_prompt);
@@ -591,8 +592,16 @@ const Simulation = {
             userData.notification_trait
         
           );
-    
-          await UserInterestDao.insertUserInterest(userData.interest_name, user_id);
+
+          //await UserInterestDao.insertUserInterest(userData.interest_name, user_id);
+        if (Array.isArray(userData.interests)) {
+            for (const interest of userData.interests) {
+            await UserInterestDao.insertUserInterest(interest, user_id);
+            }
+        } else {
+            await UserInterestDao.insertUserInterest(userData.interest_name, user_id);
+        }
+
           await PersonaDAO.insertUserPersona(userData.persona_name, user_id);
           await SocialGroupDao.insertUserSocialGroup(userData.social_group_name, user_id);
 
