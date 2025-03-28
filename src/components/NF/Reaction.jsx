@@ -282,7 +282,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     try {
       if (likeActive) {
         // Remove the like
-        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+        await axios.delete(`http://localhost:3001/api/reactions/delete`, {
           data: {
             reaction_type: 0,
             post_id,
@@ -316,7 +316,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     try {
       if (upvoteActive) {
         // Remove the upvote
-        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+        await axios.delete(`http://localhost:3001/api/reactions/delete`, {
           data: {
             reaction_type: 1,
             post_id,
@@ -351,7 +351,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     try {
       if (downvoteActive) {
         // Remove the downvote
-        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+        await axios.delete(`http://localhost:3001/api/reactions/delete`, {
           data: {
             reaction_type: 2,
             post_id,
@@ -410,10 +410,9 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     try {
       if (selectedEmoji) {
         // Remove the emoji reaction
-        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+        await axios.delete(`http://localhost:3001/api/reactions/delete`, {
           data: {
             reaction_type: 4,
-            emote_type: selectedEmoji,
             post_id,
             user_id: myUserID,
           },
