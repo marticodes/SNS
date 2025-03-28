@@ -135,7 +135,7 @@ const Button = styled.button`
   }
 `;
 
-const NewPost = ({ user, addNewPost, fetchFeedData, ephemeral = true }) => {
+const NewPost = ({ user, addNewPost, fetchFeedData, ephemeral = true, community_id }) => {
   const navigate = useNavigate();
   const [postText, setPostText] = useState("");
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -177,7 +177,7 @@ const NewPost = ({ user, addNewPost, fetchFeedData, ephemeral = true }) => {
       media_type: mediaFiles.length > 0 ? 1 : 0,
       duration: isEphemeral ? 1 : 0,
       visibility: 2,
-      comm_id: null,
+      comm_id: community_id,
     };
   
     try {
