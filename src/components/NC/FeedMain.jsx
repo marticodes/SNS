@@ -59,27 +59,9 @@ const FeedMain = ({ user, posts, community_id }) => {
     }
   }, [location.pathname, posts]);
 
-    const fetchFeed = useCallback(async (communityId) => {
-      if (!communityId) return;
-  
-      try {
-        console.log(`📡 Fetching feed for community ID: ${communityId}`);
-        const response = await fetch(`http://localhost:3001/api/recomm/feed/channel/${communityId}/`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch feed: ${response.statusText}`);
-        }
-        const feedData = await response.json();
-        setPosts(feedData);
-        console.log("✅ Feed Updated:", feedData);
-      } catch (error) {
-        console.error("❌ Error fetching feed:", error);
-        setPosts([]);
-      }
-    }, []);
-
   const handleSearch = async (searchQuery) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/posts/combined/search/${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`http://localhost:3001/api/posts/combined/search/comm/${encodeURIComponent(searchQuery)}/${community_id}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

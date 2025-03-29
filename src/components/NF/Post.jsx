@@ -101,14 +101,20 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
         try {
           const res = await axios.get(`http://localhost:3001/api/posts/id/${parent_id}`);
           setParentPostData(res.data);
+  
+          // Fetch the user data for the parent post
+          if (res.data.user_id) {
+            const userRes = await axios.get(`http://localhost:3001/api/user/${res.data.user_id}`);
+            setParentPostData(prev => ({ ...prev, user_name: userRes.data.user_name }));
+          }
         } catch (err) {
-          console.error("❌ Error fetching parent post:", err);
+          console.error("❌ Error fetching parent post or user data:", err);
         }
       };
-
+  
       fetchParentPost();
     }
-  }, [parent_id]);
+  }, [parent_id]);  
 
   useEffect(() => {
     const fetchReactions = async () => {
