@@ -27,38 +27,44 @@ const ChatPage = () => {
   }, [chatId]);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/api/chats/all/${userId}`)
-      .then((response) => response.json())
-      .then(async (chats) => {
-        const updatedChatList = await Promise.all(
-          chats.map(async (chat) => {
-            let displayName;
-            let chatimg;
-            if (chat.group_chat === 0) {
-              const otherUserId = parseInt(chat.user_id_1, 10) === userId ? parseInt(chat.user_id_2, 10) : chat.user_id_1;
-              const userResponse = await fetch(`http://localhost:3001/api/user/${otherUserId}`);
-              const userData = await userResponse.json();
-              displayName = userData.user_name;
-              chatimg = userData.profile_picture;
-            } else {
-              const groupResponse = await fetch(`http://localhost:3001/api/members/chat/${chat.chat_id}`);
-              const groupData = await groupResponse.json();
-              const groupNames = await Promise.all(
-                groupData.map(async (member) => {
-                  const userResponse = await fetch(`http://localhost:3001/api/user/${member}`);
-                  const userData = await userResponse.json();
-                  return userData.user_name;
-                })
-              );
-              displayName = groupNames.join(", ");
-              chatimg = null;
-            }
-            return { chat_id: chat.chat_id, name: displayName, image: chatimg, group_chat: chat.group_chat };
-          })
-        );
-        setchatList(updatedChatList);
-      });
-  }, []);
+    const fetchChats = () => {
+      fetch(`http://localhost:3001/api/chats/all/${userId}`)
+        .then((response) => response.json())
+        .then(async (chats) => {
+          const updatedChatList = await Promise.all(
+            chats.map(async (chat) => {
+              let displayName;
+              let chatimg;
+              if (chat.group_chat === 0) {
+                const otherUserId = parseInt(chat.user_id_1, 10) === userId ? parseInt(chat.user_id_2, 10) : chat.user_id_1;
+                const userResponse = await fetch(`http://localhost:3001/api/user/${otherUserId}`);
+                const userData = await userResponse.json();
+                displayName = userData.user_name;
+                chatimg = userData.profile_picture;
+              } else {
+                const groupResponse = await fetch(`http://localhost:3001/api/members/chat/${chat.chat_id}`);
+                const groupData = await groupResponse.json();
+                const groupNames = await Promise.all(
+                  groupData.map(async (member) => {
+                    const userResponse = await fetch(`http://localhost:3001/api/user/${member}`);
+                    const userData = await userResponse.json();
+                    return userData.user_name;
+                  })
+                );
+                displayName = groupNames.join(", ");
+                chatimg = null;
+              }
+              return { chat_id: chat.chat_id, name: displayName, image: chatimg, group_chat: chat.group_chat };
+            })
+          );
+          setchatList(updatedChatList);
+        });
+    };
+    fetchChats();
+    const intervalId = setInterval(fetchChats, 4000);
+    return () => clearInterval(intervalId);
+  }, [userId]);
+  
 
   const isGroup = chatList.find(chat => chat.chat_id === currentChatId)?.group_chat || 0;
 

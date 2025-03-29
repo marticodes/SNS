@@ -16,6 +16,17 @@ export default function NotificationPanel({ onClose }) {
   const [sender, setSender] = useState(null);
   const [relationship, setRelationship] = useState("Loading...");
 
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    const day = String(date.getDate()).padStart(2, '0'); // Add leading zero for day
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Add leading zero for month
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0'); // Add leading zero for hours
+    const minutes = String(date.getMinutes()).padStart(2, '0'); // Add leading zero for minutes
+  
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  };
+
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -250,7 +261,7 @@ export default function NotificationPanel({ onClose }) {
     width: "320px",
     backgroundColor: "#fff",
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-    zIndex: 100000,
+    zIndex: 1000000000,
     overflowY: "auto",
     borderLeft: "1px solid #e0e0e0",
   };
@@ -325,7 +336,7 @@ export default function NotificationPanel({ onClose }) {
             <p style={textStyle}>
               <strong>{senderName}</strong> reacted to your post.
             </p>
-            <p style={timestampStyle}>{notification.timestamp}</p>
+            <p style={timestampStyle}>{formatTimestamp(notification.timestamp)}</p>
           </div>
         );
       case 1:
@@ -334,7 +345,7 @@ export default function NotificationPanel({ onClose }) {
             <p style={textStyle}>
               <strong>{notification.user}</strong> liked your post.
             </p>
-            <p style={timestampStyle}>{notification.timestamp}</p>
+            <p style={timestampStyle}>{formatTimestamp(notification.timestamp)}</p>
           </div>
         );
       case 2:
@@ -343,7 +354,7 @@ export default function NotificationPanel({ onClose }) {
             <p style={textStyle}>
               <strong>{senderName}</strong> commented on your post.
             </p>
-            <p style={timestampStyle}>{notification.timestamp}</p>
+            <p style={timestampStyle}>{formatTimestamp(notification.timestamp)}</p>
           </div>
         );
       case 3:
@@ -353,7 +364,7 @@ export default function NotificationPanel({ onClose }) {
               <p style={textStyle}>
                 <strong>{senderName}</strong> started following you.
               </p>
-              <p style={timestampStyle}>{notification.timestamp}</p>
+              <p style={timestampStyle}>{formatTimestamp(notification.timestamp)}</p>
             </div>
           </div>
         );
@@ -364,7 +375,7 @@ export default function NotificationPanel({ onClose }) {
               <p style={textStyle}>
                 <strong>{senderName}</strong> requested to follow you.
               </p>
-              <p style={timestampStyle}>{notification.timestamp}</p>
+              <p style={timestampStyle}>{formatTimestamp(notification.timestamp)}</p>
             </div>
             <div style={{ display: "flex", gap: "10px" }}>
               {clickedButton !== "Decline" && (

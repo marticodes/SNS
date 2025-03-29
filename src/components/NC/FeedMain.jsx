@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
@@ -47,17 +47,35 @@ const NewPostButton = styled.button`
   }
 `;
 
-const FeedMain = ({ user, posts }) => {
+const FeedMain = ({ user, posts, community_id }) => {
   const [filteredPosts, setFilteredPosts] = useState(posts || []);
   const navigate = useNavigate(); 
   const location = useLocation(); // To detect current route
 
   // Reset posts when navigating to the home page
   useEffect(() => {
-    if (location.pathname === "/case/1") {
+    if (location.pathname === "/case/2") {
       setFilteredPosts(posts); 
     }
   }, [location.pathname, posts]);
+
+    const fetchFeed = useCallback(async (communityId) => {
+      if (!communityId) return;
+  
+      try {
+        console.log(`📡 Fetching feed for community ID: ${communityId}`);
+        const response = await fetch(`http://localhost:3001/api/recomm/feed/channel/${communityId}/`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch feed: ${response.statusText}`);
+        }
+        const feedData = await response.json();
+        setPosts(feedData);
+        console.log("✅ Feed Updated:", feedData);
+      } catch (error) {
+        console.error("❌ Error fetching feed:", error);
+        setPosts([]);
+      }
+    }, []);
 
   const handleSearch = async (searchQuery) => {
     try {
@@ -80,18 +98,18 @@ const FeedMain = ({ user, posts }) => {
   };
 
   const handleNewPost = () => {
-    navigate("/case/1/new-post");
+    navigate("/case/2/new-post");
     resetFeed();
   };
 
   return (
     <FeedContainer>
       <FeedContent>
-        <FeedSearch onSearch={handleSearch} resetFeed={resetFeed} />
+        <FeedSearch onSearch={handleSearch} resetFeed={resetFeed} communityId={community_id}  />
         <NewPostDiv>
           <NewPostButton onClick={handleNewPost}>+ New Post</NewPostButton>
         </NewPostDiv>
-        <Feed user={user} postss={filteredPosts} />
+        <Feed user={user} postss={filteredPosts} communityId={community_id}/>
       </FeedContent>
     </FeedContainer>
   );

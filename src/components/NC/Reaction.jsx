@@ -29,11 +29,6 @@ const ReactionItem = styled.div`
   color: #555;
 `;
 
-const ReactionNum = styled.span`
-  color: #555; 
-  font-weight: 400;
-`;
-
 const EmojiPickerContainer = styled.div`
   position: absolute;
   background: white;
@@ -70,9 +65,9 @@ const RepostPopupContainer = styled.div`
   border: 1px solid #e0e0e0;
   border-radius: 10px;
   padding: 1rem;
-  width: 40%;
+  width: 70%;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  z-index: 100000000;
 `;
 
 const CommentInput = styled.textarea`
@@ -92,12 +87,14 @@ const CommentInput = styled.textarea`
 `;
 
 const RepostCard = styled.div`
-  width: 60%;
+  width: 90%;
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 10px;
   color: #000000;
-  background: #f9f9f9;
+  background: #f0f8ff;
+  margin: 10px auto;
+  margin-bottom: 20px;
 `;
 
 const RepostContent = styled.p`
@@ -202,7 +199,7 @@ const CloseButton = styled.button`
 `;
 
 // Component
-const Reaction = ({ user_id, post_id, onCommentClick }) => {
+const Reaction = ({ user_id, post_id, onCommentClick, communityId }) => {
   const [reactions, setReactions] = useState({
     likedUsers: [],
     emojiReactions: [],
@@ -222,6 +219,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
   const [originalPostUser, setOriginalPostUser] = useState(null);
   const [repostPopupOpen, setRepostPopupOpen] = useState(false);
   const [repostComment, setRepostComment] = useState('');
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false); // State for pop-up
 
   const [sharePopupOpen, setSharePopupOpen] = useState(false);
 
@@ -284,7 +282,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     try {
       if (likeActive) {
         // Remove the like
-        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+        await axios.delete(`http://localhost:3001/api/reactions/delete`, {
           data: {
             reaction_type: 0,
             post_id,
@@ -318,7 +316,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     try {
       if (upvoteActive) {
         // Remove the upvote
-        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+        await axios.delete(`http://localhost:3001/api/reactions/delete`, {
           data: {
             reaction_type: 1,
             post_id,
@@ -353,7 +351,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     try {
       if (downvoteActive) {
         // Remove the downvote
-        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+        await axios.delete(`http://localhost:3001/api/reactions/delete`, {
           data: {
             reaction_type: 2,
             post_id,
@@ -412,10 +410,9 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     try {
       if (selectedEmoji) {
         // Remove the emoji reaction
-        await axios.delete(`http://localhost:3001/api/reactions/post/delete`, {
+        await axios.delete(`http://localhost:3001/api/reactions/delete`, {
           data: {
             reaction_type: 4,
-            emote_type: selectedEmoji,
             post_id,
             user_id: myUserID,
           },
@@ -449,11 +446,32 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     setRepostPopupOpen(!repostPopupOpen);
   };
 
-  const handleRepost = () => {
+  const handleRepost = async () => {
     console.log(`Reposting with comment: ${repostComment}`);
-    setRepostPopupOpen(false);
 
-    // TODO: Implement backend repost API here
+    const newPostData = {
+      parent_id: post_id, // parent_id should be the id of the post being reposted
+      user_id: myUserID,
+      content: repostComment,
+      timestamp: new Date().toISOString(),
+      media_type: 0, 
+      duration: 0, // Assuming non-ephemeral posts
+      visibility: 2, // Assuming visibility is public
+      comm_id: communityId,
+    };
+
+    try {
+      const response = await axios.post("http://localhost:3001/api/post/add", newPostData);
+      setShowSuccessPopup(true);
+  
+      // Hide the success popup after 2 seconds
+      setTimeout(() => {
+        setShowSuccessPopup(false);
+        setRepostPopupOpen(false); // Close the repost popup after success
+      }, 2000);
+      } catch (error) {
+        console.error("❌ Error reposting:", error.message);
+      };
   };
 
   // SHARE logic
@@ -537,6 +555,9 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
       {/* REPOST POPUP */}
       {repostPopupOpen && (
         <>
+        {showSuccessPopup && (
+          <SuccessPopup>Successfully uploaded!</SuccessPopup>
+        )}
           <Overlay onClick={toggleRepostPopup} />
           <RepostPopupContainer>
             <UserProfile profileImg={user?.profile_picture} userName={user?.user_name} variant="default" />
@@ -595,5 +616,19 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     </>
   );
 };
+
+// Success Popup Style
+const SuccessPopup = styled.div`
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: green;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  z-index: 10000;
+`;
 
 export default Reaction;

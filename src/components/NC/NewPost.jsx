@@ -8,6 +8,7 @@ import axios from "axios";
 const NewPostContainer = styled.div`
   display: flex;
   width: 85%;
+  z-index: 1000000;
 `;
 
 const PostDiv = styled.div`
@@ -135,7 +136,7 @@ const Button = styled.button`
   }
 `;
 
-const NewPost = ({ user, addNewPost, fetchFeedData, ephemeral = true, community_id }) => {
+const NewPost = ({ user, ephemeral = true, community_id }) => {
   const navigate = useNavigate();
   const [postText, setPostText] = useState("");
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -182,13 +183,12 @@ const NewPost = ({ user, addNewPost, fetchFeedData, ephemeral = true, community_
   
     try {
       const response = await axios.post("http://localhost:3001/api/post/add", newPostData);
-      await fetchFeedData();
 
       setShowSuccessPopup(true); 
 
       setTimeout(() => {
         setShowSuccessPopup(false);
-        navigate("/case/1"); 
+        navigate("/case/2"); 
       }, 2000); 
     } catch (error) {
       console.error("❌ Error posting:", error.message);

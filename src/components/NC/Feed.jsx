@@ -14,7 +14,7 @@ const FeedDiv = styled.div`
   background-color: #ffffff;
 `;
 
-const Feed = ({ postss, user, commentType = "nested", isProfilePage = false }) => {
+const Feed = ({ postss, user, commentType = "nested", isProfilePage = false, communityId }) => {
   const [posts, setPosts] = useState(postss);
   const [activeHashtag, setActiveHashtag] = useState(null);
   const searchedWord = localStorage.getItem("SearchedWord");
@@ -61,10 +61,10 @@ const Feed = ({ postss, user, commentType = "nested", isProfilePage = false }) =
   ) : (
     <div style={{ textAlign: "center", marginTop: "20px" }}>
       <h1 style={{ color: "black", fontSize: "20px" }}>
-        Oops, it seems like there is no post in this channel!
+        Oops, it seems like there is no post for you!
       </h1>
       <p style={{ color: "black", fontSize: "14px" }}>
-        Try another channel or make a post!
+        Try adding a post or look into another community!
       </p>
     </div>
   );
@@ -101,6 +101,7 @@ const Feed = ({ postss, user, commentType = "nested", isProfilePage = false }) =
               user={user}
               commentType={commentType}
               hashtagClick={hashtagClick}
+              communityId={communityId}
             />
           </FeedDiv>
         ))
