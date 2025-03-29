@@ -33,9 +33,9 @@ const ActionChoice = {
         - Personality traits: ${persona.join(", ")}
         - Interests: ${interests.join(", ")}
 
-        The above characteristics are simply used to describe who you are as a person and should not be repeated in every generation
-        
-        Your responses should reflect this background **naturally** without explicitly listing and without using all of the attributes. Instead, adopt a tone, style, and perspective that aligns with this persona. You SHOULD NOT mention every attribute—just let them subtly shape the way you respond. Also no need for BOLD text in your responses.`;
+        The above characteristics are simply used to describe who you are as a person and should not be repeated in every generation. Keep perplexity and burstiness minimal. You are a social media user with a unique personality and interests.  
+        Your responses should reflect this background **naturally** without explicitly listing and without using all of the attributes. Instead, adopt a tone, style, and perspective that aligns with this persona. You SHOULD NOT mention every attribute—just let them subtly shape the way you respond. Also no need for BOLD text in your responses.
+        Before generating your final response, perform an internal chain-of-thought reasoning process to ensure your answer is natural and human-like—like how users interact on Instagram or TikTok. Do not reveal or include any details of this internal chain-of-thought in your final output.`;
 
         if (user_status === 0) {
             if (Math.random() < user_activity_level) {

@@ -100,7 +100,7 @@ const Simulation = {
     async updateAGUserBio(user_id, system_prompt) {
         try {
             const prev_bio = await UserDAO.getUserInfo(user_id).then(user => user.user_bio);
-            const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio.`;
+            const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio. Make sure it is within 100 - 120 characters. Change tone in each generation and mimic it to how users on social media like Instagram and TikTok interact.`;
             const new_bio = await generateResponse(system_prompt, user_prompt);
             
             await makeAPIRequest("http://localhost:3001/api/user/update/bio", "POST", { user_id, user_bio: new_bio });
@@ -147,7 +147,7 @@ const Simulation = {
                 return;
             }
 
-            const user_prompt = `You are about to comment on a comment to a post. The content of the post is: "${sel_post.content}". The content of the comment is: "${sel_comment.content}". Generate a comment for the comment "${sel_comment.content}".`;
+            const user_prompt = `You are about to comment on a comment to a post. The content of the post is: "${sel_post.content}". The content of the comment is: "${sel_comment.content}". Generate a comment for the comment "${sel_comment.content}". Change tone in each generation and mimic it to how users on social media like Instagram and TikTok interact.`;
             const comment = await generateResponse(system_prompt, user_prompt);
 
             const time = new Date().toISOString();
@@ -259,6 +259,10 @@ const Simulation = {
             }
 
             const user_prompt = `You are about to make a new post on social media. While making a post ensure that:
+            1. The theme of the post is only one. 
+            2. Make sure that your new post is signficantly different in content and context to your old posts. 
+            3. **Structure the post clearly.** Avoid adding multiple unrelated ideas in a single post.  
+            4. Make sure that the post has newlines and paragraphs to make it more readable.
             1. Focus on one clear theme—avoid mixing multiple ideas.  
             2. Make it distinct from your previous posts in content, structure, storyline, context, and length.  
             3. Do not use the same phrasings as the previous posts.
@@ -708,29 +712,54 @@ const Simulation = {
             console.error("Error sending request:", error);
         }
     },
-
-    async acceptRequest(user_id){
-        let frens = await RequestDAO.getRequests(user_id);
-        if (!frens || frens.length === 0) {
-            console.error("No requests found.");
-            return null;
-        }
-        let sel_fren = frens[Math.floor(Math.random() * frens.length)];
-        let closeness = Math.floor(Math.random() * 11);
+    async logAction(user_id, action_type, content) {
         try {
-            await makeAPIRequest("http://localhost:3001/api/relations/add", "POST", { 
-                user_id_1: sel_fren,
-                user_id_2: user_id,
-                relation_type: 2,
-                restricted: 0,
-                closeness: closeness,
-            });
+            const timestamp = new Date().toISOString();
+            await ActionLogsDAO.insertActionLog(user_id, action_type, content, timestamp);
+        } catch (error) {
+            console.error("Error logging action:", error);
+        }
+    },
 
-            await makeAPIRequest("http://localhost:3001/api/requests/delete", "DELETE", { 
-                user_id_1: sel_fren,
-                user_id_2: user_id,
-            });
+    async insertUserPipeline(userData) {
+        try {
+          // 1. Insert the basic user info into the user table
+          const user_id = await UserDAO.insertUser(
+            userData.id_name,
+            userData.user_name,
+            userData.email,
+            userData.password,
+            userData.user_bio,
+            userData.profile_picture
+          );
+    
+          await TraitDAO.insertUserTraits(
+            user_id,
+            //userData.trait_id,
+            userData.posting_trait,
+            userData.commenting_trait,
+            userData.reacting_trait,
+            userData.messaging_trait,
+            userData.updating_trait,
+            userData.comm_trait,
+            userData.notification_trait
+        
+          );
 
+          //await UserInterestDao.insertUserInterest(userData.interest_name, user_id);
+        if (Array.isArray(userData.interests)) {
+            for (const interest of userData.interests) {
+            await UserInterestDao.insertUserInterest(interest, user_id);
+            }
+        } else {
+            await UserInterestDao.insertUserInterest(userData.interest_name, user_id);
+        }
+
+          await PersonaDAO.insertUserPersona(userData.persona_name, user_id);
+          await SocialGroupDao.insertUserSocialGroup(userData.social_group_name, user_id);
+
+          console.log(`✅ Created Agent: ${userData.user_name} (ID: ${userData.id_name}) with full details`);
+          return user_id;
         } catch (error) {
             console.error("Error accepting request:", error);
         }
