@@ -133,7 +133,7 @@ export default function NotificationPanel({ onClose }) {
   };
 
   const handlePostClick = (postId) => {
-    navigate(`/post/${postId}`); // Navigate to post page
+    //navigate(`/post/${postId}`); // Navigate to post page  CANNOT DO THIS NOW
   };
 
   const handleFollowClick = async (isPrivate, myUserId, id) => {

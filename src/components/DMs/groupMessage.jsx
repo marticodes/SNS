@@ -16,6 +16,17 @@ const GroupMessage = ({ message, isCurrentUser, onReply, chatId }) => {
 
   const currentUserID = parseInt(localStorage.getItem("userID"), 10);
 
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    const day = String(date.getDate()).padStart(2, '0'); // Add leading zero for day
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Add leading zero for month
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0'); // Add leading zero for hours
+    const minutes = String(date.getMinutes()).padStart(2, '0'); // Add leading zero for minutes
+  
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  };
+
   useEffect(() => {
     const fetchReactions = async () => {
       try {
@@ -256,7 +267,7 @@ const GroupMessage = ({ message, isCurrentUser, onReply, chatId }) => {
         >
           {userInfo.user_name}{" "}
           <span style={{ fontSize: "12px", color: "#999", marginLeft: "5px" }}>
-            {message.timestamp}
+            {formatTimestamp(message.timestamp)}
           </span>
         </div>
         {!isCurrentUser && iconContainer}
