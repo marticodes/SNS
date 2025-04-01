@@ -43,6 +43,27 @@ const UserDAO = {
         });
     },
 
+    async getAgents() {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT user_id FROM User WHERE is_login IS NULL OR is_login = 0';
+                db.all(sql, [], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else if (rows.length === 0) {
+                        resolve(false);
+                    } else {
+                        const user_ids = rows.map(row => row.user_id);
+                        resolve(user_ids);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+    
+
     async getActiveUsersInfo() {
         return new Promise((resolve, reject) => {
             try {

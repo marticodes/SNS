@@ -101,6 +101,17 @@ app.get('/api/users/active',
     } 
 );
 
+app.get('/api/simulation/agents',
+  async (req, res) => {
+      try {
+        const user = await userDao.getAgents();
+        res.status(200).json(user);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error getting user info ${err}` });
+      }
+  } 
+);
+
 app.get('/api/users/active/info',
   async (req, res) => {
       try {
