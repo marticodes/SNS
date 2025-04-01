@@ -65,7 +65,20 @@ const UserInterestDAO = {
             }
         });
 
-    }
+    },
+
+    async removeUserInterest(user_id, interest_name) {
+        return new Promise((resolve, reject) => {
+            const sql = 'DELETE FROM UserInterest WHERE user_id=? AND interest_name=?';
+            db.run(sql, [user_id, interest_name], function (err) {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(this.changes > 0); 
+            });
+        });
+    
+    },
 
 };
 
