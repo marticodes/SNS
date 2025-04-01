@@ -90,7 +90,7 @@ const ActionChoice = {
             random -= a.weight;
         }
         
-        chosenAction = "Add post";
+        chosenAction = "Create new channel";
 
         // Fallback
         if (!chosenAction) {
@@ -171,7 +171,11 @@ const ActionChoice = {
     },
 };
 
-// ActionChoice.performRandomAction(10);
+for (let i = 0; i < 10; i++) {
+ActionChoice.performRandomAction(10);
+
+  }
+
 
 export default ActionChoice;
 
