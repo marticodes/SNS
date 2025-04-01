@@ -120,6 +120,59 @@ const UserDAO = {
         });
     },
 
+    async logInUser(user_id){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'UPDATE User SET is_login=? WHERE user_id=?';
+                db.run(sql, [1, user_id], function (err) {
+                    if (err) {
+                    reject(err);
+                    }else {
+                    resolve(this.changes > 0); 
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async logOutUser(user_id){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'UPDATE User SET is_login=? WHERE user_id=?';
+                db.run(sql, [0, user_id], function (err) {
+                    if (err) {
+                    reject(err);
+                    }else {
+                    resolve(this.changes > 0); 
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async isLogin(user_id) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT is_login FROM User WHERE user_id = ?';
+                db.get(sql, [user_id], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve(false);
+                    } else {
+                        resolve(row?.is_login === 1);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
     async insertUser(id_name, user_name, email, password, user_bio, profile_picture) {
         return new Promise((resolve, reject) => {
             try {

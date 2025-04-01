@@ -22,7 +22,7 @@ const CommunityDAO = {
                         if (err) {
                             return reject(err);
                         }
-                        const commList = communities.map(row => new Community(row.comm_id, row.comm_name, row.comm_image, row.comm_bio));
+                        const commList = communities.map(row => new Community(row.comm_id, row.comm_name, row.comm_image, row.comm_bio, row.duration));
                         resolve(commList);
                     });
                 });
@@ -43,7 +43,7 @@ const CommunityDAO = {
                     } else if (row.length === 0) {
                         resolve(false);
                     } else {
-                        const comm = new Community(row.comm_id, row.comm_name, row.comm_image, row.comm_bio);
+                        const comm = new Community(row.comm_id, row.comm_name, row.comm_image, row.comm_bio, row.duration);
                         resolve(comm);
                     }
                 });
@@ -53,11 +53,11 @@ const CommunityDAO = {
         });
     },
 
-    async createNewChannel(comm_name, comm_image, comm_bio, user_id = 0){
+    async createNewChannel(comm_name, comm_image, comm_bio, user_id = 0, duration = 0){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO Community (comm_name, comm_image, comm_bio) VALUES (?,?,?)';
-                db.run(sql, [comm_name, comm_image, comm_bio], function(err) { 
+                const sql = 'INSERT INTO Community (comm_name, comm_image, comm_bio, duration) VALUES (?,?,?, ?)';
+                db.run(sql, [comm_name, comm_image, comm_bio, duration], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
@@ -92,6 +92,25 @@ const CommunityDAO = {
                     }
                     const bios = rows.map(row => row.comm_bio);
                     resolve(bios);
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async isEphemeralCommunity(comm_id) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT duration FROM Community WHERE comm_id = ?';
+                db.get(sql, [comm_id], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve(false);
+                    } else {
+                        resolve(row?.duration === 1);
+                    }
                 });
             } catch (error) {
                 reject(error);
