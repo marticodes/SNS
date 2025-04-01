@@ -415,7 +415,7 @@ const Simulation = {
                 media_type: 0, 
                 media_url: "", 
                 timestamp: time, 
-                duration: 24, 
+                duration: 1, 
                 visibility: await UserDAO.getUserInfo(user_id).then(user => user.visibility), 
                 comm_id: null});
         } catch (error) {
@@ -666,7 +666,7 @@ const Simulation = {
                 media_type: 0, 
                 media_url: "", 
                 timestamp: time, 
-                duration: 24, 
+                duration: null, 
                 visibility: await UserDAO.getUserInfo(user_id).then(user => user.visibility), 
                 comm_id: sel_comm.comm_id});
         } catch (error) {
