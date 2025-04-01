@@ -822,6 +822,17 @@ app.get('/api/interests/:user_id/',
       }
 );
 
+app.delete('/api/interests/delete',
+  async (req, res) => {
+      try {
+        const ina = await uiDao.removeUserInterest(req.body.user_id, req.body.interest_name);
+        res.status(200).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error deleting interest ${err}` });
+      }
+    }
+);
+
 app.post('/api/interest/add',
   async (req, res) => {
       try {
