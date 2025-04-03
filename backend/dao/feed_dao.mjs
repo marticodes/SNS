@@ -3,6 +3,42 @@ import Post from '../models/post_model.mjs';
 import CommentDAO from './comment_dao.mjs';
 
 const FeedDAO = {
+    async filterAndDeleteOldPosts(rows) {
+        return new Promise((resolve, reject) => {
+            const currentTime = new Date();
+            const postsToDelete = [];
+            const validPosts = [];
+    
+            rows.forEach(row => {
+                const postTime = new Date(row.timestamp);
+                const timeDiff = (currentTime - postTime) / (1000 * 60 * 60); // Convert to hours
+                
+                if (timeDiff >= 24) {
+                    postsToDelete.push(row.post_id);
+                } else {
+                    validPosts.push(new Post(
+                        row.post_id, row.parent_id, row.user_id, row.content, row.topic, 
+                        row.media_type, row.media_url, row.timestamp, row.duration, 
+                        row.visibility, row.comm_id, row.hashtag
+                    ));
+                }
+            });
+    
+            if (postsToDelete.length > 0) {
+                // console.log(postsToDelete);
+                const deleteSql = `DELETE FROM Post WHERE post_id IN (${postsToDelete.map(() => '?').join(',')})`;
+                db.run(deleteSql, postsToDelete, (deleteErr) => {
+                    if (deleteErr) {
+                        return reject(deleteErr);
+                    }
+                    resolve(validPosts);
+                });
+            } else {
+                resolve(validPosts);
+            }
+        });
+    },
+    
     async  getFeedFromFriends(userId){
         return new Promise((resolve, reject) => {
             const sql = `
@@ -115,12 +151,16 @@ const FeedDAO = {
                 ORDER BY timestamp DESC;
             `;
     
-            db.all(sql, [comm_id], (err, rows) => {
+            db.all(sql, [comm_id], async (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
-                    const posts= rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id, row.hashtag));
-                    resolve(posts);
+                    try {
+                        const validPosts = await FeedDAO.filterAndDeleteOldPosts(rows);
+                        resolve(validPosts);
+                        } catch (error) {
+                            reject(error);
+                        }
                 }
             });
         });
@@ -143,13 +183,16 @@ const FeedDAO = {
                 ORDER BY p.timestamp DESC;
             `;
     
-            db.all(sql, [userId, userId], (err, rows) => {
+            db.all(sql, [userId, userId], async (err, rows) => {
                 if (err) {
                     reject(err);
-                } else {
-                    const posts= rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id, row.hashtag));
-                    resolve(posts);
-                }
+                } try {
+                    // console.log(rows.length);
+                    const validPosts = await FeedDAO.filterAndDeleteOldPosts(rows);
+                    resolve(validPosts);
+                    } catch (error) {
+                        reject(error);
+                    }
             });
         });
     },

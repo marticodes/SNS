@@ -104,7 +104,7 @@ const ActionChoice = {
             random -= a.weight;
         }
         
-        // chosenAction = "Accept friend request";
+        // chosenAction = "View a story";
 
         // Fallback
         if (!chosenAction) {
@@ -186,7 +186,7 @@ const ActionChoice = {
 };
 
 // for (let i = 0; i < 10; i++) {
-// ActionChoice.performRandomAction(3);
+// ActionChoice.performRandomAction(10);
 
 //   }
 

@@ -149,6 +149,15 @@ const ReactionDAO = {
     async insertPostReaction(reaction_type, emote_type, post_id, user_id, timestamp) {
         return new Promise((resolve, reject) => {
             try {
+                const check_sql = 'SELECT COUNT(*) AS count FROM Reaction WHERE post_id = ? AND user_id = ?';
+                db.get(check_sql, [post_id, user_id], (check_err, row) => {
+                if (check_err) {
+                    return reject(check_err);
+                }
+                if (row.count > 0) {
+                    console.log("Already reacted");
+                    return resolve(false);
+                }
                 const sql = 'INSERT INTO Reaction (reaction_type, emote_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?,?)';
                 db.run(sql, [reaction_type, emote_type, post_id, 0, 0, 0, user_id, timestamp], async function(err) { 
                     if (err) {
@@ -176,6 +185,7 @@ const ReactionDAO = {
                         resolve(id);
                     }
                 });
+            });
             } catch (error) {
                 reject(error);
             }
@@ -185,6 +195,16 @@ const ReactionDAO = {
     async insertCommentReaction(reaction_type, emote_type, comment_id, user_id, timestamp){
         return new Promise((resolve, reject) => {
             try {
+                
+                const check_sql = 'SELECT COUNT(*) AS count FROM Reaction WHERE comment_id = ? AND user_id = ?';
+                db.get(check_sql, [comment_id, user_id], (check_err, row) => {
+                if (check_err) {
+                    return reject(check_err);
+                }
+                if (row.count > 0) {
+                    console.log("Already reacted");
+                    return resolve(false);
+                }
                 const sql = 'INSERT INTO Reaction (reaction_type, emote_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?,?)';
                 db.run(sql, [reaction_type, emote_type, 0, comment_id, 0, 0, user_id, timestamp], async function(err) { 
                     if (err) {
@@ -211,6 +231,7 @@ const ReactionDAO = {
                         resolve(id);
                     }
                 });
+            });
             } catch (error) {
                 reject(error);
             }
@@ -221,6 +242,16 @@ const ReactionDAO = {
         return new Promise((resolve, reject) => {
             try {
                 console.log(message_id);
+
+                const check_sql = 'SELECT COUNT(*) AS count FROM Reaction WHERE message_id = ? AND user_id = ?';
+                db.get(check_sql, [message_id, user_id], (check_err, row) => {
+                if (check_err) {
+                    return reject(check_err);
+                }
+                if (row.count > 0) {
+                    console.log("Already reacted");
+                    return resolve(false);
+                }
 
                 const sql = 'INSERT INTO Reaction (reaction_type, emote_type, post_id, comment_id, chat_id, message_id, user_id, timestamp) VALUES (?,?,?,?,?,?,?,?)';
                 db.run(sql, [reaction_type, emote_type, 0, 0,chat_id, message_id, user_id, timestamp], async function(err) { 
@@ -249,6 +280,7 @@ const ReactionDAO = {
                         resolve(id);
                     }
                 });
+            });
             } catch (error) {
                 reject(error);
             }
