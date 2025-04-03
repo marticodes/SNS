@@ -281,7 +281,45 @@ const UserDAO = {
             }
         });
     },
+    async findByIdName(id_name) {
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT * FROM User WHERE id_name = ?';
+            db.get(sql, [id_name], (err, row) => {
+                if (err) {
+                    reject(err);
+                } else if (!row) {
+                    resolve(null);
+                } else {
+                    const user = new User(
+                        row.user_id, row.id_name, row.user_name,
+                        row.email, row.password, row.user_bio,
+                        row.profile_picture, row.status,
+                        row.visibility, row.activity_level
+                    );
+                    resolve(user);
+                }
+            });
+        });
+    },
 
+    async findByUserName(user_name) {
+        return new Promise((resolve, reject) => {
+            db.get("SELECT * FROM User WHERE user_name = ?", [user_name], (err, row) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(row);
+            });
+        });
+    },
+    async findByEmail(email) {
+        return new Promise((resolve, reject) => {
+        db.get("SELECT * FROM User WHERE email = ?", [email], (err, row) => {
+            if (err) return reject(err);
+            resolve(row);
+        });
+        });
+    }
 };
 
 export default UserDAO;

@@ -807,7 +807,98 @@ const Simulation = {
             console.error("Error adding new channel", error);
         }
     },
+    async generateAgentFromGroupChats() {
+        try {
+          // Retrieve all preexisting group chats.
+          const groupChats = await ChatDAO.getAllGroupChats();
+          if (!groupChats || groupChats.length === 0) {
+            console.error("No group chats found for generating agent data.");
+            return;
+          }
+          const randomGroupChat = groupChats[Math.floor(Math.random() * groupChats.length)];
+          const chatName = randomGroupChat.chat_name ? String(randomGroupChat.chat_name) : "GroupChat";
+          
+          // Retrieving messages
+          const messages = await MessageDAO.getMessagesByChatId(randomGroupChat.chat_id);
+          let chatContents = "";
+          if (messages && messages.length > 0) {
+            chatContents = messages.map(msg => msg.content).join(" ");
+          }
+          const chatDescription = chatContents.length > 0 ? chatContents.substring(0, 300) : "lively conversations and diverse topics";
+      
+          const systemPrompt = "You are an AI that generates random social media user profiles in JSON format.";
+          const userPrompt = `
+      Generate a random social media user profile in JSON format using the following group chat context:
+      Group Chat Name: ${chatName}
+      Group Chat Description: ${chatDescription}
+      
+      The JSON object must include the following keys:
+      - "id_name": A unique identifier starting with "ID_".
+      - "user_name": A plausible first name.
+      - "email": A plausible email address.
+      - "password": A sample strong password.
+      - "user_bio": A brief description about the user.
+      - "profile_picture": A URL using "https://i.pravatar.cc/120?u=" with a random query parameter.
+      - "posting_trait": A random floating-point number between 0 and 1 with two decimal places.
+      - "commenting_trait": A random floating-point number between 0 and 1 with two decimal places.
+      - "reacting_trait": A random floating-point number between 0 and 1 with two decimal places.
+      - "messaging_trait": A random floating-point number between 0 and 1 with two decimal places.
+      - "updating_trait": A random floating-point number between 0 and 1 with two decimal places.
+      - "comm_trait": A random floating-point number between 0 and 1 with two decimal places.
+      - "notification_trait": A random floating-point number between 0 and 1 with two decimal places.
+      - "interests":  An array of at least three interests chosen from the following list: ["Animals", "Art & Design", "Automobiles", "DIY & Crafting", "Education", "Fashion", "Finance", "Fitness", "Food", "Gaming", "History & Culture", "Lifestyle", "Literature", "Movies", "Music", "Nature", "Personal Development", "Photography", "Psychology", "Religion", "Social", "Sports", "Technology", "Travel", "Wellness"].
+      - "persona_name": Derived from the group chat name.
+      - "social_group_name": Derived from the group chat name.
+      Return only the JSON object.
+          `;
+      
+          const apiResponse = await generateResponse(systemPrompt, userPrompt);
+          let cleanResponse = apiResponse.trim();
+          if (cleanResponse.startsWith("```")) {
+            cleanResponse = cleanResponse.replace(/^```(json)?\s*/, "").replace(/```$/, "").trim();
+          }
 
-
-};
+          let agentData;
+          try {
+            agentData = JSON.parse(cleanResponse);
+          } catch (e) {
+            console.error("Failed to parse API response:", e, "Response:", cleanResponse);
+            return;
+          }
+          //
+          let existingUser = await UserDAO.findByUserName(agentData.user_name);
+          if (existingUser) {
+              // Modify the user_name until it is unique.
+              let unique = false;
+              while (!unique) {
+                  agentData.user_name = agentData.user_name + '_' + Math.floor(Math.random() * 10000);
+                  existingUser = await UserDAO.findByUserName(agentData.user_name);
+                  if (!existingUser) {
+                      unique = true;
+                  }
+              }
+          }
+          const originalEmail = agentData.email;
+          let uniqueEmail = originalEmail;
+          let emailCounter = 1;
+          let emailExists = await UserDAO.findByEmail(uniqueEmail);
+          while (emailExists) {
+            // Assumes the email is in the format local@domain.com
+            const [local, domain] = originalEmail.split('@');
+            uniqueEmail = `${local}_${emailCounter}@${domain}`;
+            emailCounter++;
+            emailExists = await UserDAO.findByEmail(uniqueEmail);
+          }
+          agentData.email = uniqueEmail;
+          
+          const newUserId = await Simulation.insertUserPipeline(agentData);
+          console.log("New agent inserted with ID:", newUserId);
+          return newUserId;
+      
+        } catch (error) {
+          console.error("Error generating agent from group chats:", error);
+        }
+      }
+    }      
 export default Simulation;
+

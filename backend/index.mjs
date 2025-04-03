@@ -1068,7 +1068,8 @@ app.listen(port, ()=> {
  //(async () => {
  //await Simulation.startSimulation();
  //})();
-// import Simulation from './simulation.mjs';
+//import Simulation from './simulation.mjs';
+//Simulation.generateAgentFromGroupChats();
 
 
 

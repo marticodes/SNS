@@ -1,5 +1,6 @@
 import ActionChoice from './action_choice.mjs';
 import db from './db.mjs';
+import Simulation from './simulation.mjs';
 
 function getUserIds() {
     return new Promise((resolve, reject) => {
@@ -16,16 +17,22 @@ async function ActionSimulation() {
     while (true) {
         try {
             const userIds = await getUserIds();
-            if (userIds.length === 0) {
-                console.warn("No user IDs found in the database.");
-            } else {
-                const randomIndex = Math.floor(Math.random() * userIds.length);
-                const user_id = userIds[randomIndex];
-                try {
-                    await ActionChoice.performRandomAction(user_id);
-                    console.log(`Agent ${user_id} performed a random action.`);
-                } catch (error) {
-                    console.error(`Error with agent ${user_id}:`, error);
+            // If there are users, decide randomly whether to create a new agent or perform an action with an existing one.
+            if (userIds.length > 0) {
+                // 2% chance to create a new agent.
+                if (Math.random() < 0.02) {
+                    const newAgentId = await Simulation.generateAgentFromGroupChats();
+                    console.log(`New agent created with id: ${newAgentId}`);
+                } else {
+                    // Otherwise, select an existing agent to perform a random action.
+                    const randomIndex = Math.floor(Math.random() * userIds.length);
+                    const user_id = userIds[randomIndex];
+                    try {
+                        await ActionChoice.performRandomAction(user_id);
+                        console.log(`Agent ${user_id} performed a random action.`);
+                    } catch (error) {
+                        console.error(`Error with agent ${user_id}:`, error);
+                    }
                 }
             }
         } catch (dbError) {
@@ -38,7 +45,4 @@ async function ActionSimulation() {
 // Start the simulation
 ActionSimulation().catch(error => console.error("Simulation error:", error));
 
-async function CreateAgentfromScratch() {
 
-
-}
