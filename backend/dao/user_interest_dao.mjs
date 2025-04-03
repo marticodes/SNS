@@ -80,6 +80,40 @@ const UserInterestDAO = {
     
     },
 
+    async updateInterestByName(user_id, curr_name, new_name) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'UPDATE UserInterest SET interest_name=? WHERE user_id=? AND interest_name=?';
+                db.run(sql, [new_name, user_id, curr_name], function (err) {
+                    if (err) {
+                      reject(err);
+                    }else {
+                      resolve(this.changes > 0);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async updateInterestById(interest_id, interest_name) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'UPDATE UserInterest SET interest_name=? WHERE interest_id=?';
+                db.run(sql, [interest_name, interest_id], function (err) {
+                    if (err) {
+                      reject(err);
+                    }else {
+                      resolve(this.changes > 0);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
 };
 
 export default UserInterestDAO;
