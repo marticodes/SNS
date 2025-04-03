@@ -104,7 +104,7 @@ const ActionChoice = {
             random -= a.weight;
         }
         
-        // chosenAction = "Create new channel";
+        // chosenAction = "Accept friend request";
 
         // Fallback
         if (!chosenAction) {
@@ -186,7 +186,7 @@ const ActionChoice = {
 };
 
 // for (let i = 0; i < 10; i++) {
-// ActionChoice.performRandomAction(10);
+// ActionChoice.performRandomAction(3);
 
 //   }
 
