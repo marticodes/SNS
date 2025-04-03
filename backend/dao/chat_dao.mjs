@@ -300,6 +300,28 @@ const ChatDAO = {
             });
         });
     },
+    async getAllGroupChats() {
+        return new Promise((resolve, reject) => {
+          const sql = 'SELECT * FROM Chat WHERE group_chat = 1';
+          db.all(sql, [], (err, rows) => {
+            if (err) {
+              reject(err);
+            } else {
+              // Optionally, map rows to Chat objects if needed
+              const chats = rows.map(row => new Chat(
+                row.chat_id,
+                row.user_id_1,
+                row.user_id_2,
+                row.group_chat,
+                row.chat_name,
+                row.chat_image,
+                row.timestamp
+              ));
+              resolve(chats);
+            }
+          });
+        });
+      },
 
     async deleteChat() {
         return new Promise((resolve, reject) => {
