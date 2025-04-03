@@ -43,6 +43,27 @@ const UserDAO = {
         });
     },
 
+    async getAgents() {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT user_id FROM User WHERE is_login IS NULL OR is_login = 0';
+                db.all(sql, [], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else if (rows.length === 0) {
+                        resolve(false);
+                    } else {
+                        const user_ids = rows.map(row => row.user_id);
+                        resolve(user_ids);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+    
+
     async getActiveUsersInfo() {
         return new Promise((resolve, reject) => {
             try {
@@ -112,6 +133,59 @@ const UserDAO = {
                     reject(err);
                     }else {
                     resolve(this.changes > 0); 
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async logInUser(user_id){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'UPDATE User SET is_login=? WHERE user_id=?';
+                db.run(sql, [1, user_id], function (err) {
+                    if (err) {
+                    reject(err);
+                    }else {
+                    resolve(this.changes > 0); 
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async logOutUser(user_id){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'UPDATE User SET is_login=? WHERE user_id=?';
+                db.run(sql, [0, user_id], function (err) {
+                    if (err) {
+                    reject(err);
+                    }else {
+                    resolve(this.changes > 0); 
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async isLogin(user_id) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT is_login FROM User WHERE user_id = ?';
+                db.get(sql, [user_id], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve(false);
+                    } else {
+                        resolve(row?.is_login === 1);
                     }
                 });
             } catch (error) {

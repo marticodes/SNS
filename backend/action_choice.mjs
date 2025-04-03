@@ -185,7 +185,11 @@ const ActionChoice = {
     },
 };
 
+// for (let i = 0; i < 10; i++) {
 // ActionChoice.performRandomAction(10);
+
+//   }
+
 
 export default ActionChoice;
 

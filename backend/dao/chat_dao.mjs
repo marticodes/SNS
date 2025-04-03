@@ -5,12 +5,12 @@ import GCMembership from '../models/gc_membership_model.mjs';
 //When inserting, pass 0 for group_chat if DM. Otherwise, pass 1.
 //DM: chat_name is id_2's user_name + chat_image is id_2's profile_picture
 const ChatDAO = {
-    async insertDM(user_id_1, user_id_2, chat_name, chat_image) {
+    async insertDM(user_id_1, user_id_2, chat_name, chat_image, duration = 0) {
         return new Promise((resolve, reject) => {
             try {
                 const timestamp = new Date().toISOString();
-                const sql = 'INSERT INTO Chat (user_id_1, user_id_2, group_chat, chat_name, chat_image, timestamp) VALUES (?,?,?,?,?,?)';
-                db.run(sql, [user_id_1, user_id_2, 0, chat_name, chat_image, timestamp], function(err) {
+                const sql = 'INSERT INTO Chat (user_id_1, user_id_2, group_chat, chat_name, chat_image, timestamp, duration) VALUES (?,?,?,?,?,?,?)';
+                db.run(sql, [user_id_1, user_id_2, 0, chat_name, chat_image, timestamp, duration], function(err) {
                     if (err) {
                         reject(err);
                     } else if (this.changes > 0) {
@@ -50,14 +50,14 @@ const ChatDAO = {
         });
     },
 
-    async insertGroupChat(user_ids, chat_name, chat_image, creator = 0) {
+    async insertGroupChat(user_ids, chat_name, chat_image, creator = 0, duration = 0) {
         return new Promise((resolve, reject) => {
             try {
                 db.run('BEGIN TRANSACTION');
                 const timestamp = new Date().toISOString();
                 // Insert into Chat table (user_id_1 and user_id_2 are NULL for group chats)
-                const sqlChat = 'INSERT INTO Chat (user_id_1, user_id_2, group_chat, chat_name, chat_image, timestamp) VALUES (NULL, NULL, 1, ?, ?, ?)';
-                db.run(sqlChat, [chat_name, chat_image, timestamp], function (err) {
+                const sqlChat = 'INSERT INTO Chat (user_id_1, user_id_2, group_chat, chat_name, chat_image, timestamp, duration) VALUES (NULL, NULL, 1, ?, ?, ?, ?)';
+                db.run(sqlChat, [chat_name, chat_image, timestamp, duration], function (err) {
                     if (err) {
                         db.run('ROLLBACK'); 
                         reject(err);
@@ -149,7 +149,7 @@ const ChatDAO = {
                 if (err) {
                     reject(err);
                 } else {
-                    const chats = rows.map(row => new Chat(row.chat_id, row.user_id_1, row.user_id_2, row.group_chat, row.chat_name, row.chat_image, row.timestamp));
+                    const chats = rows.map(row => new Chat(row.chat_id, row.user_id_1, row.user_id_2, row.group_chat, row.chat_name, row.chat_image, row.timestamp, row.duration));
                     resolve(chats);
                 }
             });
@@ -194,7 +194,7 @@ const ChatDAO = {
                 } else if (!row) {
                     resolve(false);
                 } else {
-                    const user = new Chat(row.chat_id, row.user_id_1, row.user_id_2, row.group_chat, row.chat_name, row.chat_image, row.timestamp);
+                    const user = new Chat(row.chat_id, row.user_id_1, row.user_id_2, row.group_chat, row.chat_name, row.chat_image, row.timestamp, row.duration);
                     resolve(user);
                 }
             });
@@ -370,7 +370,26 @@ const ChatDAO = {
                 });
             });
         });
-    }
+    },
+
+    async isEphemeralChat(chat_id) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT duration FROM Chat WHERE chat_id = ?';
+                db.get(sql, [chat_id], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve(false);
+                    } else {
+                        resolve(row?.duration === 1);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
 
 };
 

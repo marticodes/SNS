@@ -18,12 +18,13 @@ import SocialGroupDao from './dao/social_group_dao.mjs';
 import UserInterestDao from './dao/user_interest_dao.mjs';
 import fs from "fs/promises";
 import ActionLogsDAO from './dao/action_logs_dao.mjs';
-import natural from "natural";
 import { OPENAI_API_KEY } from './apiKey.mjs';
 import FeedDAO from "./dao/feed_dao.mjs";
 
+const natural = await import("natural");
+const { TfIdf } = natural.default; 
+
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY});
-const { JaroWinklerDistance } = natural; 
 
 async function generateResponse(system_prompt, user_prompt) {
     try {
@@ -419,7 +420,7 @@ const Simulation = {
                 media_type: 0, 
                 media_url: "", 
                 timestamp: time, 
-                duration: 24, 
+                duration: 1, 
                 visibility: await UserDAO.getUserInfo(user_id).then(user => user.visibility), 
                 comm_id: null});
         } catch (error) {
@@ -609,17 +610,36 @@ const Simulation = {
         let bio = await generateResponse(system_prompt, user_prompt);
 
         let current = await CommunityDAO.getAllCommunityBios();
-        console.log(current);
 
-        const similarityThreshold = 0.7;
+        const tfidf = new TfIdf();
+        tfidf.addDocument(bio);
+
+        let similarityThreshold = 0.75;
         for (const existingBio of current) {
-            const similarity = natural.JaroWinklerDistance(bio, existingBio);
-            if (similarity < similarityThreshold) {
-                console.log("Many communities exist with the same topic");
-                return ; 
+            tfidf.addDocument(existingBio);
+            let vectorA = [];
+            let vectorB = [];
+
+            tfidf.tfidfs(bio, (i, measure) => {
+                vectorA.push(measure);
+            });
+
+            tfidf.tfidfs(existingBio, (i, measure) => {
+                vectorB.push(measure);
+            });
+
+            let dotProduct = vectorA.reduce((sum, value, i) => sum + value * vectorB[i], 0);
+            let magnitudeA = Math.sqrt(vectorA.reduce((sum, val) => sum + val * val, 0));
+            let magnitudeB = Math.sqrt(vectorB.reduce((sum, val) => sum + val * val, 0));
+
+            let similarity = magnitudeA && magnitudeB ? dotProduct / (magnitudeA * magnitudeB) : 0;
+
+            if (similarity > similarityThreshold) {
+                console.log("Similar community exists: ", existingBio, similarity);
+                return;
             }
         }
-        
+            
         try {
             let id = await makeAPIRequest("http://localhost:3001/api/channels/create", "POST", { 
                 comm_name: name,
@@ -670,7 +690,7 @@ const Simulation = {
                 media_type: 0, 
                 media_url: "", 
                 timestamp: time, 
-                duration: 24, 
+                duration: null, 
                 visibility: await UserDAO.getUserInfo(user_id).then(user => user.visibility), 
                 comm_id: sel_comm.comm_id});
         } catch (error) {

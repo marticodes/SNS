@@ -101,6 +101,17 @@ app.get('/api/users/active',
     } 
 );
 
+app.get('/api/simulation/agents',
+  async (req, res) => {
+      try {
+        const user = await userDao.getAgents();
+        res.status(200).json(user);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error getting user info ${err}` });
+      }
+  } 
+);
+
 app.get('/api/users/active/info',
   async (req, res) => {
       try {
@@ -132,6 +143,40 @@ app.post('/api/user/update/status',
           res.status(503).json({ error: `BE: Error updating status ${err}` });
         }
       }
+);
+
+app.post('/api/user/update/login',
+  async (req, res) => {
+      try {
+        const set = await userDao.logInUser(req.body.user_id);
+        res.status(201).json({set});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error updating login ${err}` });
+      }
+    }
+);
+
+app.post('/api/user/update/logout',
+  async (req, res) => {
+      try {
+        const set = await userDao.logOutUser(req.body.user_id);
+        res.status(201).json({set});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error updating logout ${err}` });
+      }
+    }
+);
+
+
+app.get('/api/is/user/login/:user_id',
+  async (req, res) => {
+      try {
+        const user = await userDao.isLogin(req.params.user_id);
+        res.status(200).json(user);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error getting user info ${err}` });
+      }
+  } 
 );
 
 app.post('/api/user/add',
@@ -645,6 +690,17 @@ app.delete('/api/read/receipts/delete',
     }
 );
 
+app.get('/api/is/ephemeral/chat/:chat_id',
+  async (req, res) => {
+      try {
+        const user = await chatDao.isEphemeralChat(req.params.chat_id);
+        res.status(200).json(user);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error getting chat info ${err}` });
+      }
+  } 
+);
+
 app.delete('/api/chat/delete/',
   async (req, res) => {
       try {
@@ -736,7 +792,7 @@ app.get('/api/members/channel/:comm_id',
 app.post('/api/chats/add',
     async (req, res) => {
         try {
-          const ina = await chatDao.insertDM(req.body.user_id_1, req.body.user_id_2, req.body.chat_name, req.body.chat_image);
+          const ina = await chatDao.insertDM(req.body.user_id_1, req.body.user_id_2, req.body.chat_name, req.body.chat_image, req.body.duration);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error inserting chat ${err}` });
@@ -747,7 +803,7 @@ app.post('/api/chats/add',
 app.post('/api/chats/group/add',
   async (req, res) => {
       try {
-        const ina = await chatDao.insertGroupChat(req.body.user_ids, req.body.chat_name, req.body.chat_image, req.body.creator);
+        const ina = await chatDao.insertGroupChat(req.body.user_ids, req.body.chat_name, req.body.chat_image, req.body.creator, req.body.duration);
         res.status(201).json({ina});
       } catch (err) {
         res.status(503).json({ error: `BE: Error inserting group chat ${err}` });
@@ -820,6 +876,39 @@ app.get('/api/interests/:user_id/',
           res.status(500).json({ error: `BE: Error obtaining interests list ${err}` });
         }
       }
+);
+
+app.delete('/api/interests/delete',
+  async (req, res) => {
+      try {
+        const ina = await uiDao.removeUserInterest(req.body.user_id, req.body.interest_name);
+        res.status(200).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error deleting interest ${err}` });
+      }
+    }
+);
+
+app.post('/api/interest/update/user',
+  async (req, res) => {
+      try {
+        const set = await uiDao.updateInterestByName(req.body.user_id, req.body.cur_name, req.body.new_name);
+        res.status(201).json({set});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error updating interest ${err}` });
+      }
+    }
+);
+
+app.post('/api/interest/update/id',
+  async (req, res) => {
+      try {
+        const set = await uiDao.updateInterestById(req.body.interest_id, req.body.interest_name);
+        res.status(201).json({set});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error updating interest ${err}` });
+      }
+    }
 );
 
 app.post('/api/interest/add',
@@ -904,12 +993,23 @@ app.get('/api/channels/:user_id/',
 app.post('/api/channels/create',
     async (req, res) => {
         try {
-          const ina = await communityDao.createNewChannel(req.body.comm_name, req.body.comm_image, req.body.comm_bio, req.body.user_id);
+          const ina = await communityDao.createNewChannel(req.body.comm_name, req.body.comm_image, req.body.comm_bio, req.body.user_id, req.body.duration);
           res.status(201).json({ina});
         } catch (err) {
           res.status(503).json({ error: `BE: Error creating channel ${err}` });
         }
       }
+);
+
+app.get('/api/is/ephemeral/channel/:comm_id',
+  async (req, res) => {
+      try {
+        const user = await communityDao(req.params.comm_id);
+        res.status(200).json(user);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error getting comm info ${err}` });
+      }
+  } 
 );
 
 
