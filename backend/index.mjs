@@ -1165,10 +1165,11 @@ app.delete('/api/logs/delete/user/',
 app.listen(port, ()=> {
   console.log(`API server started at http://localhost:${port}`);
 });
-//  (async () => {
-//  await Simulation.startSimulation();
-//  })();
-// import Simulation from './simulation.mjs';
+ //(async () => {
+ //await Simulation.startSimulation();
+ //})();
+//import Simulation from './simulation.mjs';
+//Simulation.generateAgentFromGroupChats();
 
 
 
