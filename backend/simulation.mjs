@@ -741,6 +741,28 @@ const Simulation = {
         }
     },
 
+    async acceptRequest(user_id){
+        let frens = await RequestDAO.getRequests(user_id);
+        if (!frens || frens.length === 0) {
+            console.error("No requests found.");
+            return null;
+        }
+        let sel_fren = frens[Math.floor(Math.random() * frens.length)];
+        let closeness = Math.floor(Math.random() * 11);
+
+        try {
+            await makeAPIRequest("http://localhost:3001/api/relations/add", "POST", { 
+                user_id_1: sel_fren,
+                user_id_2: user_id,
+                relation_type: 2,
+                restricted: 0,
+                closeness: closeness,
+            });
+        } catch (error) {
+            console.error("Error accepting request:", error);
+        }
+    },
+
     async insertUserPipeline(userData) {
         try {
           // 1. Insert the basic user info into the user table
@@ -781,7 +803,7 @@ const Simulation = {
           console.log(`✅ Created Agent: ${userData.user_name} (ID: ${userData.id_name}) with full details`);
           return user_id;
         } catch (error) {
-            console.error("Error accepting request:", error);
+            console.error("Error inserting user:", error);
         }
     },
 
