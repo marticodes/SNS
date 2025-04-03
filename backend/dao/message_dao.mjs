@@ -1,7 +1,41 @@
 import db from '../db.mjs';
 import Message from '../models/message_model.mjs';
+import ChatDAO from './chat_dao.mjs';
 
 const MessageDAO = {
+
+    async filterAndDeleteOldMsgs(rows, duration) {
+            return new Promise((resolve, reject) => {
+                const currentTime = new Date();
+                const msgToDelete = [];
+                const validMsg = [];
+        
+                if (duration) {rows.forEach(row => {
+                    const msgTime = new Date(row.timestamp);
+                    const timeDiff = (currentTime - msgTime) / (1000 * 60 * 60); // Convert to hours
+                    
+                    if (timeDiff >= 24) {
+                        msgToDelete.push(row.message_id);
+                    } else {
+                        validMsg.push(new Message(row.message_id, row.chat_id, row.sender_id, row.reply_id, row.content, row.media_type, row.media_url, row.timestamp));
+                    }
+                    });
+                }
+        
+                if (msgToDelete.length > 0) {
+                    // console.log(postsToDelete);
+                    const deleteSql = `DELETE FROM Message WHERE message_id IN (${msgToDelete.map(() => '?').join(',')})`;
+                    db.run(deleteSql, msgToDelete, (deleteErr) => {
+                        if (deleteErr) {
+                            return reject(deleteErr);
+                        }
+                        resolve(validMsg);
+                    });
+                } else {
+                    resolve(validMsg);
+                }
+            });
+        },
 
     async insertMessage(chat_id, sender_id, reply_id, content, media_type, media_url, timestamp) {
         try {
@@ -87,14 +121,20 @@ const MessageDAO = {
             try {
                 const sql = 'SELECT * FROM Message WHERE chat_id = ? ORDER BY timestamp ASC';
     
-                db.all(sql, [chat_id], (err, rows) => {
+                db.all(sql, [chat_id], async (err, rows) => {
                     if (err) {
                         reject(err);
                     } else if (rows.length === 0) {
                         resolve([]);
                     } else {
-                        const messages= rows.map(row => new Message(row.message_id, row.chat_id, row.sender_id, row.reply_id, row.content, row.media_type, row.media_url, row.timestamp));
-                        resolve(messages);
+                        try {
+                            // console.log(rows.length);
+                            const duration = await ChatDAO.isEphemeralChat(chat_id);
+                            const validMsgs = await MessageDAO.filterAndDeleteOldMsgs(rows, duration);
+                            resolve(validMsgs);
+                            } catch (error) {
+                                reject(error);
+                            }
                     }
                 });
             } catch (error) {
@@ -108,14 +148,22 @@ const MessageDAO = {
             try {
                 const sql = 'SELECT content FROM Message WHERE chat_id = ? ORDER BY timestamp ASC';
     
-                db.all(sql, [chat_id], (err, rows) => {
+                db.all(sql, [chat_id], async (err, rows) => {
                     if (err) {
                         reject(err);
                     } else if (rows.length === 0) {
                         resolve([]);
                     } else {
-                        const messages= rows.map(row => row.content);
-                        resolve(messages);
+                        try {
+                            // console.log(rows.length);
+                            const duration = await this.isEphemeralChat(chat_id);
+                            const validMsg = await MessageDAO.filterAndDeleteOldMsgs(rows, duration);
+                            const messages= validMsg.map(validMsg => validMsg.content);
+                            resolve(messages);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        
                     }
                 });
             } catch (error) {
