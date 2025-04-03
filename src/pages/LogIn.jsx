@@ -35,7 +35,7 @@ function LogIn() {
         e.preventDefault();
         const errors = validate(formValues);
         setFormErrors(errors);
-
+    
         if (Object.keys(errors).length === 0) {
             setIsSubmit(true);
             try {
@@ -46,26 +46,36 @@ function LogIn() {
                     const data = await response.json();
                     if (data) {
                         localStorage.setItem("userID", data);
-                        if (selectedCase != 3){
+    
+                        // Send the userID to backend API
+                        await fetch("http://localhost:3001/api/user/update/login", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ user_id: data }), // Send user ID
+                        });
+    
+                        // Navigate based on the selected case
+                        if (selectedCase !== 3) {
                             navigate(`/case/${selectedCase}`);
-                        }
-                        else {
+                        } else {
                             navigate(`/dms`);
                         }
-                        setLoginResult(`Welcome user ${data}`); // Handle success
+                        setLoginResult(`Welcome user ${data}`);
                     } else {
-                        setLoginResult("Invalid credentials."); // Handle failure
+                        setLoginResult("Invalid credentials.");
                     }
                 } else {
-                    setLoginResult("An error occurred while logging in."); // Handle server error
+                    setLoginResult("An error occurred while logging in.");
                 }
             } catch (error) {
-                setLoginResult(`Error: ${error.message}`); // Handle network error
+                setLoginResult(`Error: ${error.message}`);
             }
         } else {
             setIsSubmit(false);
         }
-    };
+    };    
 
     return (
         <>
