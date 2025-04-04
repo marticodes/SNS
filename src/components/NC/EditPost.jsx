@@ -136,7 +136,7 @@ const Button = styled.button`
   }
 `;
 
-const EditPost = ({ user, updatePost }) => {
+const EditPost = ({ user }) => {
   const { postId } = useParams();
   const navigate = useNavigate();
 
@@ -197,14 +197,14 @@ const EditPost = ({ user, updatePost }) => {
       });
       console.log("✅ Post updated:", response.data);
 
-      navigate("/case/1");
+      navigate("/case/2");
     } catch (error) {
       console.error("❌ Error updating post:", error);
     }
   };
 
   const handleCancel = () => {
-    navigate("/case/1");
+    navigate("/case/2");
   };
 
   return (

@@ -11,6 +11,17 @@ const SingleMessage = ({ message, isCurrentUser, onReply, scrollToMessage, chatI
 
   const currentUserID = parseInt(localStorage.getItem("userID"), 10);
 
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    const day = String(date.getDate()).padStart(2, '0'); // Add leading zero for day
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Add leading zero for month
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0'); // Add leading zero for hours
+    const minutes = String(date.getMinutes()).padStart(2, '0'); // Add leading zero for minutes
+  
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  };
+
   useEffect(() => {
     const fetchReactions = async () => {
       try {
@@ -246,7 +257,7 @@ const SingleMessage = ({ message, isCurrentUser, onReply, scrollToMessage, chatI
             color: isCurrentUser ? "#fff" : "#555",
           }}
         >
-          {message.timestamp}
+          {formatTimestamp(message.timestamp)}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const caseId = parseInt(localStorage.getItem("selectedCase"), 10);
 
@@ -14,50 +14,81 @@ const ProfileEdit = ({
   const [privateProfile, setPrivateProfile] = useState(initialPrivateProfile || 0);
   const [profileImage, setProfileImage] = useState(initialImage || "https://via.placeholder.com/150");
   const [errorMessage, setErrorMessage] = useState("");
-
+  const [interests, setInterests] = useState([]);
+  const [selectedInterests, setSelectedInterests] = useState([]);
+  const [showInterestPopup, setShowInterestPopup] = useState(false);
   const fileInputRef = useRef(null);
 
- const handleConfirmChanges = async () => {
-  setErrorMessage("");
-  try {
-    // Update bio
-    await fetch("http://localhost:3001/api/user/update/bio", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: userId, user_bio: bio }),
-    });
+  const possibleInterests = [
+    "Animals", "Art & Design", "Automobiles", "DIY & Crafting", "Education", "Fashion",
+    "Finance", "Fitness", "Food", "Gaming", "History & Culture", "Lifestyle", "Literature",
+    "Movies", "Music", "Nature", "Personal Development", "Photography", "Psychology",
+    "Religion", "Social", "Sports", "Technology", "Travel", "Wellness"
+  ];
 
-    // Update profile picture
-    await fetch("http://localhost:3001/api/user/update/picture", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: userId, profile_picture: profileImage }),
-    });
+  useEffect(() => {
+    const fetchInterests = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/api/interests/${userId}`);
+        const data = await response.json();
 
-    // Update visibility
-    await fetch("http://localhost:3001/api/user/update/visibility", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: userId, visibility: privateProfile}),
-    });
+        // Split the single string into an array of individual interests
+        const interestsArray = data[0] ? data[0].split(" & ") : []; // Handle empty response
+        setSelectedInterests(interestsArray);
+      } catch (error) {
+        console.error("Error fetching user interests:", error);
+      }
+    };
 
-    onSave({ bio, privateProfile, profileImage });
-    window.location.reload();
-  } catch (error) {
-    setErrorMessage("Error saving changes. Please try again.");
-  }
-};
+    fetchInterests();
+  }, [userId]);
 
-  const handleEditImage = () => {
-    fileInputRef.current.click();
+  const handleConfirmChanges = async () => {
+    setErrorMessage("");
+    try {
+      // Update bio
+      await fetch("http://localhost:3001/api/user/update/bio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, user_bio: bio }),
+      });
+
+      // Update profile picture
+      await fetch("http://localhost:3001/api/user/update/picture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, profile_picture: profileImage }),
+      });
+
+      // Update visibility
+      await fetch("http://localhost:3001/api/user/update/visibility", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, visibility: privateProfile }),
+      });
+
+      // Update interests: no need to join here, backend expects a string
+      await fetch("http://localhost:3001/api/interest/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, interest_name: selectedInterests.join(" & ") }), // Join interests to the string
+      });
+
+      onSave({ bio, privateProfile, profileImage, selectedInterests: selectedInterests.join(" & ") }); // join interests to the string
+      window.location.reload();
+    } catch (error) {
+      setErrorMessage("Error saving changes. Please try again.");
+    }
   };
 
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setProfileImage(imageUrl);
-    }
+  const toggleInterest = (interest) => {
+    setSelectedInterests((prev) => {
+      if (prev.includes(interest)) {
+        return prev.filter((i) => i !== interest);
+      } else {
+        return [...prev, interest];
+      }
+    });
   };
 
   return (
@@ -72,7 +103,7 @@ const ProfileEdit = ({
             <img src={profileImage} alt="Profile" className="image" />
           </div>
           <div className="profile-actions">
-            <button className="edit-button" onClick={handleEditImage}>
+            <button className="edit-button" onClick={() => fileInputRef.current.click()}>
               Edit Image
             </button>
             <input
@@ -80,7 +111,7 @@ const ProfileEdit = ({
               ref={fileInputRef}
               style={{ display: "none" }}
               accept="image/*"
-              onChange={handleImageChange}
+              onChange={(e) => setProfileImage(URL.createObjectURL(e.target.files[0]))}
             />
             <button
               className="delete-button"
@@ -104,6 +135,38 @@ const ProfileEdit = ({
               onClick={() => setPrivateProfile(privateProfile === 1 ? 0 : 1)}
             >
               <div className="toggle-thumb"></div>
+            </div>
+          </div>
+        )}
+
+        <button className="edit-interests-button" onClick={() => setShowInterestPopup(true)}>
+          Change Personal Interests
+        </button>
+
+        {showInterestPopup && (
+          <div className="interests-popup">
+            <div className="popup-container">
+              <button className="popup-close" onClick={() => setShowInterestPopup(false)}>
+                &times;
+              </button>
+              <h3 style={{color: 'black'}}>Select Your Interests</h3>
+              <div className="interests-grid">
+                {possibleInterests.map((interest) => (
+                  <div
+                    key={interest}
+                    className={`interest-item ${selectedInterests.includes(interest) ? 'selected' : ''}`}
+                    onClick={() => toggleInterest(interest)}
+                  >
+                    {interest}
+                  </div>
+                ))}
+              </div>
+              <button
+                className="confirm-button"
+                onClick={() => setShowInterestPopup(false)}
+              >
+                Confirm Interests
+              </button>
             </div>
           </div>
         )}
@@ -247,6 +310,81 @@ const ProfileEdit = ({
           font-size: 14px;
           margin-bottom: 15px;
         }
+        .edit-interests-button {
+          width: 100%;
+          padding: 10px;
+          background:rgb(188, 220, 244);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          cursor: pointer;
+          margin-bottom: 15px;
+        }
+            .interests-popup {
+              position: fixed;
+              inset: 0;
+              background: rgba(0, 0, 0, 0.5);
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              z-index: 1001;
+            }
+
+            .interests-popup .popup-container {
+              background: white;
+              border-radius: 20px;
+              padding: 20px;
+              width: 90%;
+              max-width: 500px;
+              max-height: 80vh;
+              overflow-y: auto;
+            }
+
+            .interests-grid {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 10px;
+              justify-content: center;
+              margin-bottom: 20px;
+            }
+
+            .interest-item {
+              background: #f0f0f0;
+              border-radius: 50px;
+              color: #333; 
+              padding: 10px 15px;
+              font-size: 14px;
+              cursor: pointer;
+              transition: all 0.3s ease;
+            }
+
+            .interest-item.selected {
+              background: #7CB9E8;
+              color: white;
+            }
+
+            .interests-popup h3 {
+              text-align: center;
+              margin-bottom: 20px;
+            }
+
+            .interests-popup .confirm-button {
+              width: 100%;
+              padding: 10px;
+              background: #7CB9E8;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              font-size: 16px;
+              cursor: pointer;
+              transition: background 0.3s;
+            }
+
+            .interests-popup .confirm-button:hover {
+              background: #5a9fd6;
+            }
+        
         .confirm-button {
           width: 100%;
           padding: 10px;

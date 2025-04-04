@@ -53,6 +53,7 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
   const postTimestamp = new Date(timestamp);
   const currentTime = new Date();
   const timeRemaining = postTimestamp.getTime() + duration * 24 * 60 * 60 * 1000 - currentTime.getTime(); // duration in milliseconds
+  const [totalComments, setTotalComments] = useState(0);
 
   let timeLeft = '';
 
@@ -100,14 +101,20 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
         try {
           const res = await axios.get(`http://localhost:3001/api/posts/id/${parent_id}`);
           setParentPostData(res.data);
+  
+          // Fetch the user data for the parent post
+          if (res.data.user_id) {
+            const userRes = await axios.get(`http://localhost:3001/api/user/${res.data.user_id}`);
+            setParentPostData(prev => ({ ...prev, user_name: userRes.data.user_name }));
+          }
         } catch (err) {
-          console.error("❌ Error fetching parent post:", err);
+          console.error("❌ Error fetching parent post or user data:", err);
         }
       };
-
+  
       fetchParentPost();
     }
-  }, [parent_id]);
+  }, [parent_id]);  
 
   useEffect(() => {
     const fetchReactions = async () => {
@@ -133,18 +140,33 @@ const Post = ({ post, userID, commentType = 'flat', hashtagClick }) => {
   const fetchComments = async () => {
     try {
       const res = await axios.get(`http://localhost:3001/api/comments/all/${post_id}/1`);
-      setComments(res.data);
+      const firstLevelComments = res.data;
+  
+      // Fetch replies for each first-level comment
+      const fetchReplies = async (commentId) => {
+        const res = await axios.get(`http://localhost:3001/api/comments/all/${commentId}/0`);
+        return res.data;
+      };
+  
+      let repliesCount = 0;
+      for (const comment of firstLevelComments) {
+        const replies = await fetchReplies(comment.comment_id);
+        repliesCount += replies.length;
+      }
+  
+      // Update state with the total comments and replies
+      setComments(firstLevelComments);
+      setTotalComments(firstLevelComments.length + repliesCount);
     } catch (err) {
       console.error("❌ Error fetching comments:", err);
     }
   };
-
+  
   useEffect(() => {
     fetchComments();
-  }, [post_id]);
+  }, [post_id]);  
 
   const totalVotes = reactions.upvotes - reactions.downvotes;
-  const totalComments = comments.length;
   const isOwner = userID === post.user_id;
 
   return (

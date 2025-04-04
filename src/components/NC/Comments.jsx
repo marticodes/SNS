@@ -144,61 +144,88 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
 
   const fetchComments = async () => {
     try {
-      console.log()
-      const res = await axios.get(`http://localhost:3001/api/comments/all/${post_id}/1`); // parent_id = 0 or null for top-level comments
-      console.log("✅ Comments fetched:", res.data);
-
-      //CAN YOU CHECK THIS API HERE ON TOP? IS IT WRONG?? SHOULD 1 GO BEFORE POST_ID?
-      
-      const commentsWithUserData = await Promise.all(
+      const res = await axios.get(`http://localhost:3001/api/comments/all/${post_id}/1`);
+      console.log("✅ Top-level comments fetched:", res.data);
+  
+      let allComments = await Promise.all(
         res.data.map(async (comment) => {
-          try {
-            const userRes = await axios.get(`http://localhost:3001/api/user/${comment.user_id}`);
-            return { 
-              ...comment, 
-              userName: userRes.data.user_name, 
-              profileImg: userRes.data.profile_picture || "/default-profile.png" 
-            };
-          } catch (error) {
-            console.error(`❌ Error fetching user data for user_id ${comment.user_id}:`, error);
-            return { 
-              ...comment, 
-              userName: "Unknown User", 
-              profileImg: "/default-profile.png" 
-            };
-          }
+          const userRes = await axios.get(`http://localhost:3001/api/user/${comment.user_id}`);
+          return {
+            ...comment,
+            userName: userRes.data.user_name,
+            profileImg: userRes.data.profile_picture || "/default-profile.png",
+          };
         })
       );
-      
-      const nested = buildNestedComments(commentsWithUserData);
-      setComments(nested);
+  
+      // Fetch all replies
+      for (let comment of allComments) {
+        let replies = await fetchReplies(comment.comment_id);
+        allComments = [...allComments, ...replies];
+      }
+  
+      // Build nested structure
+      const nestedComments = buildNestedComments(allComments);
+      setComments(nestedComments);
+  
     } catch (error) {
       console.error("❌ Error fetching comments:", error);
+    }
+  };  
+
+  const fetchReplies = async (commentId) => {
+    try {
+      const res = await axios.get(`http://localhost:3001/api/comments/all/${commentId}/0`);
+      console.log(`✅ Replies fetched for comment ${commentId}:`, res.data);
+
+      const repliesWithUserData = await Promise.all(
+        res.data.map(async (reply) => {
+          const userRes = await axios.get(`http://localhost:3001/api/user/${reply.user_id}`);
+          return {
+            ...reply,
+            userName: userRes.data.user_name,
+            profileImg: userRes.data.profile_picture || "/default-profile.png",
+            replies: [], // Prepare replies array for further nesting
+          };
+        })
+      );
+
+      // Recursively fetch nested replies
+      for (let reply of repliesWithUserData) {
+        let nestedReplies = await fetchReplies(reply.comment_id);
+        repliesWithUserData.push(...nestedReplies);
+      }
+
+      return repliesWithUserData;
+    } catch (error) {
+      console.error(`❌ Error fetching replies for comment ${commentId}:`, error);
+      return [];
     }
   };
 
   const buildNestedComments = (comments) => {
-    console.log("🚀 Raw comments before nesting:", comments);
-
     const commentMap = {};
-    const nestedComments = [];
-
+    const topLevelComments = [];
+  
+    // First pass: create comment objects and map
     comments.forEach(comment => {
-      comment.replies = [];
-      commentMap[comment.comment_id] = comment;
+      commentMap[comment.comment_id] = {...comment, replies: []};
     });
-
+  
+    // Second pass: build the tree structure
     comments.forEach(comment => {
-      if (comment.post == 0) {
-        commentMap[comment.parent_id].replies.push(comment);
+      if (comment.post === 1) {
+        topLevelComments.push(commentMap[comment.comment_id]);
       } else {
-        nestedComments.push(comment);
+        const parent = commentMap[comment.parent_id];
+        if (parent) {
+          parent.replies.push(commentMap[comment.comment_id]);
+        }
       }
     });
-
-    console.log("✅ Nested comments:", nestedComments);
-    return nestedComments;
-};
+  
+    return topLevelComments;
+  };  
 
 
   const handleAddComment = async () => {
@@ -249,16 +276,6 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
       setReplyIndex(null);
     } catch (error) {
       console.error("❌ Error adding reply:", error);
-    }
-  };
-
-  const fetchReplies = async (parentId) => {
-    try {
-      const res = await axios.get(`http://localhost:3001/api/comments/all/${parentId}/${post_id}`);
-      return res.data;
-    } catch (error) {
-      console.error("❌ Error fetching replies:", error);
-      return [];
     }
   };
 
@@ -323,9 +340,9 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
                 {comment.replies.map((reply, idx) => (
                   <CommentItem key={reply.comment_id || idx}>
                     <CommentContent>
-                      <ProfileImage src={reply.profile_picture || "/default-profile.png"} alt={reply.user_name} />
+                      <ProfileImage src={reply.profileImg || "/default-profile.png"} alt={reply.userName} />
                       <TextContent>
-                        <p>{reply.user_name}</p>
+                        <p>{reply.userName}</p>
                         <p>{reply.content}</p>
                       </TextContent>
                     </CommentContent>

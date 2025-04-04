@@ -128,7 +128,7 @@ const UserProfile = ({
   const handleMenuClick = async (action) => {
     try {
       if (action === "edit") {
-        navigate(`/case/1/edit-post/${post.post_id}`);
+        navigate(`/case/2/edit-post/${post.post_id}`);
       } else if (action === "mute") {
         await axios.post(`http://localhost:3001/api/relations/restriction/update`, {
           user_id_1: myUserID, 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar/Small"; 
 import styled from "styled-components";
@@ -64,43 +64,30 @@ const NCPage = () => {
     fetchCommunities();
   }, [userID, navigate]);
 
-  const fetchFeed = async (communityId) => {
+  const fetchFeed = useCallback(async (communityId) => {
+    if (!communityId) return;
+
     try {
-      const response = await fetch(`http://localhost:3001/api/channels/post/${communityId}/`);
+      console.log(`📡 Fetching feed for community ID: ${communityId}`);
+      const response = await fetch(`http://localhost:3001/api/recomm/feed/channel/${communityId}/`);
       if (!response.ok) {
         throw new Error(`Failed to fetch feed: ${response.statusText}`);
       }
-      return await response.json();
+      const feedData = await response.json();
+      setPosts(feedData);
+      console.log("✅ Feed Updated:", feedData);
     } catch (error) {
-      console.error("Error fetching feed:", error);
-      return [];
+      console.error("❌ Error fetching feed:", error);
+      setPosts([]);
     }
-  };
+  }, []);
 
+  // Fetch feed whenever a new community is selected
   useEffect(() => {
     if (currentCommunity) {
-      const fetchFeedData = async () => {
-        const feedPosts = await fetchFeed(currentCommunity.comm_id);
-        setPosts(feedPosts);
-      };
-
-      fetchFeedData();
+      fetchFeed(currentCommunity.comm_id);
     }
-  }, [currentCommunity]);
-
-  const addNewPost = (newPost) => {
-    setPosts((prev) => [newPost, ...prev]);
-    navigate("/case/1");
-  };
-
-  const updatePost = (postId, updatedData) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.post_id === postId ? { ...post, ...updatedData } : post
-      )
-    );
-    navigate("/case/1");
-  };
+  }, [currentCommunity, fetchFeed]);
 
   return (
     <>
@@ -123,23 +110,22 @@ const NCPage = () => {
           users={communities.map((c) => c.comm_name)}
           onUserClick={(name) => {
             const selectedCommunity = communities.find((c) => c.comm_name === name);
-            setCurrentCommunity(selectedCommunity);
+            if (selectedCommunity && selectedCommunity.comm_id !== currentCommunity?.comm_id) {
+              setCurrentCommunity(selectedCommunity); // This will trigger useEffect
+            }
           }}
           ProfilePics={Object.fromEntries(communities.map((c) => [c.comm_name, c.comm_image]))}
         />
       </div>
       <AppContainer>
         <Routes>
-          <Route
-            path="/"
-            element={<FeedMain user={userInfo} posts={posts} />}
-          />
+          <Route path="/" element={<FeedMain user={userInfo} posts={posts} community_id={currentCommunity ? currentCommunity.comm_id : null}/>} />
           <Route
             path="new-post"
             element={
               <NewPost
                 user={userInfo}
-                addNewPost={addNewPost}
+                community_id={currentCommunity ? currentCommunity.comm_id : null}
               />
             }
           />
@@ -148,7 +134,6 @@ const NCPage = () => {
             element={
               <EditPost
                 user={userInfo}
-                updatePost={updatePost}
               />
             }
           />
