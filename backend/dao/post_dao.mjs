@@ -64,12 +64,12 @@ const PostDAO = {
         });
     },
 
-    async getPostContent(chat_id) {
+    async getPostContent(post_id) {
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'SELECT * FROM Message WHERE chat_id = ? ORDER BY timestamp ASC';
+                const sql = 'SELECT * FROM Post WHERE post_id = ? ORDER BY timestamp ASC';
     
-                db.all(sql, [chat_id], (err, rows) => {
+                db.all(sql, [post_id], (err, rows) => {
                     if (err) {
                         reject(err);
                     } else if (rows.length === 0) {

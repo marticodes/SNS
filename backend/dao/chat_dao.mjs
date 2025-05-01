@@ -163,7 +163,7 @@ const ChatDAO = {
                 FROM Chat c
                 LEFT JOIN GCMembership gcm ON c.chat_id = gcm.chat_id
                 WHERE 
-                    (c.group_chat = 0 AND (c.user_id_1 = ? OR c.user_id_2 = ?)) 
+                    c.user_id_1 = ? OR c.user_id_2 = ?
                     OR 
                     (c.group_chat = 1 AND gcm.user_id = ?)
                 ORDER BY c.timestamp DESC;

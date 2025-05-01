@@ -1,4 +1,4 @@
-export default function Message(message_id, chat_id, sender_id, reply_id, content, media_type, media_url, timestamp) {
+export default function Message(message_id, chat_id, sender_id, reply_id, content, media_type, media_url, timestamp, shared_post) {
     this.message_id = message_id;
     this.chat_id = chat_id;
     this.sender_id = sender_id;
@@ -7,4 +7,5 @@ export default function Message(message_id, chat_id, sender_id, reply_id, conten
     this.media_type = media_type;
     this.media_url = media_url;
     this.timestamp = timestamp;
+    this.shared_post = shared_post;
 }

@@ -90,6 +90,7 @@ const ActionChoice = {
             { action: "Read unread messages", weight: logistic(user_trait.notification_trait) },
             { action: "Join channel", weight: logistic(user_trait.comm_trait) },
             { action: "Add a story", weight: logistic(user_trait.posting_trait)},
+            // { action: "Share post in chat", weight: logistic(user_trait.messaging_trait)}
         ];
 
         let totalWeight = actions.reduce((sum, a) => sum + a.weight, 0);
@@ -104,7 +105,7 @@ const ActionChoice = {
             random -= a.weight;
         }
         
-        // chosenAction = "View a story";
+        // chosenAction = "Share post in chat";
 
         // Fallback
         if (!chosenAction) {
@@ -120,6 +121,9 @@ const ActionChoice = {
                 break;
             case "Send message in group chat":
                 await Simulation.insertGroupChat(user_id, system_prompt);
+                break;
+            case "Share post in chat":
+                await Simulation.sharePost(user_id);
                 break;
             case "Send message":
                 await Simulation.insertAGMessage(user_id, system_prompt);
@@ -186,7 +190,7 @@ const ActionChoice = {
 };
 
 // for (let i = 0; i < 10; i++) {
-// ActionChoice.performRandomAction(10);
+// ActionChoice.performRandomAction(25);
 
 //   }
 

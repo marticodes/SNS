@@ -25,6 +25,7 @@ const natural = await import("natural");
 const { TfIdf } = natural.default; 
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY});
+const { JaroWinklerDistance } = natural.default; 
 
 async function generateResponse(system_prompt, user_prompt) {
     try {
@@ -63,8 +64,20 @@ async function makeAPIRequest(url, method, body) {
     }
 }
 
-async function selectPostFromFeed(user_id) {
-    const feed = await FeedDAO.getcombinedFeedforAction(user_id);
+async function selectPostForComment(user_id) {
+    const feed = await FeedDAO.getcombinedFeedforComment(user_id);
+    console.log(feed);
+
+    if (!feed || feed.length === 0) {
+        console.error("No posts found in feed.");
+        return null;
+    }
+
+    return feed[Math.floor(Math.random() * feed.length)];
+}
+
+async function selectPostForReaction(user_id) {
+    const feed = await FeedDAO.getcombinedFeedforReaction(user_id);
     // console.log(feed);
 
     if (!feed || feed.length === 0) {
@@ -73,6 +86,38 @@ async function selectPostFromFeed(user_id) {
     }
 
     return feed[Math.floor(Math.random() * feed.length)];
+}
+
+async function selectPostFromFeed(user_id) {
+    const feed = await FeedDAO.getcombinedFeed(user_id);
+    // console.log(feed);
+
+    if (!feed || feed.length === 0) {
+        console.error("No posts found in feed.");
+        return null;
+    }
+
+    return feed[Math.floor(Math.random() * feed.length)];
+}
+
+async function selectPostToShare(user_id, receiver) {
+    const feed = await FeedDAO.getcombinedFeed(user_id);
+    // console.log(feed);
+
+    if (!feed || feed.length === 0) {
+        console.error("No posts found in feed.");
+        return null;
+    }
+
+    const post_ids = feed.map(feed=>feed.post_id);
+    const share_feed = await FeedDAO.sharable_feed(post_ids, receiver);
+
+    if (!share_feed || share_feed.length === 0) {
+        console.error("No posts found in feed.");
+        return null;
+    }
+
+    return share_feed[Math.floor(Math.random() * share_feed.length)];
 }
 
 async function selectCommentOnPost(post_id, user_id) {
@@ -112,7 +157,7 @@ const Simulation = {
 
     async insertAGCommentOnPost(user_id, system_prompt) {
         try {
-            const sel_post = await selectPostFromFeed(user_id);
+            const sel_post = await selectPostForComment(user_id);
             if (sel_post == null) {
                 console.log("No posts to comment on");
                 return;
@@ -272,21 +317,6 @@ const Simulation = {
             The contents of some of your previous posts are:${last_posts}. 
             Now, generate a new post that sticks to a single theme.`;
             const new_post = await generateResponse(system_prompt, user_prompt);
-            // let sel_case = 3;
-
-
-            // switch (sel_case){
-            //     case 1:
-            //         comm_id = number or null;
-            //         if comm null, post regular post
-            //     case 2:
-            //         comm_id = number;
-            //         if comm == null: add a comm, return and continue
-            //     case 3:
-            //         comm_id = number;
-            //         if comm == null: add a comm, return and continue
-            // }
-
 
             const time = new Date().toISOString();
             await makeAPIRequest("http://localhost:3001/api/post/add", "POST", { 
@@ -307,9 +337,9 @@ const Simulation = {
 
     async addAGReaction(user_id, system_prompt){
         try {
-            const sel = Math.floor(Math.random() * 3) + 1;
+            let sel = Math.floor(Math.random() * 3) + 1;
             let choice = "";
-            const sel_post = await selectPostFromFeed(user_id);
+            const sel_post = await selectPostForReaction(user_id);
             let link = "";
             let post_id = null;
             let chat_id = null;
@@ -353,6 +383,9 @@ const Simulation = {
                     }
                     choice = sel_messages.slice(-1);
                     message_id = choice[0].message_id;
+
+                    let react = await ReactionDAO.checkIfMessageReact(chat_id, message_id, user_id);
+                    if(react) return;
                     break;
                 default:
                     console.error("Unexpected value:", sel);
@@ -614,7 +647,7 @@ const Simulation = {
         const tfidf = new TfIdf();
         tfidf.addDocument(bio);
 
-        let similarityThreshold = 0.75;
+        let similarityThreshold = 0.40;
         for (const existingBio of current) {
             tfidf.addDocument(existingBio);
             let vectorA = [];
@@ -639,6 +672,16 @@ const Simulation = {
                 return;
             }
         }
+
+        let currentNames = await CommunityDAO.getAllCommunityNames();
+        const threshold = 0.7;
+         for (const existingName of currentNames) {
+             const similarity = JaroWinklerDistance(name, existingName);
+             if (similarity > threshold) {
+                 console.log("Many communities exist with the same name", similarity, name);
+                 return ; 
+             }
+         }
             
         try {
             let id = await makeAPIRequest("http://localhost:3001/api/channels/create", "POST", { 
@@ -693,6 +736,34 @@ const Simulation = {
                 duration: null, 
                 visibility: await UserDAO.getUserInfo(user_id).then(user => user.visibility), 
                 comm_id: sel_comm.comm_id});
+        } catch (error) {
+            console.error("Error adding new community post:", error);
+        }
+    },
+
+    async sharePost(user_id){
+        let receiver = await selectChatFromInbox(user_id);
+                if (receiver == null) {
+                    console.log("No chatrooms found");
+                    return;
+                }
+        
+        const sel_post = await selectPostToShare(user_id, receiver);
+        if (!sel_post) return;
+
+        
+        const time = new Date().toISOString();
+        try{
+            await makeAPIRequest("http://localhost:3001/api/messages/add", "POST", {
+                chat_id: receiver,
+                sender_id: user_id,
+                reply_id: null,
+                content: sel_post,
+                media_type:0,
+                media_url: null,
+                timestamp: time,
+                shared_post: 1
+            });
         } catch (error) {
             console.error("Error adding new community post:", error);
         }
