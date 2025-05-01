@@ -99,6 +99,23 @@ const CommunityDAO = {
         });
     },
 
+    async getAllCommunityNames() {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT comm_name FROM Community';
+                db.all(sql, [], (err, rows) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    const name = rows.map(row => row.comm_name);
+                    resolve(name);
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
     async isEphemeralCommunity(comm_id) {
         return new Promise((resolve, reject) => {
             try {

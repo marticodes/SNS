@@ -17,9 +17,13 @@ const MessageDAO = {
                     if (timeDiff >= 24) {
                         msgToDelete.push(row.message_id);
                     } else {
-                        validMsg.push(new Message(row.message_id, row.chat_id, row.sender_id, row.reply_id, row.content, row.media_type, row.media_url, row.timestamp));
+                        validMsg.push(new Message(row.message_id, row.chat_id, row.sender_id, row.reply_id, row.content, row.media_type, row.media_url, row.timestamp, row.shared_post));
                     }
                     });
+                }
+
+                if(!duration){
+                    rows.forEach(row => validMsg.push(new Message(row.message_id, row.chat_id, row.sender_id, row.reply_id, row.content, row.media_type, row.media_url, row.timestamp, row.shared_post)));
                 }
         
                 if (msgToDelete.length > 0) {
@@ -37,7 +41,7 @@ const MessageDAO = {
             });
         },
 
-    async insertMessage(chat_id, sender_id, reply_id, content, media_type, media_url, timestamp) {
+    async insertMessage(chat_id, sender_id, reply_id, content, media_type, media_url, timestamp, shared_post = 0) {
         try {
             // Get chat details
             const chatQuery = 'SELECT user_id_1, user_id_2, group_chat FROM Chat WHERE chat_id = ?';
@@ -69,10 +73,10 @@ const MessageDAO = {
     
             // Insert message
             const messageQuery = `
-                INSERT INTO Message (chat_id, sender_id, reply_id, content, media_type, media_url, timestamp) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)`;
+                INSERT INTO Message (chat_id, sender_id, reply_id, content, media_type, media_url, timestamp, shared_post) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
             const message_id = await new Promise((resolve, reject) => {
-                db.run(messageQuery, [chat_id, sender_id, reply_id, content, media_type, media_url, timestamp], function(err) {
+                db.run(messageQuery, [chat_id, sender_id, reply_id, content, media_type, media_url, timestamp, shared_post], function(err) {
                     if (err) return reject(err);
                     resolve(this.lastID); // Get inserted message ID
                 });
@@ -128,9 +132,10 @@ const MessageDAO = {
                         resolve([]);
                     } else {
                         try {
-                            // console.log(rows.length);
                             const duration = await ChatDAO.isEphemeralChat(chat_id);
+                            
                             const validMsgs = await MessageDAO.filterAndDeleteOldMsgs(rows, duration);
+
                             resolve(validMsgs);
                             } catch (error) {
                                 reject(error);
@@ -203,7 +208,7 @@ const MessageDAO = {
                     } else if (!row) {
                         resolve([]);
                     } else {
-                        resolve(new Message(row.message_id, row.chat_id, row.sender_id, row.reply_id, row.content, row.media_type, row.media_url, row.timestamp));
+                        resolve(new Message(row.message_id, row.chat_id, row.sender_id, row.reply_id, row.content, row.media_type, row.media_url, row.timestamp, row.shared_post));
                     }
                 });
             } catch (error) {

@@ -67,6 +67,40 @@ const ReactionDAO = {
     
         return result;
     },
+
+    async checkIfReact(post_id, user_id){
+        return new Promise((resolve, reject) => {
+            try {         
+                const sql = 'SELECT * FROM Reaction WHERE post_id=? AND user_id = ?';
+                db.all(sql, [post_id, user_id], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(rows.length > 0);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async checkIfMessageReact(chat_id, message_id, user_id){
+        return new Promise((resolve, reject) => {
+            try {         
+                const sql = 'SELECT * FROM Reaction WHERE chat_id=? AND message_id =? AND user_id = ?';
+                db.all(sql, [chat_id, message_id, user_id], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(rows.length > 0);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
     
     async getPostReactions(post_id) {
         return new Promise((resolve, reject) => {

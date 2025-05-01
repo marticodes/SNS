@@ -1,6 +1,7 @@
 import db from '../db.mjs';
 import Post from '../models/post_model.mjs';
 import CommentDAO from './comment_dao.mjs';
+import ReactionDAO from './reaction_dao.mjs';
 
 const FeedDAO = {
     async filterAndDeleteOldPosts(rows) {
@@ -113,7 +114,7 @@ const FeedDAO = {
         }
     },
 
-    async getcombinedFeedforAction(userId){
+    async getcombinedFeedforComment(userId){
         try {
             const [friendsFeed, interestFeed] = await Promise.all([
                 this.getFeedFromFriends(userId),
@@ -129,6 +130,34 @@ const FeedDAO = {
                     // console.log(post.post_id);
                     const hasComment = await CommentDAO.checkIfComment(post.post_id, 1, userId);
                     return hasComment ? null : post;
+                })
+            );
+
+            // console.log(filteredFeed);
+            
+            
+            return filteredFeed.filter(post => post !== null);
+        } catch (err) {
+            throw err;
+        }
+    },
+
+    async getcombinedFeedforReaction(userId){
+        try {
+            const [friendsFeed, interestFeed] = await Promise.all([
+                this.getFeedFromFriends(userId),
+                this.getInterestBasedFeed(userId)
+            ]);
+            const combinedFeed = [...friendsFeed, ...interestFeed];
+            combinedFeed.sort((a, b) => b.timestamp - a.timestamp);
+
+            // console.log(combinedFeed);
+
+            const filteredFeed = await Promise.all(
+                combinedFeed.map(async (post) => {
+                    // console.log(post.post_id);
+                    const hasReact = await ReactionDAO.checkIfReact(post.post_id, userId);
+                    return hasReact ? null : post;
                 })
             );
 
@@ -196,6 +225,29 @@ const FeedDAO = {
             });
         });
     },
+
+    async sharable_feed(post_ids, chat_id){
+        console.log(post_ids)
+
+        return new Promise((resolve, reject) => {
+            try {
+                const placeholders = post_ids.map(() => '?').join(',');
+                const sql = `SELECT content FROM Message WHERE chat_id = ? AND content IN (${placeholders})`;
+                console.log(sql);
+                db.all(sql, [chat_id,...post_ids], (err, rows) => {
+                    if (err) return reject(err);
+                    const existingPostIds = rows.map(row => row.content);
+                    const filteredPostIds = post_ids.filter(id => !existingPostIds.includes(id));
+                    resolve(filteredPostIds);
+                    console.log(filteredPostIds);
+
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    }
 
 };
 
