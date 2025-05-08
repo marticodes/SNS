@@ -1306,7 +1306,7 @@ app.post("/api/llm", async (req, res) => {
 async function generateKeyAttributes(description, metaphorKeyword) {
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [
         { 
           role: "system", 
@@ -1360,7 +1360,7 @@ async function generateKeyAttributes(description, metaphorKeyword) {
 async function generateSocialMediaFeatures(attributes) {
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [
         { 
           role: "system", 
@@ -1372,27 +1372,36 @@ async function generateSocialMediaFeatures(attributes) {
           provide social media features organized in the following format:
 
           LV1: Network Structure
-          - Timeline: [Feed-based or Chat-based]
-          - Connection Type: [Network-based or Group-based]
-
+          Timeline Types: [Feed-based/Channel-based]
+          Content Order: [Chronological/Algorithmic]
+          Connection Type: [Network-based/Group-based]
+          
           LV2: Interaction Mechanisms
-          - Content Type: [Text/Image/Both]
-          - Commenting: [Flat/Nested]
-          - Account: [Public/Private (one-way or mutual)]
-          - Identity: [Real-name/Pseudonymous/Anonymous]
-          - Messaging: [Details about 1:1/Group, Content types, Control, Audience]
-
+          Content Types: [Text/Image/Both]
+          Commenting: [Flat/Nested Threads]
+          Sharing: [Direct (e.g., reposts)/Private (e.g., messages)]
+          Reactions: [Like/Upvote-Downvote/Expanded Reactions]
+          Account Types: [Public/Private (one-way)/Private (mutual)]
+          Identity Options: [Real-name/Pseudonymous/Anonymous]
+          Messaging:
+          Types: [Private (1:1)/Group]
+          Content: [Text/Posts/Stories]
+          Content Management: [Edit/Delete]
+          Audience: [Everyone/Friends-only/Mutual connections]
+          
           LV3: Advanced Features & Customization
-          - Sharing: [Direct/Private]
-          - Reactions: [Like/Upvote-Downvote/Expanded]
-          - Ephemerality: [Content type + preview + audience settings]
-          - Visibility: [Public/Specific groups/Private]
-          - Discovery: [Topic-based/Popularity-based + Custom filters]
-          - Networking control: [Block/Mute/Hide]
-          - Privacy default: [Show all/Invite-only]
-          - Community type: [Open/Closed groups]
-
-          Make clear, specific choices based on the attributes provided.`
+          Ephemeral Content:
+          Enabled: [Yes/No]
+          Content Types: [Text/Image]
+          Content Visibility: [Preview/Non-preview]
+          Audience Settings: [Show Seen Users/Hide Seen Users]
+          Content Visibility Control: [Public/Specific Groups (e.g., close friends)/Private]
+          Content Discovery:
+          Recommendations: [Topic-based Suggestions/Popularity-based Suggestions]
+          Customization: [User-defined Content Filters (e.g., mute keywords, hide suggested contents)]
+          Networking Control: [Block/Mute/Hide]
+          Privacy Settings: [Invited Contents Only (e.g., Slack)/Show All (e.g., Instagram)]
+          Community Features: [Open Groups (e.g., Instagram)/Closed Groups (e.g., Facebook)]`
         }
       ],
     });
@@ -1414,9 +1423,3 @@ app.listen(port, ()=> {
  //})();
 //import Simulation from './simulation.mjs';
 //Simulation.generateAgentFromGroupChats();
-
-
-
-
-
-

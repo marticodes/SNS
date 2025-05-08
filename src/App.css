@@ -151,6 +151,23 @@ main {
   font-style: italic;
 }
 
+.simulation-button {
+  padding: 12px 24px; /* Slightly larger padding */
+  background-color: #57c478; /* Updated color */
+  color: white;
+  font-size: 16px; /* Slightly larger font size */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.simulation-button:hover {
+  background-color: #4aa866; /* Updated hover color */
+}
+
+
 @media (max-width: 1200px) {
   main {
     flex-direction: column; /* Stack sections vertically on smaller screens */

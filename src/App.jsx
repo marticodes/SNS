@@ -34,7 +34,7 @@ function MainPage() {
       console.log("Sending to step 2:", { description, metaphorKeyword: formData.metaphorKeyword });
 
       // Step 2: Convert description to attributes
-      const step2Response = await fetch("http://localhost:5001/api/llm", {
+      const step2Response = await fetch("http://localhost:3001/api/llm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -56,7 +56,7 @@ function MainPage() {
       console.log("Step 2 response:", step2Data);
       
       // Step 3: Convert attributes to features
-      const step3Response = await fetch("http://localhost:5001/api/llm", {
+      const step3Response = await fetch("http://localhost:3001/api/llm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -97,7 +97,18 @@ function MainPage() {
       <main>
         <div className="metaphor-section">
           <MetaphorPrompt onSubmit={handleMetaphorSubmit} />
-          {isLoading && <div className="loading-message">Processing your metaphor...</div>}
+          {isLoading ? (
+            <div className="loading-message">Processing your metaphor...</div>
+          ) : (
+            llmResponse && (
+              <button
+                className="simulation-button"
+                onClick={() => handleGoToSimulation()}
+              >
+                Go to Simulation
+              </button>
+            )
+          )}
         </div>
         <div className="llm-response">
           <h3>Generated Response:</h3>
@@ -108,20 +119,6 @@ function MainPage() {
           <PanelLV2 />
           <PanelLV3 selectedConnection={selections.connection} />
         </div>
-        <button
-          style={{
-            marginTop: "20px",
-            padding: "10px 20px",
-            backgroundColor: "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-          onClick={() => handleGoToSimulation()}
-        >
-          Go to Simulation
-        </button>
       </main>
     </div>
   );
