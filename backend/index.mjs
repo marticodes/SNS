@@ -1401,7 +1401,9 @@ async function generateSocialMediaFeatures(attributes) {
           Customization: [User-defined Content Filters (e.g., mute keywords, hide suggested contents)]
           Networking Control: [Block/Mute/Hide]
           Privacy Settings: [Invited Contents Only (e.g., Slack)/Show All (e.g., Instagram)]
-          Community Features: [Open Groups (e.g., Instagram)/Closed Groups (e.g., Facebook)]`
+          Community Features: [Open Groups (e.g., Instagram)/Closed Groups (e.g., Facebook)]
+          
+          Do not use bolded text or []`
         }
       ],
     });

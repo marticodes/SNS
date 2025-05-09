@@ -1,25 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 
-function PanelLV1({ onSelectionChange }) {
-  const [selectedType, setSelectedType] = useState(null);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [selectedConnection, setSelectedConnection] = useState(null);
-
-  const handleTypeChange = (e) => {
-    setSelectedType(e.target.value);
-    onSelectionChange('type', e.target.value);
-  };
-
-  const handleOrderChange = (e) => {
-    setSelectedOrder(e.target.value);
-    onSelectionChange('order', e.target.value);
-  };
-
-  const handleConnectionChange = (e) => {
-    setSelectedConnection(e.target.value);
-    onSelectionChange('connection', e.target.value);
-  };
-
+function PanelLV1({ selections }) {
   return (
     <div className="panel">
       <div className="panel-header">
@@ -35,8 +16,8 @@ function PanelLV1({ onSelectionChange }) {
             type="radio"
             name="timelineType"
             value="feed-based"
-            checked={selectedType === 'feed-based'}
-            onChange={handleTypeChange}
+            checked={selections?.type === 'feed-based'}
+            disabled={true}
           />
           Feed-based
         </label>
@@ -45,8 +26,8 @@ function PanelLV1({ onSelectionChange }) {
             type="radio"
             name="timelineType"
             value="channel-based"
-            checked={selectedType === 'channel-based'}
-            onChange={handleTypeChange}
+            checked={selections?.type === 'channel-based'}
+            disabled={true}
           />
           Channel-based
         </label>
@@ -59,8 +40,8 @@ function PanelLV1({ onSelectionChange }) {
             type="radio"
             name="contentOrder"
             value="chronological"
-            checked={selectedOrder === 'chronological'}
-            onChange={handleOrderChange}
+            checked={selections?.order === 'chronological'}
+            disabled={true}
           />
           Chronological
         </label>
@@ -69,8 +50,8 @@ function PanelLV1({ onSelectionChange }) {
             type="radio"
             name="contentOrder"
             value="algorithmic"
-            checked={selectedOrder === 'algorithmic'}
-            onChange={handleOrderChange}
+            checked={selections?.order === 'algorithmic'}
+            disabled={true}
           />
           Algorithmic
         </label>
@@ -83,9 +64,9 @@ function PanelLV1({ onSelectionChange }) {
             type="radio"
             name="connectionType" 
             value="network"
-            checked={selectedConnection === 'network'}
-            onChange={handleConnectionChange}
-            /> 
+            checked={selections?.connection === 'network-based'}
+            disabled={true}
+          /> 
           Network
         </label>
         <label>
@@ -93,8 +74,8 @@ function PanelLV1({ onSelectionChange }) {
             type="radio" 
             name="connectionType"
             value="group"
-            checked={selectedConnection === 'group'}
-            onChange={handleConnectionChange} 
+            checked={selections?.connection === 'group-based'}
+            disabled={true}
           /> 
           Group
         </label>

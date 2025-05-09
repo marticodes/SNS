@@ -128,9 +128,108 @@ main {
   cursor: default;
 }
 
+/* Style for radio buttons and checkboxes */
 .options input[type="radio"],
 .options input[type="checkbox"] {
-  margin-right: 6px;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  margin-right: 8px;
+  position: relative;  /* cursor: pointer;  used only in other cases like when user can select*/
+  vertical-align: middle;
+  accent-color: #57c478; /* Green color for selected state */
+}
+
+.options input[type="checkbox"] {
+  border-radius: 4px;
+}
+
+/* Custom styles for disabled inputs to maintain green color */
+.options input[type="radio"]:disabled:checked,
+.options input[type="checkbox"]:disabled:checked {
+  background-color: #57c478;
+  border-color: #57c478;
+}
+
+/* Ensure the checkmark/radio dot is visible in disabled state */
+.options input[type="radio"]:disabled:checked::before,
+.options input[type="checkbox"]:disabled:checked::before {
+  background-color: #57c478;
+}
+
+/* Style for the label of checked inputs */
+.options input[type="radio"]:checked + label,
+.options input[type="checkbox"]:checked + label {
+  color: #57c478;
+  font-weight: 500;
+}
+
+/* Add styles for 'both' case */
+.options input[type="radio"][data-both="true"],
+.options input[type="checkbox"][data-both="true"] {
+  background-color: #57c478;
+  border-color: #57c478;
+}
+
+.options input[type="radio"][data-both="true"] + label,
+.options input[type="checkbox"][data-both="true"] + label {
+  color: #57c478;
+  font-weight: 500;
+}
+
+/* Add these new styles */
+.options input[type="radio"]:checked,
+.options input[type="checkbox"]:checked {
+  background-color: #57c478;
+  border-color: #57c478;
+}
+
+/* Ensure the checkmark/radio dot is visible in both cases */
+.options input[type="radio"]:checked::before,
+.options input[type="checkbox"]:checked::before,
+.options input[type="radio"][data-both="true"]::before,
+.options input[type="checkbox"][data-both="true"]::before {
+  opacity: 1;
+}
+
+.options input[type="radio"]:checked::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background-color: white;
+  border-radius: 50%;
+}
+
+.options input[type="checkbox"]:checked::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+}
+
+/* Ensure disabled state maintains the green color */
+.options input[type="radio"]:disabled:checked,
+.options input[type="checkbox"]:disabled:checked {
+  opacity: 0.7;
+  background-color: #57c478;
+  border-color: #57c478;
+}
+
+.options input[type="radio"]:disabled:checked::before,
+.options input[type="checkbox"]:disabled:checked::before {
+  opacity: 1;
 }
 
 .options strong {
