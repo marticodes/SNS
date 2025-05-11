@@ -11,7 +11,6 @@ const FeedHeader = styled.div`
   top: 0;
   z-index: 10;
   display: flex;
-  jusitfy-content: center;
   align-items: center;
 `;
 

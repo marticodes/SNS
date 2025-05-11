@@ -25,11 +25,11 @@ function PanelLV1({ selections }) {
           <input
             type="radio"
             name="timelineType"
-            value="channel-based"
-            checked={selections?.type === 'channel-based'}
+            value="chat-based"
+            checked={selections?.type === 'chat-based'}
             disabled={true}
           />
-          Channel-based
+          Chat-based
         </label>
       </div>
 

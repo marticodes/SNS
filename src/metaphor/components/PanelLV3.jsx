@@ -12,29 +12,11 @@ function PanelLV3({ selections }) {
       <h3>Ephemeral content</h3>
 
       <div className="options">
-        <strong>Content Type</strong>
         <label>
-          <input type="checkbox" checked={selections?.ephemeralContent?.contentTypes?.includes('text')} disabled={true}/> Text
+          <input type="checkbox" checked={selections?.ephemeralContent?.contentTypes?.includes('yes')} disabled={true}/> Yes
         </label>
         <label>
-          <input type="checkbox" checked={selections?.ephemeralContent?.contentTypes?.includes('image')} disabled={true}/> Image
-        </label>
-      </div>
-
-      <div className="options">
-        <strong>Content visibility</strong>
-        <label>
-          <input type="radio" name="contentVisibility" checked={selections?.ephemeralContent?.visibility === 'preview'} disabled={true}/> Preview
-        </label>
-        <label>
-          <input type="radio" name="contentVisibility" checked={selections?.ephemeralContent?.visibility === 'non-preview'} disabled={true}/> Non-preview
-        </label>
-      </div>
-
-      <div className="options">
-        <strong>Audience</strong>
-        <label>
-          <input type="checkbox" checked={selections?.ephemeralContent?.audience?.includes('show-seen-users')} disabled={true}/> Show seen users
+          <input type="checkbox" checked={selections?.ephemeralContent?.contentTypes?.includes('no')} disabled={true}/> No
         </label>
       </div>
 
@@ -64,22 +46,12 @@ function PanelLV3({ selections }) {
       </div>
 
       <div className="options">
-        <strong>Customization</strong>
-        <label>
-          <input type="checkbox" checked={selections?.contentDiscovery?.customization?.includes('user-defined-filters')} disabled={true}/> User-defined content filters (e.g., mute keywords, hide suggested contents, ..)
-        </label>
-      </div>
-
-      <div className="options">
         <h3>Networking control</h3>
         <label>
           <input type="checkbox" checked={selections?.networkingControl?.includes('block')} disabled={true}/> Block
         </label>
         <label>
           <input type="checkbox" checked={selections?.networkingControl?.includes('mute')} disabled={true}/> Mute
-        </label>
-        <label>
-          <input type="checkbox" checked={selections?.networkingControl?.includes('hide')} disabled={true}/> Hide
         </label>
       </div>
 

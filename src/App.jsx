@@ -31,6 +31,164 @@ function MainPage() {
     }));
   };
 
+  const convertSelectionsToIntegers = (selections) => {
+    const result = {
+      timeline: 0,
+      connection_type: 0,
+      content_order: 0,
+      commenting: 0,
+      account_type: 0,
+      identity: 0,
+      messaging_mem: 0,
+      messaging_control: 0,
+      messaging_audience: 0,
+      sharing: 0,
+      reactions: 0,
+      ephemerality: 0,
+      visibility: 0,
+      discovery: 0,
+      networking_control: 0,
+      privacy_default: 0,
+      community_type: 0
+    };
+
+    // LV1 Conversions
+    if (selections.type === 'feed-based') result.timeline = 1;
+    else if (selections.type === 'chat-based') result.timeline = 2;
+
+    if (selections.order === 'chronological') result.content_order = 1;
+    else if (selections.order === 'algorithmic') result.content_order = 2;
+
+    if (selections.connection === 'network-based') result.connection_type = 1;
+    else if (selections.connection === 'group-based') result.connection_type = 2;
+
+    // LV2 Conversions
+    if (selections.lv2) {
+      // Commenting
+      if (selections.lv2.commenting === 'nested threads') result.commenting = 1;
+      else if (selections.lv2.commenting === 'flat threads') result.commenting = 2;
+
+      // Sharing
+      if (selections.lv2.sharing) {
+        const hasDirect = selections.lv2.sharing.includes('direct');
+        const hasPrivate = selections.lv2.sharing.includes('private');
+        if (hasDirect && hasPrivate) result.sharing = 3;
+        else if (hasDirect) result.sharing = 1;
+        else if (hasPrivate) result.sharing = 2;
+      }
+
+      // Reactions
+      if (selections.lv2.reactions === 'like') result.reactions = 1;
+      else if (selections.lv2.reactions === 'upvote-downvote') result.reactions = 2;
+      else if (selections.lv2.reactions === 'reactions') result.reactions = 3;
+
+      // Account Types
+      if (selections.lv2.accountTypes) {
+        const hasPublic = selections.lv2.accountTypes.includes('public');
+        const hasOneWay = selections.lv2.accountTypes.includes('private-one-way');
+        const hasMutual = selections.lv2.accountTypes.includes('private-mutual');
+        
+        if (hasPublic && hasOneWay && hasMutual) result.account_type = 7;
+        else if (hasOneWay && hasMutual) result.account_type = 6;
+        else if (hasPublic && hasMutual) result.account_type = 5;
+        else if (hasPublic && hasOneWay) result.account_type = 3;
+        else if (hasMutual) result.account_type = 4;
+        else if (hasOneWay) result.account_type = 2;
+        else if (hasPublic) result.account_type = 1;
+      }
+
+      // Identity
+      if (selections.lv2.identity === 'real-name') result.identity = 1;
+      else if (selections.lv2.identity === 'pseudonymous') result.identity = 2;
+      else if (selections.lv2.identity === 'anonymous') result.identity = 3;
+
+      // Messaging Types
+      if (selections.lv2.messagingTypes) {
+        const hasPrivate = selections.lv2.messagingTypes.includes('private');
+        const hasGroup = selections.lv2.messagingTypes.includes('group');
+        if (hasPrivate && hasGroup) result.messaging_mem = 3;
+        else if (hasPrivate) result.messaging_mem = 1;
+        else if (hasGroup) result.messaging_mem = 2;
+      }
+
+      // Content Management
+      if (selections.lv2.contentManagement) {
+        const hasEdit = selections.lv2.contentManagement.includes('edit');
+        const hasDelete = selections.lv2.contentManagement.includes('delete');
+        if (hasEdit && hasDelete) result.messaging_control = 3;
+        else if (hasEdit) result.messaging_control = 1;
+        else if (hasDelete) result.messaging_control = 2;
+      }
+
+      // Audience
+      if (selections.lv2.audience) {
+        const hasEveryone = selections.lv2.audience.includes('everyone');
+        const hasFriends = selections.lv2.audience.includes('with-connection');
+        const hasMutual = selections.lv2.audience.includes('mutual');
+        
+        if (hasEveryone && hasFriends && hasMutual) result.messaging_audience = 7;
+        else if (hasFriends && hasMutual) result.messaging_audience = 6;
+        else if (hasEveryone && hasMutual) result.messaging_audience = 5;
+        else if (hasEveryone && hasFriends) result.messaging_audience = 3;
+        else if (hasMutual) result.messaging_audience = 4;
+        else if (hasFriends) result.messaging_audience = 2;
+        else if (hasEveryone) result.messaging_audience = 1;
+      }
+    }
+
+    // LV3 Conversions
+    if (selections.lv3) {
+      // Ephemeral Content
+      if (selections.lv3.ephemeralContent) {
+        result.ephemerality = selections.lv3.ephemeralContent.enabled ? 1 : 0;
+        
+        // Content Visibility Control
+        if (selections.lv3.ephemeralContent.visibilityControl) {
+          const visibility = selections.lv3.ephemeralContent.visibilityControl[0];
+          if (visibility === 'public') result.visibility = 1;
+          else if (visibility === 'private') result.visibility = 3;
+        }
+      }
+
+      // Content Discovery
+      if (selections.lv3.contentDiscovery) {
+        if (selections.lv3.contentDiscovery.recommendations) {
+          const recs = selections.lv3.contentDiscovery.recommendations;
+          const hasTopic = recs.includes('topic-based');
+          const hasPopular = recs.includes('popularity-based');
+          if (hasTopic && hasPopular) result.discovery = 3;
+          else if (hasTopic) result.discovery = 1;
+          else if (hasPopular) result.discovery = 2;
+        }
+      }
+
+      // Networking Control
+      if (selections.lv3.networkingControl) {
+        const hasBlock = selections.lv3.networkingControl.includes('block');
+        const hasMute = selections.lv3.networkingControl.includes('mute');
+        const hasHide = selections.lv3.networkingControl.includes('hide');
+        
+        if (hasBlock && hasMute && hasHide) result.networking_control = 7;
+        else if (hasMute && hasHide) result.networking_control = 6;
+        else if (hasBlock && hasHide) result.networking_control = 5;
+        else if (hasBlock && hasMute) result.networking_control = 3;
+        else if (hasHide) result.networking_control = 4;
+        else if (hasMute) result.networking_control = 2;
+        else if (hasBlock) result.networking_control = 1;
+      }
+
+      // Privacy Settings
+      if (selections.lv3.privacySettings === 'invited-only') result.privacy_default = 1;
+      else if (selections.lv3.privacySettings === 'show-all') result.privacy_default = 2;
+
+      // Community Feature
+      if (selections.lv3.communityFeature === 'open-groups') result.community_type = 1;
+      else if (selections.lv3.communityFeature === 'closed-groups') result.community_type = 2;
+    }
+
+    return result;
+  };
+
   const handleMetaphorSubmit = async (formData) => {
     setIsLoading(true);
     try {
@@ -83,6 +241,29 @@ function MainPage() {
       
       // Parse the LLM response and update selections
       parseLLMResponse(step3Data.features);
+
+      // Convert selections to integers and send to backend
+      const integerSelections = convertSelectionsToIntegers(selections);
+      const myUserID = parseInt(localStorage.getItem("userID"), 10);
+
+      // Send to backend
+      const backendResponse = await fetch("http://localhost:3001/api/features/all/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...integerSelections,
+          user_id: myUserID
+        }),
+      });
+
+      if (!backendResponse.ok) {
+        const errorText = await backendResponse.text();
+        throw new Error(`Error sending to backend: ${backendResponse.statusText}. Details: ${errorText}`);
+      }
+
+      const backendData = await backendResponse.json();
+      console.log("Backend response:", backendData);
+
     } catch (error) {
       console.error("Failed to process metaphor:", error);
       setLlmResponse(`An error occurred while processing your metaphor: ${error.message}`);
@@ -141,29 +322,66 @@ function MainPage() {
       const lv2Content = lv2Match[1];
       const lv2Selections = {};
 
-      // Parse Content Types
-      const contentTypes = extractValue(lv2Content, 'Content Types');
-      if (contentTypes) lv2Selections.contentTypes = splitValues(contentTypes);
-
       // Parse Commenting
       const commenting = extractValue(lv2Content, 'Commenting');
-      if (commenting) lv2Selections.commenting = commenting.toLowerCase();
+      if (commenting) {
+        const commentText = commenting.toLowerCase().trim();
+        if (commentText.includes('nested')) {
+          lv2Selections.commenting = 'nested threads';
+        } else if (commentText.includes('flat')) {
+          lv2Selections.commenting = 'flat threads';
+        }
+      }
 
       // Parse Sharing
       const sharing = extractValue(lv2Content, 'Sharing');
-      if (sharing) lv2Selections.sharing = [sharing.toLowerCase()];
+      if (sharing) {
+        const sharingText = sharing.toLowerCase().trim();
+        if (sharingText.includes('direct')) {
+          lv2Selections.sharing = ['direct'];
+        } else if (sharingText.includes('private')) {
+          lv2Selections.sharing = ['private'];
+        }
+      }
 
       // Parse Reactions
       const reactions = extractValue(lv2Content, 'Reactions');
-      if (reactions) lv2Selections.reactions = reactions.toLowerCase();
+      if (reactions) {
+        const reactionText = reactions.toLowerCase().trim();
+        if (reactionText.includes('expanded')) {
+          lv2Selections.reactions = 'reactions';
+        } else if (reactionText.includes('like')) {
+          lv2Selections.reactions = 'like';
+        } else if (reactionText.includes('upvote') || reactionText.includes('downvote')) {
+          lv2Selections.reactions = 'upvote-downvote';
+        }
+      }
 
       // Parse Account Types
       const accountTypes = extractValue(lv2Content, 'Account Types');
-      if (accountTypes) lv2Selections.accountTypes = [accountTypes.toLowerCase()];
+      if (accountTypes) {
+        const accountText = accountTypes.toLowerCase().trim();
+        if (accountText.includes('public')) {
+          lv2Selections.accountTypes = ['public'];
+        } else if (accountText.includes('private') && accountText.includes('one-way')) {
+          lv2Selections.accountTypes = ['private-one-way'];
+        } else if (accountText.includes('private') && accountText.includes('mutual')) {
+          lv2Selections.accountTypes = ['private-mutual'];
+        }
+      }
 
       // Parse Identity Options
       const identity = extractValue(lv2Content, 'Identity Options');
-      if (identity) lv2Selections.identity = identity.toLowerCase();
+      if (identity) {
+        const identityText = identity.toLowerCase().trim();
+        if (identityText.includes('real-name') || identityText.includes('real name')) {
+          lv2Selections.identity = 'real-name';
+        } else if (identityText.includes('pseudonym')) {
+          lv2Selections.identity = 'pseudonymous';
+        } else if (identityText.includes('anonym')) {
+          lv2Selections.identity = 'anonymous';
+        }
+      }
 
       // Parse Messaging
       const messagingMatch = lv2Content.match(/Messaging:([\s\S]*?)(?=\n\n|$)/i);
@@ -172,19 +390,37 @@ function MainPage() {
         
         // Parse Types
         const types = extractValue(messagingContent, 'Types');
-        if (types) lv2Selections.messagingTypes = [types.toLowerCase()];
-
-        // Parse Content
-        const content = extractValue(messagingContent, 'Content');
-        if (content) lv2Selections.messagingContent = splitValues(content);
+        if (types) {
+          const typesText = types.toLowerCase().trim();
+          if (typesText.includes('private') || typesText.includes('1:1')) {
+            lv2Selections.messagingTypes = ['private'];
+          } else if (typesText.includes('group')) {
+            lv2Selections.messagingTypes = ['group'];
+          }
+        }
 
         // Parse Content Management
         const management = extractValue(messagingContent, 'Content Management');
-        if (management) lv2Selections.contentManagement = splitValues(management);
+        if (management) {
+          const managementText = management.toLowerCase().trim();
+          if (managementText.includes('edit')) {
+            lv2Selections.contentManagement = ['edit'];
+          }
+          if (managementText.includes('delete')) {
+            lv2Selections.contentManagement = [...(lv2Selections.contentManagement || []), 'delete'];
+          }
+        }
 
         // Parse Audience
         const audience = extractValue(messagingContent, 'Audience');
-        if (audience) lv2Selections.audience = [audience.toLowerCase()];
+        if (audience) {
+          const audienceText = audience.toLowerCase().trim();
+          if (audienceText.includes('everyone')) {
+            lv2Selections.audience = ['everyone'];
+          } else if (audienceText.includes('connection')) {
+            lv2Selections.audience = ['with-connection'];
+          }
+        }
       }
 
       setSelections(prev => ({
@@ -207,23 +443,24 @@ function MainPage() {
 
         // Parse Enabled
         const enabled = extractValue(ephemeralContent, 'Enabled');
-        if (enabled) lv3Selections.ephemeralContent.enabled = enabled.toLowerCase() === 'yes';
-
-        // Parse Content Types
-        const contentTypes = extractValue(ephemeralContent, 'Content Types');
-        if (contentTypes) lv3Selections.ephemeralContent.contentTypes = splitValues(contentTypes);
-
-        // Parse Content Visibility
-        const visibility = extractValue(ephemeralContent, 'Content Visibility');
-        if (visibility) lv3Selections.ephemeralContent.visibility = visibility.toLowerCase();
-
-        // Parse Audience Settings
-        const audience = extractValue(ephemeralContent, 'Audience Settings');
-        if (audience) lv3Selections.ephemeralContent.audience = [audience.toLowerCase()];
+        if (enabled) {
+          const enabledText = enabled.toLowerCase().trim();
+          lv3Selections.ephemeralContent.enabled = enabledText.includes('yes');
+          lv3Selections.ephemeralContent.contentTypes = enabledText.includes('yes') ? ['yes'] : ['no'];
+        }
 
         // Parse Content Visibility Control
         const visibilityControl = extractValue(ephemeralContent, 'Content Visibility Control');
-        if (visibilityControl) lv3Selections.ephemeralContent.visibilityControl = [visibilityControl.toLowerCase()];
+        if (visibilityControl) {
+          const visibilityText = visibilityControl.toLowerCase().trim();
+          if (visibilityText.includes('specific')) {
+            lv3Selections.ephemeralContent.visibilityControl = ['specific-groups'];
+          } else if (visibilityText.includes('public')) {
+            lv3Selections.ephemeralContent.visibilityControl = ['public'];
+          } else if (visibilityText.includes('private')) {
+            lv3Selections.ephemeralContent.visibilityControl = ['private'];
+          }
+        }
       }
 
       // Parse Content Discovery
@@ -234,24 +471,48 @@ function MainPage() {
 
         // Parse Recommendations
         const recommendations = extractValue(discoveryContent, 'Recommendations');
-        if (recommendations) lv3Selections.contentDiscovery.recommendations = [recommendations.toLowerCase()];
-
-        // Parse Customization
-        const customization = extractValue(discoveryContent, 'Customization');
-        if (customization) lv3Selections.contentDiscovery.customization = [customization.toLowerCase()];
+        if (recommendations) {
+          const recText = recommendations.toLowerCase().trim();
+          if (recText.includes('topic')) {
+            lv3Selections.contentDiscovery.recommendations = ['topic-based'];
+          } else if (recText.includes('popular')) {
+            lv3Selections.contentDiscovery.recommendations = ['popularity-based'];
+          }
+        }
 
         // Parse Networking Control
-        const networking = extractValue(lv3Content, 'Networking Control');
-        if (networking) lv3Selections.networkingControl = splitValues(networking);
+        const networking = extractValue(discoveryContent, 'Networking Control');
+        if (networking) {
+          const networkingText = networking.toLowerCase().trim();
+          if (networkingText.includes('block')) {
+            lv3Selections.networkingControl = ['block'];
+          } else if (networkingText.includes('mute')) {
+            lv3Selections.networkingControl = ['mute'];
+          }
+        }
 
         // Parse Privacy Settings
-        const privacy = extractValue(lv3Content, 'Privacy Settings');
-        if (privacy) lv3Selections.privacySettings = privacy.toLowerCase();
-      }
+        const privacy = extractValue(discoveryContent, 'Privacy Settings');
+        if (privacy) {
+          const privacyText = privacy.toLowerCase().trim();
+          if (privacyText.includes('show all') || privacyText.includes('show-all')) {
+            lv3Selections.privacySettings = 'show-all';
+          } else if (privacyText.includes('invited')) {
+            lv3Selections.privacySettings = 'invited-only';
+          }
+        }
 
-      // Parse Community Features
-      const community = extractValue(lv3Content, 'Community Features');
-      if (community) lv3Selections.communityFeature = community.toLowerCase();
+        // Parse Community Features
+        const community = extractValue(discoveryContent, 'Community Features');
+        if (community) {
+          const communityText = community.toLowerCase().trim();
+          if (communityText.includes('open')) {
+            lv3Selections.communityFeature = 'open-groups';
+          } else if (communityText.includes('closed')) {
+            lv3Selections.communityFeature = 'closed-groups';
+          }
+        }
+      }
 
       setSelections(prev => ({
         ...prev,

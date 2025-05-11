@@ -10,26 +10,6 @@ function PanelLV2({ selections }) {
       </div>
 
       <div className="options">
-        <h3>Content</h3>
-        <label>
-          <input 
-            type="checkbox" 
-            checked={selections?.contentTypes?.includes('text') || selections?.contentTypes?.includes('both')} 
-            data-both={selections?.contentTypes?.includes('both')}
-            disabled={true}
-          /> Text
-        </label>
-        <label>
-          <input 
-            type="checkbox" 
-            checked={selections?.contentTypes?.includes('image') || selections?.contentTypes?.includes('both')} 
-            data-both={selections?.contentTypes?.includes('both')}
-            disabled={true}
-          /> Image
-        </label>
-      </div>
-
-      <div className="options">
         <strong>Commenting</strong>
         <label>
           <input type="radio" name="commenting" checked={selections?.commenting === 'nested threads'} disabled={true}/> Nested threads
@@ -103,19 +83,6 @@ function PanelLV2({ selections }) {
       </div>
 
       <div className="options">
-        <strong>Content</strong>
-        <label>
-          <input type="checkbox" checked={selections?.messagingContent?.includes('text')} disabled={true}/> Text
-        </label>
-        <label>
-          <input type="checkbox" checked={selections?.messagingContent?.includes('posts')} disabled={true}/> Posts
-        </label>
-        <label>
-          <input type="checkbox" checked={selections?.messagingContent?.includes('stories')} disabled={true}/> Stories
-        </label>
-      </div>
-
-      <div className="options">
         <strong>Content Management</strong>
         <label>
           <input type="checkbox" checked={selections?.contentManagement?.includes('edit')} disabled={true}/> Edit
@@ -131,10 +98,7 @@ function PanelLV2({ selections }) {
           <input type="checkbox" checked={selections?.audience?.includes('everyone')} disabled={true}/> Everyone
         </label>
         <label>
-          <input type="checkbox" checked={selections?.audience?.includes('friends-only')} disabled={true}/> Friends-only
-        </label>
-        <label>
-          <input type="checkbox" checked={selections?.audience?.includes('mutual-connections')} disabled={true}/> Mutual connections
+          <input type="checkbox" checked={selections?.audience?.includes('with-connection')} disabled={true}/> With Connection
         </label>
       </div>
     </div>

@@ -1372,34 +1372,28 @@ async function generateSocialMediaFeatures(attributes) {
           provide social media features organized in the following format:
 
           LV1: Network Structure
-          Timeline Types: [Feed-based/Channel-based]
+          Timeline Types: [Feed-based/Chat-based]
           Content Order: [Chronological/Algorithmic]
           Connection Type: [Network-based/Group-based]
           
           LV2: Interaction Mechanisms
-          Content Types: [Text/Image/Both]
-          Commenting: [Flat/Nested Threads]
+          Commenting: [Flat Threads/Nested Threads]
           Sharing: [Direct (e.g., reposts)/Private (e.g., messages)]
           Reactions: [Like/Upvote-Downvote/Expanded Reactions]
           Account Types: [Public/Private (one-way)/Private (mutual)]
           Identity Options: [Real-name/Pseudonymous/Anonymous]
           Messaging:
           Types: [Private (1:1)/Group]
-          Content: [Text/Posts/Stories]
           Content Management: [Edit/Delete]
-          Audience: [Everyone/Friends-only/Mutual connections]
+          Audience: [Everyone/With connections]
           
           LV3: Advanced Features & Customization
           Ephemeral Content:
           Enabled: [Yes/No]
-          Content Types: [Text/Image]
-          Content Visibility: [Preview/Non-preview]
-          Audience Settings: [Show Seen Users/Hide Seen Users]
           Content Visibility Control: [Public/Specific Groups (e.g., close friends)/Private]
           Content Discovery:
           Recommendations: [Topic-based Suggestions/Popularity-based Suggestions]
-          Customization: [User-defined Content Filters (e.g., mute keywords, hide suggested contents)]
-          Networking Control: [Block/Mute/Hide]
+          Networking Control: [Block/Mute]
           Privacy Settings: [Invited Contents Only (e.g., Slack)/Show All (e.g., Instagram)]
           Community Features: [Open Groups (e.g., Instagram)/Closed Groups (e.g., Facebook)]
           
