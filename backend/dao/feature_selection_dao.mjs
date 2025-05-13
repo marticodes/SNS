@@ -5,17 +5,17 @@ import LvlThreeFeature from '../models/lvl_three_feature_model.mjs';
 import FeatureModel from '../models/feature_model.mjs';
 
 const FeatureSelectionDAO = {
-    async getLvlOneFeatures(user_id){
+    async getLvlOneFeatures(){
         return new Promise((resolve, reject) => {
             try {         
-                const sql = 'SELECT * FROM LvlOneFeature WHERE user_id=?';
-                db.get(sql, [user_id], (err, row) => {
+                const sql = 'SELECT * FROM LvlOneFeature';
+                db.get(sql, [], (err, row) => {
                     if (err) {
                         reject(err);
                     } else if (!row) {
                         resolve([]);
                     } else {
-                        const features = new LvlOneFeature(row.lvl_one_id, row.timeline, row.connection_type, row.user_id);
+                        const features = new LvlOneFeature(row.lvl_one_id, row.timeline, row.connection_type, row.content_order);
                         resolve(features);
                     }
                 });
@@ -25,17 +25,17 @@ const FeatureSelectionDAO = {
         });
     },
 
-    async getLvlTwoFeatures(user_id){
+    async getLvlTwoFeatures(){
         return new Promise((resolve, reject) => {
             try {         
-                const sql = 'SELECT * FROM LvlTwoFeature WHERE user_id=?';
-                db.get(sql, [user_id], (err, row) => {
+                const sql = 'SELECT * FROM LvlTwoFeature';
+                db.get(sql, [], (err, row) => {
                     if (err) {
                         reject(err);
                     } else if (!row) {
                         resolve(null);
                     } else {
-                        const features = new LvlTwoFeature(row.lvl_two_id, row.content_type, row.commenting, row.account_type, row.identity, row.messaging_mem, row.messaging_content, row.messaging_control, row.messaging_audience, row.user_id);
+                        const features = new LvlTwoFeature(row.lvl_two_id, row.commenting, row.account_type, row.identity, row.messaging_mem, row.messaging_control, row.messaging_audience, row.sharing, row.reactions);
                         resolve(features);
                     }
                 });
@@ -45,11 +45,11 @@ const FeatureSelectionDAO = {
         });
     },
 
-    async getLvlThreeFeatures(user_id) {
+    async getLvlThreeFeatures() {
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'SELECT * FROM LvlThreeFeature WHERE user_id=?';
-                db.get(sql, [user_id], (err, row) => {
+                const sql = 'SELECT * FROM LvlThreeFeature';
+                db.get(sql, [], (err, row) => {
                     if (err) {
                         reject(err);
                     } else if (!row) {
@@ -57,15 +57,12 @@ const FeatureSelectionDAO = {
                     } else {
                         const feature = new LvlThreeFeature(
                             row.lvl_three_id,
-                            row.sharing,
-                            row.reactions,
                             row.ephemerality,
                             row.visibility,
                             row.discovery,
                             row.networking_control,
                             row.privacy_default,
-                            row.community_type,
-                            row.user_id
+                            row.community_type
                         );
                         resolve(feature);
                     }
@@ -76,38 +73,35 @@ const FeatureSelectionDAO = {
         });
     },
     
-    async getFeatures(user_id){
+    async getFeatures(){
         return new Promise(async (resolve, reject) => {
             try {         
                 const [lvlOneData, lvlTwoData, lvlThreeData] = await Promise.all([
-                    this.getLvlOneFeatures(user_id),
-                    this.getLvlTwoFeatures(user_id),
-                    this.getLvlThreeFeatures(user_id)
+                    this.getLvlOneFeatures(),
+                    this.getLvlTwoFeatures(),
+                    this.getLvlThreeFeatures()
                 ]);
         
                 const mergedFeatures = new FeatureModel(
                     lvlOneData.timeline,
                     lvlOneData.connection_type,
+                    lvlOneData.content_order,
                     
-                    lvlTwoData.content_type,
                     lvlTwoData.commenting,
                     lvlTwoData.account_type,
                     lvlTwoData.identity,
                     lvlTwoData.messaging_mem,
-                    lvlTwoData.messaging_content,
                     lvlTwoData.messaging_control,
                     lvlTwoData.messaging_audience,
-
-                    lvlThreeData.sharing,
-                    lvlThreeData.reactions,
+                    lvlTwoData.sharing,
+                    lvlTwoData.reactions,
+                    
                     lvlThreeData.ephemerality,
                     lvlThreeData.visibility,
                     lvlThreeData.discovery,
                     lvlThreeData.networking_control,
                     lvlThreeData.privacy_default,
                     lvlThreeData.community_type,
-
-                    lvlThreeData.user_id
 
                 );
                 resolve(mergedFeatures);
@@ -117,11 +111,11 @@ const FeatureSelectionDAO = {
         });
     },
 
-    async insertLvlOneFeature(timeline, connection_type, user_id){
+    async insertLvlOneFeature(timeline, connection_type, content_order){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO LvlOneFeature (timeline, connection_type, user_id) VALUES (?,?,?)';
-                db.run(sql, [timeline, connection_type, user_id], function(err) { 
+                const sql = 'INSERT INTO LvlOneFeature (timeline, connection_type, content_order) VALUES (?,?,?)';
+                db.run(sql, [timeline, connection_type, content_order], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
@@ -137,11 +131,11 @@ const FeatureSelectionDAO = {
 
     },
 
-    async insertLvlTwoFeature(content_type, commenting, account_type, identity, messaging_mem, messaging_content, messaging_control, messaging_audience, user_id){
+    async insertLvlTwoFeature(commenting, account_type, identity, messaging_mem, messaging_control, messaging_audience, sharing, reactions){
         return new Promise((resolve, reject) => {
-            try {
-                const sql = 'INSERT INTO LvlTwoFeature (content_type, commenting, account_type, identity, messaging_mem, messaging_content, messaging_control, messaging_audience, user_id) VALUES (?,?,?,?,?,?,?,?,?)';
-                db.run(sql, [content_type, commenting, account_type, identity, messaging_mem, messaging_content, messaging_control, messaging_audience, user_id], function(err) { 
+            try {                
+                const sql = 'INSERT INTO LvlTwoFeature (commenting, account_type, identity, messaging_mem, messaging_control, messaging_audience, sharing, reactions) VALUES (?,?,?,?,?,?,?,?)';
+                db.run(sql, [commenting, account_type, identity, messaging_mem, messaging_control, messaging_audience, sharing, reactions], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
@@ -157,11 +151,11 @@ const FeatureSelectionDAO = {
 
     },
 
-    async insertLvlThreeFeature(sharing, reactions, ephemerality, visibility, discovery, networking_control, privacy_default, community_type, user_id){
+    async insertLvlThreeFeature(ephemerality, visibility, discovery, networking_control, privacy_default, community_type){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO LvlThreeFeature (sharing, reactions, ephemerality, visibility, discovery, networking_control, privacy_default, community_type, user_id) VALUES (?,?,?,?,?,?,?,?,?)';
-                db.run(sql, [sharing, reactions, ephemerality, visibility, discovery, networking_control, privacy_default, community_type, user_id], function(err) { 
+                const sql = 'INSERT INTO LvlThreeFeature (ephemerality, visibility, discovery, networking_control, privacy_default, community_type) VALUES (?,?,?,?,?,?)';
+                db.run(sql, [ephemerality, visibility, discovery, networking_control, privacy_default, community_type], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
@@ -177,12 +171,15 @@ const FeatureSelectionDAO = {
 
     },
 
-    async insertFeatures(timeline, connection_type, content_type, commenting, account_type, identity, messaging_mem, messaging_content, messaging_control, messaging_audience, sharing, reactions, ephemerality, visibility, discovery, networking_control, privacy_default, community_type, user_id){
+    async insertFeatures(timeline, connection_type, content_order, commenting, account_type, identity, messaging_mem, messaging_control, messaging_audience, sharing, reactions, ephemerality, visibility, discovery, networking_control, privacy_default, community_type){
         return new Promise(async (resolve, reject) => {
             try {
-            const lvlOneID = await FeatureSelectionDAO.insertLvlOneFeature(timeline, connection_type, user_id);
-            const lvlTwoID = await FeatureSelectionDAO.insertLvlTwoFeature(content_type, commenting, account_type, identity, messaging_mem, messaging_content, messaging_control, messaging_audience, user_id);
-            const lvlThreeID = await FeatureSelectionDAO.insertLvlThreeFeature(sharing, reactions, ephemerality, visibility, discovery, networking_control, privacy_default, community_type, user_id);
+
+            this.removeFeatures();
+
+            const lvlOneID = await FeatureSelectionDAO.insertLvlOneFeature(timeline, connection_type, content_order);
+            const lvlTwoID = await FeatureSelectionDAO.insertLvlTwoFeature(commenting, account_type, identity, messaging_mem, messaging_control, messaging_audience, sharing, reactions);
+            const lvlThreeID = await FeatureSelectionDAO.insertLvlThreeFeature(ephemerality, visibility, discovery, networking_control, privacy_default, community_type);
             
             if (lvlOneID && lvlTwoID && lvlThreeID) {
                 resolve({ lvlOneID, lvlTwoID, lvlThreeID });
@@ -196,21 +193,21 @@ const FeatureSelectionDAO = {
 
     },
 
-    async removeFeatures(user_id){
+    async removeFeatures(){
         return new Promise((resolve, reject) => {
             try {
-                const sql1 = 'DELETE FROM LvlOneFeature WHERE user_id=?';
-                const sql2 = 'DELETE FROM LvlTwoFeature WHERE user_id=?';
-                const sql3 = 'DELETE FROM LvlThreeFeature WHERE user_id=?';
+                const sql1 = 'DELETE FROM LvlOneFeature';
+                const sql2 = 'DELETE FROM LvlTwoFeature';
+                const sql3 = 'DELETE FROM LvlThreeFeature';
     
                 db.serialize(() => {
-                    db.run(sql1, [user_id], function(err1) {
+                    db.run(sql1, [], function(err1) {
                         if (err1) return reject(err1);
                     });
-                    db.run(sql2, [user_id], function(err2) {
+                    db.run(sql2, [], function(err2) {
                         if (err2) return reject(err2);
                     });
-                    db.run(sql3, [user_id], function(err3) {
+                    db.run(sql3, [], function(err3) {
                         if (err3) return reject(err3);
                         resolve(true); 
                     });
