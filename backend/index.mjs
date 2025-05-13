@@ -1164,10 +1164,10 @@ app.delete('/api/logs/delete/user/',
 );
 
 //Feature API
-app.get('/api/features/lvl/one/:user_id',
+app.get('/api/features/lvl/one/',
   async (req, res) => {
       try {
-        const logs = await fsDAO.getLvlOneFeatures(req.params.user_id);
+        const logs = await fsDAO.getLvlOneFeatures();
         res.status(200).json(logs);
       } catch (err) {
         res.status(500).json({ error: `BE: Error listing lvl one features ${err}` });
@@ -1175,10 +1175,10 @@ app.get('/api/features/lvl/one/:user_id',
     }
 );
 
-app.get('/api/features/lvl/two/:user_id',
+app.get('/api/features/lvl/two/',
   async (req, res) => {
       try {
-        const logs = await fsDAO.getLvlTwoFeatures(req.params.user_id);
+        const logs = await fsDAO.getLvlTwoFeatures();
         res.status(200).json(logs);
       } catch (err) {
         res.status(500).json({ error: `BE: Error listing lvl two features ${err}` });
@@ -1186,10 +1186,10 @@ app.get('/api/features/lvl/two/:user_id',
     }
 );
 
-app.get('/api/features/lvl/three/:user_id',
+app.get('/api/features/lvl/three/',
   async (req, res) => {
       try {
-        const logs = await fsDAO.getLvlThreeFeatures(req.params.user_id);
+        const logs = await fsDAO.getLvlThreeFeatures();
         res.status(200).json(logs);
       } catch (err) {
         res.status(500).json({ error: `BE: Error listing lvl three features ${err}` });
@@ -1197,10 +1197,10 @@ app.get('/api/features/lvl/three/:user_id',
     }
 );
 
-app.get('/api/features/all/:user_id',
+app.get('/api/features/all/',
   async (req, res) => {
       try {
-        const logs = await fsDAO.getFeatures(req.params.user_id);
+        const logs = await fsDAO.getFeatures();
         res.status(200).json(logs);
       } catch (err) {
         res.status(500).json({ error: `BE: Error listing features ${err}` });
@@ -1211,7 +1211,7 @@ app.get('/api/features/all/:user_id',
 app.post('/api/features/lvl/one/add',
   async (req, res) => {
       try {
-        const ina = await fsDAO.insertLvlOneFeature(req.body.timeline, req.body.connection_type, req.body.user_id);
+        const ina = await fsDAO.insertLvlOneFeature(req.body.timeline, req.body.connection_type, req.body.content_order);
         res.status(201).json({ina});
       } catch (err) {
         res.status(503).json({ error: `BE: Error inserting lvl one features ${err}` });
@@ -1222,7 +1222,7 @@ app.post('/api/features/lvl/one/add',
 app.post('/api/features/lvl/two/add',
   async (req, res) => {
       try {
-        const ina = await fsDAO.insertLvlTwoFeature(req.body.content_type, req.body.commenting, req.body.account_type, req.body.identity, req.body.messaging_mem, req.body.messaging_content, req.body.messaging_control, req.body.messaging_audience, req.body.user_id);
+        const ina = await fsDAO.insertLvlTwoFeature(req.body.commenting, req.body.account_type, req.body.identity, req.body.messaging_mem, req.body.messaging_control, req.body.messaging_audience, req.body.sharing, req.body.reactions);
         res.status(201).json({ina});
       } catch (err) {
         res.status(503).json({ error: `BE: Error inserting lvl two features ${err}` });
@@ -1233,7 +1233,7 @@ app.post('/api/features/lvl/two/add',
 app.post('/api/features/lvl/three/add',
   async (req, res) => {
       try {
-        const ina = await fsDAO.insertLvlThreeFeature(req.body.sharing, req.body.reactions, req.body.ephemerality, req.body.visibility, req.body.discovery, req.body.networking_control, req.body.privacy_default, req.body.community_type, req.body.user_id);
+        const ina = await fsDAO.insertLvlThreeFeature(req.body.ephemerality, req.body.visibility, req.body.discovery, req.body.networking_control, req.body.privacy_default, req.body.community_type, req.body.user_id);
         res.status(201).json({ina});
       } catch (err) {
         res.status(503).json({ error: `BE: Error inserting lvl three features ${err}` });
@@ -1244,7 +1244,7 @@ app.post('/api/features/lvl/three/add',
 app.post('/api/features/all/add',
   async (req, res) => {
       try {
-        const ina = await fsDAO.insertFeatures(req.body.timeline, req.body.connection_type, req.body.content_type, req.body.commenting, req.body.account_type, req.body.identity, req.body.messaging_mem, req.body.messaging_content, req.body.messaging_control, req.body.messaging_audience, req.body.sharing, req.body.reactions, req.body.ephemerality, req.body.visibility, req.body.discovery, req.body.networking_control, req.body.privacy_default, req.body.community_type, req.body.user_id);
+        const ina = await fsDAO.insertFeatures(req.body.timeline, req.body.connection_type, req.body.content_order, req.body.commenting, req.body.account_type, req.body.identity, req.body.messaging_mem, req.body.messaging_control, req.body.messaging_audience, req.body.sharing, req.body.reactions, req.body.ephemerality, req.body.visibility, req.body.discovery, req.body.networking_control, req.body.privacy_default, req.body.community_type);
         res.status(201).json({ina});
       } catch (err) {
         res.status(503).json({ error: `BE: Error inserting features ${err}` });
@@ -1255,7 +1255,7 @@ app.post('/api/features/all/add',
 app.delete('/api/features/delete/',
   async (req, res) => {
       try {
-        const ina = await fsDAO.removeFeatures(req.body.user_id);
+        const ina = await fsDAO.removeFeatures();
         res.status(200).json({ina});
       } catch (err) {
         res.status(503).json({ error: `BE: Error deleting user features ${err}` });
