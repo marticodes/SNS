@@ -7,6 +7,8 @@ import passport from 'passport';
 import LocalStrategy from 'passport-local';
 
 import session from 'express-session';
+import { OPENAI_API_KEY } from './apiKey.mjs';
+import OpenAI from "openai";
 
 import ChatDAO from './dao/chat_dao.mjs';
 import UserDAO from './dao/user_dao.mjs';
@@ -1264,6 +1266,150 @@ app.delete('/api/features/delete/',
 );
 
 
+//metaphor API
+
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY});
+
+const sessions = new Map();
+
+app.post("/api/llm", async (req, res) => {
+  const { sessionId, step, input } = req.body;
+
+  if (!sessionId || !step || !input) {
+    return res.status(400).json({ error: "Session ID, step, and input are required." });
+  }
+
+  try {
+    if (step === 2) {
+      // Step 2: Convert Description to Key Attributes
+      console.log("Received input for step 2:", input);
+      const attributes = await generateKeyAttributes(input.description, input.metaphorKeyword);
+      sessions.set(sessionId, { step: 2, attributes });
+      return res.json({ attributes });
+    } else if (step === 3) {
+      // Step 3: Convert Attributes to Social Media Features
+      const attributes = input; // Direct input from step 2
+      if (!attributes) return res.status(400).json({ error: "Attributes data not found." });
+
+      const features = await generateSocialMediaFeatures(attributes);
+      sessions.delete(sessionId);
+      return res.json({ features });
+    } else {
+      return res.status(400).json({ error: "Invalid step." });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failed to process the request: " + error.message });
+  }
+});
+
+async function generateKeyAttributes(description, metaphorKeyword) {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { 
+          role: "system", 
+          content: "You are an assistant that converts metaphor descriptions into key attributes. Always respond in valid JSON format."
+        },
+        { 
+          role: "user", 
+          content: `Given the metaphor keyword "${metaphorKeyword}" and this metaphor description: "${description}", 
+          analyze it based on these attributes and return ONLY a JSON object with the following structure:
+          {
+            "Atmosphere": "...",
+            "GatheringType": "...",
+            "ConnectingEnvironment": "...",
+            "TemporalEngagement": "...",
+            "CommunicationFlow": "...",
+            "ActorType": "...",
+            "ContentOrientation": "...",
+            "ParticipationControl": "..."
+          }
+
+          Consider these definitions when analyzing:
+          - Atmosphere: emotional and sensory qualities of the space
+          - GatheringType: reason people come together (thematic or relation-based)
+          - ConnectingEnvironment: how the space facilitates connections
+          - TemporalEngagement: duration and frequency of participation
+          - CommunicationFlow: interaction style and patterns
+          - ActorType: type of social identity individuals adopt
+          - ContentOrientation: dominant focus of communication
+          - ParticipationControl: extent of visibility and interaction management
+
+          Return ONLY the JSON object, no additional text or explanation.`
+        }
+      ],
+    });
+
+    console.log("Key Attributes API Response:", completion.choices[0]?.message.content);
+
+    try {
+      const jsonResponse = JSON.parse(completion.choices[0]?.message.content || "{}");
+      return jsonResponse;
+    } catch (parseError) {
+      console.error("Error parsing JSON response:", parseError);
+      throw new Error("Failed to parse GPT response as JSON. Raw response: " + completion.choices[0]?.message.content);
+    }
+  } catch (error) {
+    console.error("Error in generateKeyAttributes:", error);
+    throw error;
+  }
+}
+
+async function generateSocialMediaFeatures(attributes) {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { 
+          role: "system", 
+          content: "You are an assistant that maps key attributes into social media features. Format your response as a structured list with clear categories and bullet points."
+        },
+        { 
+          role: "user", 
+          content: `Based on these attributes: ${JSON.stringify(attributes)}, 
+          provide social media features organized in the following format:
+
+          LV1: Network Structure
+          Timeline Types: [Feed-based/Chat-based]
+          Content Order: [Chronological/Algorithmic]
+          Connection Type: [Network-based/Group-based]
+          
+          LV2: Interaction Mechanisms
+          Commenting: [Flat Threads/Nested Threads]
+          Sharing: [Direct (e.g., reposts)/Private (e.g., messages)]
+          Reactions: [Like/Upvote-Downvote/Expanded Reactions]
+          Account Types: [Public/Private (one-way)/Private (mutual)]
+          Identity Options: [Real-name/Pseudonymous/Anonymous]
+          Messaging:
+          Types: [Private (1:1)/Group]
+          Content Management: [Edit/Delete]
+          Audience: [Everyone/With connections]
+          
+          LV3: Advanced Features & Customization
+          Ephemeral Content:
+          Enabled: [Yes/No]
+          Content Visibility Control: [Public/Specific Groups (e.g., close friends)/Private]
+          Content Discovery:
+          Recommendations: [Topic-based Suggestions/Popularity-based Suggestions]
+          Networking Control: [Block/Mute]
+          Privacy Settings: [Invited Contents Only (e.g., Slack)/Show All (e.g., Instagram)]
+          Community Features: [Open Groups (e.g., Instagram)/Closed Groups (e.g., Facebook)]
+          
+          Do not use bolded text or []`
+        }
+      ],
+    });
+
+    console.log("Social Media Features API Response:", completion.choices[0]?.message.content);
+    return completion.choices[0]?.message.content;
+  } catch (error) {
+    console.error("Error in generateSocialMediaFeatures:", error);
+    throw error;
+  }
+}
+
 
 app.listen(port, ()=> {
   console.log(`API server started at http://localhost:${port}`);
@@ -1273,9 +1419,3 @@ app.listen(port, ()=> {
  //})();
 //import Simulation from './simulation.mjs';
 //Simulation.generateAgentFromGroupChats();
-
-
-
-
-
-
