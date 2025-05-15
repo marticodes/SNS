@@ -26,9 +26,6 @@ function PanelLV3({ selections }) {
           <input type="checkbox" checked={selections?.ephemeralContent?.visibilityControl?.includes('public')} disabled={true}/> Public
         </label>
         <label>
-          <input type="checkbox" checked={selections?.ephemeralContent?.visibilityControl?.includes('specific-groups')} disabled={true}/> Specific groups (e.g., close friends)
-        </label>
-        <label>
           <input type="checkbox" checked={selections?.ephemeralContent?.visibilityControl?.includes('private')} disabled={true}/> Private
         </label>
       </div>

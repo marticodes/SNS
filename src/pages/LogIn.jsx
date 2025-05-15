@@ -1,7 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-const selectedCase = localStorage.getItem("selectedCase");
 
 function LogIn() {
     const initialValues = {
@@ -12,8 +10,42 @@ function LogIn() {
     const [formErrors, setFormErrors] = useState({});
     const [isSubmit, setIsSubmit] = useState(false);
     const [loginResult, setLoginResult] = useState(""); // State to store login result
+    const [selectedCase, setSelectedCase] = useState(null);
 
     const navigate = useNavigate();
+
+    // Function to determine selected case based on level one features
+    const determineSelectedCase = (features) => {
+        const { timeline, connection_type } = features;
+        
+        if (timeline === 1 && connection_type === 1) return 1;
+        if (timeline === 1 && connection_type === 2) return 2;
+        if (timeline === 2 && connection_type === 1) return 3;
+        if (timeline === 2 && connection_type === 2) return 4;
+        
+        return null; // Default case if no match
+    };
+
+    // Fetch level one features when component mounts
+    useEffect(() => {
+        const fetchLevelOneFeatures = async () => {
+            try {
+                const response = await fetch('http://localhost:3001/api/features/lvl/one/');
+                if (response.ok) {
+                    const data = await response.json();
+                    const caseNumber = determineSelectedCase(data);
+                    setSelectedCase(caseNumber);
+                    localStorage.setItem("selectedCase", caseNumber);
+                } else {
+                    console.error('Failed to fetch level one features');
+                }
+            } catch (error) {
+                console.error('Error fetching level one features:', error);
+            }
+        };
+
+        fetchLevelOneFeatures();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

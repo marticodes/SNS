@@ -20,16 +20,6 @@ function PanelLV2({ selections }) {
       </div>
 
       <div className="options">
-        <strong>Sharing</strong>
-        <label>
-          <input type="checkbox" checked={selections?.sharing?.includes('direct')} disabled={true}/> Direct (e.g., reposts)
-        </label>
-        <label>
-          <input type="checkbox" checked={selections?.sharing?.includes('private')} disabled={true}/> Private (e.g., messages)
-        </label>
-      </div>
-
-      <div className="options">
         <strong>Reactions</strong>
         <label>
           <input type="radio" name="reactions" checked={selections?.reactions === 'like'} disabled={true}/> Like
