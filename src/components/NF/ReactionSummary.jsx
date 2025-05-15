@@ -119,6 +119,7 @@ const EmojiSpan = styled.span`
 const ReactionSummary = ({ post_id, likes, votes, comments }) => {
   const [popupOpen, setPopupOpen] = useState(null);
   const [selectedEmoji, setSelectedEmoji] = useState(null);
+  const [levelTwoFeatures, setLevelTwoFeatures] = useState(null);
   const [reactions, setReactions] = useState({
     likedUsers: [],
     emojiReactions: [],
@@ -127,6 +128,20 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
     downvotes: 0,
   });
   const [usersData, setUsersData] = useState({});
+
+  // Fetch level two features
+  useEffect(() => {
+    const fetchLevelTwoFeatures = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/features/lvl/two/');
+        setLevelTwoFeatures(response.data);
+      } catch (error) {
+        console.error('Error fetching level two features:', error);
+      }
+    };
+
+    fetchLevelTwoFeatures();
+  }, []);
 
   useEffect(() => {
     const fetchReactions = async () => {
@@ -184,18 +199,27 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
   return (
     <ReactionSummaryContainer>
       <ReactionDiv>
-        <ReactionItem>
-          <LikeSpan onClick={() => setPopupOpen("like")}>
-            <BiSolidLike />
-          </LikeSpan>
-          <span>{reactions.likedUsers.length}</span>
-        </ReactionItem>
-        <ReactionItem>
-          <BiUpvote />
-          <span>{reactions.upvotes - reactions.downvotes}</span>
-          <BiDownvote />
-        </ReactionItem>
-        {selectedEmoji && (
+        {/* Show Like summary only if reactions is 1 */}
+        {levelTwoFeatures?.reactions === 1 && (
+          <ReactionItem>
+            <LikeSpan onClick={() => setPopupOpen("like")}>
+              <BiSolidLike />
+            </LikeSpan>
+            <span>{reactions.likedUsers.length}</span>
+          </ReactionItem>
+        )}
+
+        {/* Show Upvote/Downvote summary only if reactions is 2 */}
+        {levelTwoFeatures?.reactions === 2 && (
+          <ReactionItem>
+            <BiUpvote />
+            <span>{reactions.upvotes - reactions.downvotes}</span>
+            <BiDownvote />
+          </ReactionItem>
+        )}
+
+        {/* Show Emoji reactions summary only if reactions is 3 */}
+        {levelTwoFeatures?.reactions === 3 && selectedEmoji && (
           <ReactionItem>
             <SelectedEmoji onClick={() => setPopupOpen("emoji")}>
               {selectedEmoji} +{reactions.emojiReactions.reduce((acc, curr) => acc + curr.user_id.length, 0)}
@@ -213,7 +237,7 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
       {popupOpen && (
         <PopupContainer>
           <CloseButton onClick={() => setPopupOpen(null)}>&times;</CloseButton>
-          {popupOpen === "like" && (
+          {popupOpen === "like" && levelTwoFeatures?.reactions === 1 && (
             <>
               <PopupTitle>People who liked this post</PopupTitle>
               <UserList>
@@ -235,7 +259,7 @@ const ReactionSummary = ({ post_id, likes, votes, comments }) => {
               </UserList>
             </>
           )}
-          {popupOpen === "emoji" && (
+          {popupOpen === "emoji" && levelTwoFeatures?.reactions === 3 && (
             <>
               <PopupTitle>Emoji Reactions</PopupTitle>
               <UserList>

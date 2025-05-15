@@ -20,16 +20,6 @@ function PanelLV2({ selections }) {
       </div>
 
       <div className="options">
-        <strong>Sharing</strong>
-        <label>
-          <input type="checkbox" checked={selections?.sharing?.includes('direct')} disabled={true}/> Direct (e.g., reposts)
-        </label>
-        <label>
-          <input type="checkbox" checked={selections?.sharing?.includes('private')} disabled={true}/> Private (e.g., messages)
-        </label>
-      </div>
-
-      <div className="options">
         <strong>Reactions</strong>
         <label>
           <input type="radio" name="reactions" checked={selections?.reactions === 'like'} disabled={true}/> Like
@@ -39,6 +29,16 @@ function PanelLV2({ selections }) {
         </label>
         <label>
           <input type="radio" name="reactions" checked={selections?.reactions === 'reactions'} disabled={true}/> Expanded reactions
+        </label>
+      </div>
+
+      <div className="options">
+        <strong>Content Management</strong>
+        <label>
+          <input type="checkbox" checked={selections?.contentManagement?.includes('edit')} disabled={true}/> Edit
+        </label>
+        <label>
+          <input type="checkbox" checked={selections?.contentManagement?.includes('delete')} disabled={true}/> Delete
         </label>
       </div>
 
@@ -79,16 +79,6 @@ function PanelLV2({ selections }) {
         </label>
         <label>
           <input type="checkbox" checked={selections?.messagingTypes?.includes('group')} disabled={true}/> Group
-        </label>
-      </div>
-
-      <div className="options">
-        <strong>Content Management</strong>
-        <label>
-          <input type="checkbox" checked={selections?.contentManagement?.includes('edit')} disabled={true}/> Edit
-        </label>
-        <label>
-          <input type="checkbox" checked={selections?.contentManagement?.includes('delete')} disabled={true}/> Delete
         </label>
       </div>
 

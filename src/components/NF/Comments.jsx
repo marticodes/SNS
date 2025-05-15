@@ -127,6 +127,7 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
   const [newReply, setNewReply] = useState('');
   const [replyIndex, setReplyIndex] = useState(null);
   const [mediaFiles, setMediaFiles] = useState([]); 
+  const [levelTwoFeatures, setLevelTwoFeatures] = useState(null);
   let user_id = parseInt(localStorage.getItem("userID"), 10);
 
   useEffect(() => {
@@ -136,6 +137,19 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
 
     }, [parentId]);
 
+  // Fetch level two features
+  useEffect(() => {
+    const fetchLevelTwoFeatures = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/features/lvl/two/');
+        setLevelTwoFeatures(response.data);
+      } catch (error) {
+        console.error('Error fetching level two features:', error);
+      }
+    };
+
+    fetchLevelTwoFeatures();
+  }, []);
 
   useEffect(() => {
     fetchComments();
@@ -312,17 +326,16 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
           <TextContent>
             <p>{comment.userName}</p>
             <p>{comment.content}</p>
-            {isNested && (
+            {isNested && levelTwoFeatures?.commenting === 1 && (
               <ReplyButton onClick={() => setReplyIndex(comment.comment_id)}>
                 Reply
               </ReplyButton>
-              
             )}
           </TextContent>
         </CommentContent>
 
             {/* Reply input */}
-            {isNested && replyIndex == comment.comment_id && (
+            {isNested && levelTwoFeatures?.commenting === 1 && replyIndex == comment.comment_id && (
               <UserComment>
                 {/* <ProfileImage src={comment.profileImg} alt={`${comment.userName}'s profile`} /> */}
                 <TextArea
@@ -335,7 +348,7 @@ const Comments = ({ post_id = 1, isNested = false }) =>  {
             )}
 
             {/* Replies */}
-            {isNested && comment.replies && comment.replies.length > 0 && (
+            {isNested && levelTwoFeatures?.commenting === 1 && comment.replies && comment.replies.length > 0 && (
               <RepliesList>
                 {comment.replies.map((reply, idx) => (
                   <CommentItem key={reply.comment_id || idx}>

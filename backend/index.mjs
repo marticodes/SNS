@@ -1378,19 +1378,18 @@ async function generateSocialMediaFeatures(attributes) {
           
           LV2: Interaction Mechanisms
           Commenting: [Flat Threads/Nested Threads]
-          Sharing: [Direct (e.g., reposts)/Private (e.g., messages)]
           Reactions: [Like/Upvote-Downvote/Expanded Reactions]
+          Content Management: [Edit/Delete]
           Account Types: [Public/Private (one-way)/Private (mutual)]
           Identity Options: [Real-name/Pseudonymous/Anonymous]
           Messaging:
           Types: [Private (1:1)/Group]
-          Content Management: [Edit/Delete]
           Audience: [Everyone/With connections]
           
           LV3: Advanced Features & Customization
           Ephemeral Content:
           Enabled: [Yes/No]
-          Content Visibility Control: [Public/Specific Groups (e.g., close friends)/Private]
+          Content Visibility Control: [Public/Private]
           Content Discovery:
           Recommendations: [Topic-based Suggestions/Popularity-based Suggestions]
           Networking Control: [Block/Mute]

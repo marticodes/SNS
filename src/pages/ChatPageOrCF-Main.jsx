@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import ChatList from "../components/DMs/users.jsx";
 import MessageList from "../components/DMs/messages.jsx";
@@ -167,10 +166,22 @@ const ChatPage = () => {
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
+    <div style={{ 
+      display: "flex", 
+      height: "100vh", 
+      width: "100vw",
+      margin: 0,
+      padding: 0,
+      overflow: "hidden"
+    }}>
       {/* NavBar */}
-      <div style={{ width: "70px", height: "100%", backgroundColor: "#34495e" }}>
-      <NavBar caseId={caseNumb}/>
+      <div style={{ 
+        width: "70px", 
+        height: "100%", 
+        backgroundColor: "#34495e",
+        flexShrink: 0
+      }}>
+        <NavBar caseId={caseNumb}/>
       </div>
 
       {/* User List */}
