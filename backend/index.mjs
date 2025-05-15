@@ -1379,11 +1379,11 @@ async function generateSocialMediaFeatures(attributes) {
           LV2: Interaction Mechanisms
           Commenting: [Flat Threads/Nested Threads]
           Reactions: [Like/Upvote-Downvote/Expanded Reactions]
+          Content Management: [Edit/Delete]
           Account Types: [Public/Private (one-way)/Private (mutual)]
           Identity Options: [Real-name/Pseudonymous/Anonymous]
           Messaging:
           Types: [Private (1:1)/Group]
-          Content Management: [Edit/Delete]
           Audience: [Everyone/With connections]
           
           LV3: Advanced Features & Customization

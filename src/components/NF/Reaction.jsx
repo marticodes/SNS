@@ -208,6 +208,7 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     shares: 0
   });
 
+  const [levelTwoFeatures, setLevelTwoFeatures] = useState(null);
   const myUserID = parseInt(localStorage.getItem("userID"), 10);
 
   const [likeActive, setLikeActive] = useState(false);
@@ -219,14 +220,26 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
   const [originalPostUser, setOriginalPostUser] = useState(null);
   const [repostPopupOpen, setRepostPopupOpen] = useState(false);
   const [repostComment, setRepostComment] = useState('');
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false); // State for pop-up
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const [sharePopupOpen, setSharePopupOpen] = useState(false);
-
   const [chatrooms, setChatrooms] = useState([]);
   const [loadingChats, setLoadingChats] = useState(false);
-
   const [user, setUser] = useState(null);
+
+  // Fetch level two features
+  useEffect(() => {
+    const fetchLevelTwoFeatures = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/features/lvl/two/');
+        setLevelTwoFeatures(response.data);
+      } catch (error) {
+        console.error('Error fetching level two features:', error);
+      }
+    };
+
+    fetchLevelTwoFeatures();
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -519,35 +532,47 @@ const Reaction = ({ user_id, post_id, onCommentClick }) => {
     <>
       <ReactionSummaryContainer>
         <ReactionDiv>
-        <ReactionItem onClick={toggleLike} style={{ color: likeActive ? 'blue' : 'black' }}>
-            {likeActive ? <BiSolidLike /> : <BiLike />} Like
-          </ReactionItem>
-          <ReactionItem onClick={toggleUpvote} style={{ color: upvoteActive ? 'blue' : 'black' }}>
-            {upvoteActive ? <BiSolidUpvote /> : <BiUpvote />} Upvote
-          </ReactionItem>
-          <ReactionItem onClick={toggleDownvote} style={{ color: downvoteActive ? 'blue' : 'black' }}>
-            {downvoteActive ? <BiSolidDownvote /> : <BiDownvote />} Downvote
-          </ReactionItem>
-          <ReactionItem onClick={toggleEmojiPicker}>
-            <MdOutlineEmojiEmotions />
-          </ReactionItem>
-          {selectedEmoji && <SelectedEmoji onClick={deleteEmoji}>{selectedEmoji}</SelectedEmoji>}
+          {/* Show Like button only if reactions is 1 */}
+          {levelTwoFeatures?.reactions === 1 && (
+            <ReactionItem onClick={toggleLike} style={{ color: likeActive ? 'blue' : 'black' }}>
+              {likeActive ? <BiSolidLike /> : <BiLike />} Like
+            </ReactionItem>
+          )}
 
-          <EmojiPickerContainer show={emojiPickerOpen}>
-            {['😀', '😍', '😂', '😢', '😡', '👍', '👏'].map((emoji) => (
-              <EmojiOption key={emoji} onClick={() => addEmoji(emoji)}>
-                {emoji}
-              </EmojiOption>
-            ))}
-          </EmojiPickerContainer>
+          {/* Show Upvote/Downvote buttons only if reactions is 2 */}
+          {levelTwoFeatures?.reactions === 2 && (
+            <>
+              <ReactionItem onClick={toggleUpvote} style={{ color: upvoteActive ? 'blue' : 'black' }}>
+                {upvoteActive ? <BiSolidUpvote /> : <BiUpvote />} Upvote
+              </ReactionItem>
+              <ReactionItem onClick={toggleDownvote} style={{ color: downvoteActive ? 'blue' : 'black' }}>
+                {downvoteActive ? <BiSolidDownvote /> : <BiDownvote />} Downvote
+              </ReactionItem>
+            </>
+          )}
+
+          {/* Show Emoji reactions only if reactions is 3 */}
+          {levelTwoFeatures?.reactions === 3 && (
+            <>
+              <ReactionItem onClick={toggleEmojiPicker}>
+                <MdOutlineEmojiEmotions />
+              </ReactionItem>
+              {selectedEmoji && <SelectedEmoji onClick={deleteEmoji}>{selectedEmoji}</SelectedEmoji>}
+
+              <EmojiPickerContainer show={emojiPickerOpen}>
+                {['😀', '😍', '😂', '😢', '😡', '👍', '👏'].map((emoji) => (
+                  <EmojiOption key={emoji} onClick={() => addEmoji(emoji)}>
+                    {emoji}
+                  </EmojiOption>
+                ))}
+              </EmojiPickerContainer>
+            </>
+          )}
         </ReactionDiv>
 
         <ReactionDiv>
           <ReactionItem onClick={onCommentClick}>
             <BiComment /> Comments
-          </ReactionItem>
-          <ReactionItem onClick={toggleRepostPopup}>
-            <BiRepost /> Repost
           </ReactionItem>
         </ReactionDiv>
       </ReactionSummaryContainer>

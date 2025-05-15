@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import UserProfile from "./UserProfile";
@@ -141,7 +141,22 @@ const NewPost = ({ user, ephemeral = true, community_id }) => {
   const [postText, setPostText] = useState("");
   const [mediaFiles, setMediaFiles] = useState([]);
   const [isEphemeral, setIsEphemeral] = useState(false);
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false); // State for pop-up
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [levelThreeFeatures, setLevelThreeFeatures] = useState(null);
+
+  // Fetch level three features
+  useEffect(() => {
+    const fetchLevelThreeFeatures = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/features/lvl/three/');
+        setLevelThreeFeatures(response.data);
+      } catch (error) {
+        console.error('Error fetching level three features:', error);
+      }
+    };
+
+    fetchLevelThreeFeatures();
+  }, []);
 
   const handleTextChange = (e) => {
     setPostText(e.target.value);
@@ -208,7 +223,8 @@ const NewPost = ({ user, ephemeral = true, community_id }) => {
 
         <TextArea value={postText} onChange={handleTextChange} placeholder="Say Something..." />
 
-        {ephemeral && (
+        {/* Only show ephemeral checkbox if level three features indicate it's enabled */}
+        {levelThreeFeatures?.ephemerality === 1 && (
           <div style={{ marginBottom: '10px', alignSelf: 'center', color: 'black' }}>
             <label style={{ color: 'black', alignSelf: 'center' }}>
               Post is ephemeral (24 hours)?

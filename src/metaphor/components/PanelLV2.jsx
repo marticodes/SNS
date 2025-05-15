@@ -32,6 +32,16 @@ function PanelLV2({ selections }) {
         </label>
       </div>
 
+      <div className="options">
+        <strong>Content Management</strong>
+        <label>
+          <input type="checkbox" checked={selections?.contentManagement?.includes('edit')} disabled={true}/> Edit
+        </label>
+        <label>
+          <input type="checkbox" checked={selections?.contentManagement?.includes('delete')} disabled={true}/> Delete
+        </label>
+      </div>
+
       <h3>Account</h3>
 
       <div className="options">
@@ -69,16 +79,6 @@ function PanelLV2({ selections }) {
         </label>
         <label>
           <input type="checkbox" checked={selections?.messagingTypes?.includes('group')} disabled={true}/> Group
-        </label>
-      </div>
-
-      <div className="options">
-        <strong>Content Management</strong>
-        <label>
-          <input type="checkbox" checked={selections?.contentManagement?.includes('edit')} disabled={true}/> Edit
-        </label>
-        <label>
-          <input type="checkbox" checked={selections?.contentManagement?.includes('delete')} disabled={true}/> Delete
         </label>
       </div>
 
