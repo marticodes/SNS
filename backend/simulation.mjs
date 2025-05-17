@@ -20,6 +20,7 @@ import fs from "fs/promises";
 import ActionLogsDAO from './dao/action_logs_dao.mjs';
 import { OPENAI_API_KEY } from './apiKey.mjs';
 import FeedDAO from "./dao/feed_dao.mjs";
+import FeatureSelectionDAO from "./dao/feature_selection_dao.mjs";
 
 const natural = await import("natural");
 const { TfIdf } = natural.default; 
@@ -334,84 +335,93 @@ const Simulation = {
             console.error("Error adding new post:", error);
         }
     },
-
-    async addAGReaction(user_id, system_prompt){
+    async addAGReaction(user_id, system_prompt) {
         try {
-            let sel = Math.floor(Math.random() * 3) + 1;
-            let choice = "";
-            const sel_post = await selectPostForReaction(user_id);
-            let link = "";
-            let post_id = null;
-            let chat_id = null;
-            let comment_id = null;
-            let message_id = null;
-
-            switch (sel) {
-                case 1:
-                    choice = sel_post;
-                    if (sel_post == null) {
-                        console.log("No posts to react on.");
-                        return;
-                    }
-                    link = "http://localhost:3001/api/reactions/post/add";
-                    post_id = choice.post_id;
-                    break;
-                case 2:
-                    if (sel_post == null) {
-                        console.log("No posts to react on.");
-                        return;
-                    }
-                    choice = await selectCommentOnPost(sel_post.post_id);
-                    if (choice == null) {
-                        console.log("No comments to react on.");
-                        return;
-                    }
-                    comment_id =  choice.comment_id;
-                    link = "http://localhost:3001/api/reactions/comment/add"
-                    break;
-                case 3:
-                    let chat =  await selectChatFromInbox(user_id);
-                    if (chat == null || chat.length === 0) {
-                        console.log("No chats found");
-                        return;
-                    }
-                    chat_id = chat;
-                    link = "http://localhost:3001/api/reactions/message/add";
-                    const sel_messages =  await MessageDAO.getMessagesByChatId(chat_id);
-                    if (!sel_messages || sel_messages.length === 0) {
-                        return;
-                    }
-                    choice = sel_messages.slice(-1);
-                    message_id = choice[0].message_id;
-
-                    let react = await ReactionDAO.checkIfMessageReact(chat_id, message_id, user_id);
-                    if(react) return;
-                    break;
-                default:
-                    console.error("Unexpected value:", sel);
+          // 0) pull in the agent’s flags
+          const { timeline, reactions: reactionFlag } = await FeatureSelectionDAO.getFeatures(user_id);
+      
+          const sel = (timeline !== 1)
+            ? 3
+            : (Math.floor(Math.random() * 3) + 1);
+      
+          let choice, link, post_id, comment_id, chat_id, message_id;
+          switch (sel) {
+            case 1: {
+              const post = await selectPostForReaction(user_id);
+              if (!post) return console.log("No posts to react on.");
+              choice  = post;
+              post_id = post.post_id;
+              link    = "/api/reactions/post/add";
+              break;
             }
-
-            const user_prompt = `You find the following on your feed: ${choice.content}. You want to react to the conte. What reaction are you using. Respond using only one reaction and no text`;
-            const reaction_type = await generateResponse(system_prompt, user_prompt);
-            
-            const time = new Date().toISOString();
-
-            await makeAPIRequest(link, "POST", { 
-                reaction_type: 4, 
-                emote_type: reaction_type,
-                post_id: post_id, 
-                user_id: user_id, 
-                chat_id: chat_id,
-                message_id: message_id,
-                comment_id: comment_id, 
-                timestamp: time,
-            });
-        } catch (error) {
-            console.error("Error adding new reaction:", error);
+            case 2: {
+              const post = await selectPostForReaction(user_id);
+              if (!post) return console.log("No posts to react on.");
+              const comment = await selectCommentOnPost(post.post_id);
+              if (!comment) return console.log("No comments to react on.");
+              choice     = comment;
+              comment_id = comment.comment_id;
+              link       = "/api/reactions/comment/add";
+              break;
+            }
+            case 3: {
+              const chat = await selectChatFromInbox(user_id);
+              if (!chat) return console.log("No chats found.");
+              const msgs = await MessageDAO.getMessagesByChatId(chat);
+              if (!msgs.length) return console.log("No messages to react on.");
+              const msg = msgs[msgs.length - 1];
+              if (await ReactionDAO.checkIfMessageReact(chat, msg.message_id, user_id)) {
+                return;  // already reacted
+              }
+              choice      = msg;
+              chat_id     = chat;
+              message_id  = msg.message_id;
+              link        = "/api/reactions/message/add";
+              break;
+            }
+            default:
+              return console.error("Impossible branch:", sel);
+          }
+      
+          //    LV2.reactions: 1=Like, 2=Upvote/Downvote, 3=Emoji
+          let reaction_type, emote_type = 0;
+          switch (reactionFlag) {
+            case 1:
+              reaction_type = 0;
+              break;
+            case 2:
+              // randomly Upvote or Downvote
+              reaction_type = (Math.random() < 0.5 ? 1 : 2);
+              break;
+            case 3:
+              reaction_type = 4;     // 4 → EmojiReaction
+              emote_type = await generateResponse(
+                system_prompt,
+                `Which emoji do you pick on: "${choice.content}"? Reply with just the emoji code.`
+              );
+              break;
+            default:
+              reaction_type = 0; //fallback? 
+          }
+      
+          const now = new Date().toISOString();
+          if (post_id) {
+            await ReactionDAO.insertPostReaction(reaction_type, emote_type, post_id, user_id, now);
+            return `PostReaction:${reaction_type}`;
+          } else if (comment_id) {
+            await ReactionDAO.insertCommentReaction(reaction_type, emote_type, comment_id, user_id, now);
+            return `CommentReaction:${reaction_type}`;
+          } else {
+            await ReactionDAO.insertMessageReaction(reaction_type, emote_type, chat_id, message_id, user_id, now);
+            return `MessageReaction:${reaction_type}`;
+          }
+      
+        } catch (err) {
+          console.error("Error adding new reaction:", err);
+          return "Error";
         }
-
-    },
-
+      },
+      
     async viewAGStory(user_id){
         let feed = await FeedDAO.getEphemeralPosts(user_id);
         if (!feed || feed.length === 0) {

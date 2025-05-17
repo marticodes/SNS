@@ -20,7 +20,7 @@ async function ActionSimulation() {
             // If there are users, decide randomly whether to create a new agent or perform an action with an existing one.
             if (userIds.length > 0) {
                 // 2% chance to create a new agent.
-                if (Math.random() < 0.02) {
+                if (Math.random() < 0) {
                     const newAgentId = await Simulation.generateAgentFromGroupChats();
                     console.log(`New agent created with id: ${newAgentId}`);
                 } else {
@@ -28,9 +28,9 @@ async function ActionSimulation() {
                     const randomIndex = Math.floor(Math.random() * userIds.length);
                     const user_id = userIds[randomIndex];
                     try {
-                        await ActionChoice.performRandomAction(user_id);
-                        console.log(`Agent ${user_id} performed a random action.`);
-                    } catch (error) {
+                        const action = await ActionChoice.performFeatureBasedAction(user_id);
+                        console.log(`Agent ${user_id} performed: ${action}`);
+                                            } catch (error) {
                         console.error(`Error with agent ${user_id}:`, error);
                     }
                 }
