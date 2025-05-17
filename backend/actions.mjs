@@ -38,7 +38,7 @@ async function ActionSimulation() {
         } catch (dbError) {
             console.error('Error querying user IDs:', dbError);
         }
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 50));
     }
 }
 

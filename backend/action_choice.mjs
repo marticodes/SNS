@@ -18,6 +18,7 @@ import SocialGroupDao from './dao/social_group_dao.mjs';
 import UserInterestDAO from './dao/user_interest_dao.mjs';
 import Simulation from './simulation.mjs';
 import FeatureSelectionDAO from './dao/feature_selection_dao.mjs';
+import FeedDAO from "./dao/feed_dao.mjs";
 
 
 const ActionChoice = {
@@ -402,15 +403,9 @@ const ActionChoice = {
           default:
             console.log("No action performed.");
         }
-    }
-
+    },
+  
 };
-
-// for (let i = 0; i < 10; i++) {
-// ActionChoice.performRandomAction(25);
-
-//   }
-
 
 export default ActionChoice;
 
