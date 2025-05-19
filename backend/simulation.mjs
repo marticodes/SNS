@@ -67,7 +67,7 @@ async function makeAPIRequest(url, method, body) {
 
 async function selectPostForComment(user_id) {
     const feed = await FeedDAO.getcombinedFeedforComment(user_id);
-    console.log(feed);
+    // console.log(feed);
 
     if (!feed || feed.length === 0) {
         console.error("No posts found in feed.");
@@ -233,7 +233,7 @@ const Simulation = {
             }
             
             else last_messages = sel_messages.slice(-5); 
-            console.log(last_messages);
+            // console.log(last_messages);
             
             if(sel_messages.length > 0){
                 const lastMessage = last_messages[last_messages.length - 1]; // Get the last message
@@ -712,7 +712,7 @@ const Simulation = {
     async addChannelPost(user_id, system_prompt){
         
         let channels = await CommunityDAO.getAllUserCommunities(user_id);
-        console.log(channels);
+        // console.log(channels);
 
         
         if (!channels || channels.length === 0) {
@@ -721,7 +721,7 @@ const Simulation = {
         }
         
         let sel_comm = channels[Math.floor(Math.random() * channels.length)];
-        console.log(sel_comm);
+        // console.log(sel_comm);
         
         const user_prompt = `You are about to make a new post in a community. 
             The community name is ${sel_comm.comm_name}. This is a community with likeminded people who are passionate about ${sel_comm.comm_bio}.

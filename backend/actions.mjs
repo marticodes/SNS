@@ -17,23 +17,27 @@ async function ActionSimulation() {
     while (true) {
         try {
             const userIds = await getUserIds();
-            // If there are users, decide randomly whether to create a new agent or perform an action with an existing one.
             if (userIds.length > 0) {
-                // 2% chance to create a new agent.
-                if (Math.random() < 0) {
-                    const newAgentId = await Simulation.generateAgentFromGroupChats();
-                    console.log(`New agent created with id: ${newAgentId}`);
-                } else {
-                    // Otherwise, select an existing agent to perform a random action.
-                    const randomIndex = Math.floor(Math.random() * userIds.length);
-                    const user_id = userIds[randomIndex];
+                // Process all users in parallel
+                await Promise.all(userIds.map(async (user_id) => {
                     try {
-                        const action = await ActionChoice.performFeatureBasedAction(user_id);
-                        console.log(`Agent ${user_id} performed: ${action}`);
-                                            } catch (error) {
+                        // Run all actions for this user in parallel
+                        const [apiAction1, apiAction2, apiAction3, featureAction] = await Promise.all([
+                            ActionChoice.performAPIBasedAction(user_id),
+                            ActionChoice.performAPIBasedAction(user_id),
+                            ActionChoice.performAPIBasedAction(user_id),
+                            ActionChoice.performFeatureBasedAction(user_id)
+                        ]);
+
+                        // Log all actions for this user
+                        console.log(`Agent ${user_id} performed actions:`, {
+                            apiActions: [apiAction1, apiAction2, apiAction3],
+                            featureAction
+                        });
+                    } catch (error) {
                         console.error(`Error with agent ${user_id}:`, error);
                     }
-                }
+                }));
             }
         } catch (dbError) {
             console.error('Error querying user IDs:', dbError);
