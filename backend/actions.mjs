@@ -22,16 +22,14 @@ async function ActionSimulation() {
                 await Promise.all(userIds.map(async (user_id) => {
                     try {
                         // Run all actions for this user in parallel
-                        const [apiAction1, apiAction2, apiAction3, featureAction] = await Promise.all([
-                            ActionChoice.performAPIBasedAction(user_id),
-                            ActionChoice.performAPIBasedAction(user_id),
+                        const [apiAction1, featureAction] = await Promise.all([
                             ActionChoice.performAPIBasedAction(user_id),
                             ActionChoice.performFeatureBasedAction(user_id)
                         ]);
 
                         // Log all actions for this user
                         console.log(`Agent ${user_id} performed actions:`, {
-                            apiActions: [apiAction1, apiAction2, apiAction3],
+                            apiAction1,
                             featureAction
                         });
                     } catch (error) {
