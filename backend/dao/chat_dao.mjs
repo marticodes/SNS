@@ -52,47 +52,65 @@ const ChatDAO = {
 
     async insertGroupChat(user_ids, chat_name, chat_image, creator = 0, duration = 0) {
         return new Promise((resolve, reject) => {
-            try {
-                db.run('BEGIN TRANSACTION');
-                const timestamp = new Date().toISOString();
-                // Insert into Chat table (user_id_1 and user_id_2 are NULL for group chats)
-                const sqlChat = 'INSERT INTO Chat (user_id_1, user_id_2, group_chat, chat_name, chat_image, timestamp, duration) VALUES (NULL, NULL, 1, ?, ?, ?, ?)';
-                db.run(sqlChat, [chat_name, chat_image, timestamp, duration], function (err) {
+            // db.serialize()를 사용하여 쿼리들이 순차적으로 실행되도록 보장
+            db.serialize(() => {
+                db.run('BEGIN TRANSACTION', (err) => {
                     if (err) {
-                        db.run('ROLLBACK'); 
-                        reject(err);
-                    } else {
-                        const chat_id = this.lastID; 
-                        
-                        // Insert all users into GCMembership
-                        const sqlMembership = 'INSERT INTO GCMembership (chat_id, user_id) VALUES ' + 
-                                              user_ids.map(() => '(?, ?)').join(', ');
-    
-                        const membershipValues = user_ids.flatMap(user_id => [chat_id, user_id]);
-    
-                        db.run(sqlMembership, membershipValues, function (err) {
-                            if (err) {
-                                db.run('ROLLBACK'); 
-                                reject(err);
-                            } else {
-                                db.run('COMMIT'); 
-                                resolve(chat_id);
-                            }
-                        });
-
-                        const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
-                                    VALUES (?, ?, ?, ?)`;
-                        db.run(log_sql, [creator, 3, `Created group chat with name ${chat_name}`, timestamp], function (log_err) {
-                            if (log_err) {
-                                return reject(log_err);
-                            }
-                        });
+                        return reject(err);
                     }
                 });
-            } catch (error) {
-                db.run('ROLLBACK'); 
-                reject(error);
-            }
+
+                const timestamp = new Date().toISOString();
+                
+                try {
+                    // Insert into Chat table
+                    db.run(
+                        'INSERT INTO Chat (user_id_1, user_id_2, group_chat, chat_name, chat_image, timestamp, duration) VALUES (NULL, NULL, 1, ?, ?, ?, ?)',
+                        [chat_name, chat_image, timestamp, duration],
+                        function (err) {
+                            if (err) {
+                                return db.run('ROLLBACK', () => reject(err));
+                            }
+
+                            const chat_id = this.lastID;
+
+                            // Insert all users into GCMembership
+                            const sqlMembership = 'INSERT INTO GCMembership (chat_id, user_id) VALUES ' + 
+                                user_ids.map(() => '(?, ?)').join(', ');
+                            const membershipValues = user_ids.flatMap(user_id => [chat_id, user_id]);
+
+                            db.run(sqlMembership, membershipValues, (err) => {
+                                if (err) {
+                                    return db.run('ROLLBACK', () => reject(err));
+                                }
+
+                                // Insert action log
+                                const log_sql = `INSERT INTO ActionLogs (user_id, action_type, content, timestamp) 
+                                    VALUES (?, ?, ?, ?)`;
+                                
+                                db.run(log_sql, 
+                                    [creator, 3, `Created group chat with name ${chat_name}`, timestamp], 
+                                    (err) => {
+                                        if (err) {
+                                            return db.run('ROLLBACK', () => reject(err));
+                                        }
+
+                                        // 모든 작업이 성공적으로 완료되면 커밋
+                                        db.run('COMMIT', (err) => {
+                                            if (err) {
+                                                return db.run('ROLLBACK', () => reject(err));
+                                            }
+                                            resolve(chat_id);
+                                        });
+                                    }
+                                );
+                            });
+                        }
+                    );
+                } catch (error) {
+                    db.run('ROLLBACK', () => reject(error));
+                }
+            });
         });
     },
 
