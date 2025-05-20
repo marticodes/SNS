@@ -14,6 +14,7 @@ async function generateResponse(system_prompt, user_prompt) {
                 { role: "system", content: system_prompt },
                 { role: "user", content: user_prompt },
             ],
+            temperature: 0.7,
             store: true,
         });
         return completion.choices[0]?.message?.content || "No response generated.";

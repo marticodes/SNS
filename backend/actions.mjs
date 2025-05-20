@@ -11,12 +11,14 @@ function getUserIds() {
             resolve(rows.map(row => row.user_id));
         });
     });
+    
 }
 
 async function ActionSimulation() {
     while (true) {
         try {
             const userIds = await getUserIds();
+        
             if (userIds.length > 0) {
                 // Process all users in parallel
                 await Promise.all(userIds.map(async (user_id) => {
