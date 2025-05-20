@@ -139,15 +139,16 @@ function MainPage() {
     // LV3 Conversions
     if (selections.lv3) {
       // Ephemeral Content
+      console.log('Debug - selections.lv3:', selections.lv3);
       if (selections.lv3.ephemeralContent) {
         result.ephemerality = selections.lv3.ephemeralContent.enabled ? 1 : 0;
-        
-        // Content Visibility Control
-        if (selections.lv3.ephemeralContent.visibilityControl) {
-          const visibility = selections.lv3.ephemeralContent.visibilityControl[0];
-          if (visibility === 'public') result.visibility = 1;
-          else if (visibility === 'private') result.visibility = 3;
-        }
+      }
+
+       // Content Visibility Control
+       if (selections.lv3.visibilityControl) {
+        const visibility = selections.lv3.visibilityControl[0];
+        if (visibility === 'public') result.visibility = 1;
+        else if (visibility === 'private') result.visibility = 3;
       }
 
       // Content Discovery
@@ -286,7 +287,11 @@ function MainPage() {
         new RegExp(`${key}:\\s*\\[(.*?)\\]`), // [value]
         new RegExp(`${key}:\\s*(.*?)(?=\\n|$)`), // value
         new RegExp(`${key}\\s*:\\s*(.*?)(?=\\n|$)`), // key : value
-        new RegExp(`-\\s*${key}\\s*:\\s*(.*?)(?=\\n|$)`) // - key: value
+        new RegExp(`-\\s*${key}\\s*:\\s*(.*?)(?=\\n|$)`), // - key: value
+        new RegExp(`${key}:\\s*([^\\n]+)`), // key: value (more permissive)
+        new RegExp(`${key}\\s*:\\s*([^\\n]+)`), // key : value (more permissive)
+        new RegExp(`-\\s*${key}\\s*:\\s*([^\\n]+)`), // - key: value (more permissive)
+        new RegExp(`${key}:\\s*([^\\n]+)(?=\\n|$)`) // key: value (strict newline)
       ];
 
       for (const pattern of patterns) {
@@ -363,6 +368,21 @@ function MainPage() {
         }
       }
 
+      // Parse Content Management
+      const management = extractValue(lv2Content, 'Content Management');
+      if (management) {
+        const managementText = management.toLowerCase().trim();
+        const managementOptions = managementText.split(',').map(opt => opt.trim());
+        newSelections.lv2.contentManagement = [];
+        
+        if (managementOptions.includes('edit')) {
+          newSelections.lv2.contentManagement.push('edit');
+        }
+        if (managementOptions.includes('delete')) {
+          newSelections.lv2.contentManagement.push('delete');
+        }
+      }
+
       // Parse Account Types
       const accountTypes = extractValue(lv2Content, 'Account Types');
       if (accountTypes) {
@@ -398,22 +418,14 @@ function MainPage() {
         const types = extractValue(messagingContent, 'Types');
         if (types) {
           const typesText = types.toLowerCase().trim();
-          if (typesText.includes('private') || typesText.includes('1:1')) {
-            newSelections.lv2.messagingTypes = ['private'];
-          } else if (typesText.includes('group')) {
-            newSelections.lv2.messagingTypes = ['group'];
+          const typeOptions = typesText.split(',').map(opt => opt.trim());
+          newSelections.lv2.messagingTypes = [];
+          
+          if (typeOptions.some(opt => opt.includes('private') || opt.includes('one-on-one'))) {
+            newSelections.lv2.messagingTypes.push('private');
           }
-        }
-
-        // Parse Content Management
-        const management = extractValue(messagingContent, 'Content Management');
-        if (management) {
-          const managementText = management.toLowerCase().trim();
-          if (managementText.includes('edit')) {
-            newSelections.lv2.contentManagement = ['edit'];
-          }
-          if (managementText.includes('delete')) {
-            newSelections.lv2.contentManagement = [...(newSelections.lv2.contentManagement || []), 'delete'];
+          if (typeOptions.some(opt => opt.includes('group'))) {
+            newSelections.lv2.messagingTypes.push('group');
           }
         }
 
@@ -437,30 +449,31 @@ function MainPage() {
       newSelections.lv3 = {};
 
       // Parse Ephemeral Content
-      const ephemeralMatch = lv3Content.match(/Ephemeral Content:([\s\S]*?)(?=Content Discovery|$)/i);
-      if (ephemeralMatch) {
-        const ephemeralContent = ephemeralMatch[1];
-        newSelections.lv3.ephemeralContent = {};
+      const ephemeralContent = extractValue(lv3Content, 'Ephemeral Content');
+      if (ephemeralContent) {
+        const ephemeralText = ephemeralContent.toLowerCase().trim();
+        newSelections.lv3.ephemeralContent = {
+          enabled: ephemeralText.includes('yes'),
+          contentTypes: ephemeralText.includes('yes') ? ['yes'] : ['no']
+        };
+      }
 
-        // Parse Enabled
-        const enabled = extractValue(ephemeralContent, 'Enabled');
-        if (enabled) {
-          const enabledText = enabled.toLowerCase().trim();
-          newSelections.lv3.ephemeralContent.enabled = enabledText.includes('yes');
-          newSelections.lv3.ephemeralContent.contentTypes = enabledText.includes('yes') ? ['yes'] : ['no'];
+      // Parse Content Visibility Control
+      const visibilityControl = extractValue(lv3Content, 'Content Visibility Control');
+      if (visibilityControl) {
+        const visibilityText = visibilityControl.toLowerCase().trim();
+
+        const visibilityOptions = visibilityText.split(',').map(opt => opt.trim());
+        newSelections.lv3.visibilityControl = [];
+        
+        if (visibilityOptions.some(opt => opt.includes('specific'))) {
+          newSelections.lv3.visibilityControl.push('specific-groups');
         }
-
-        // Parse Content Visibility Control
-        const visibilityControl = extractValue(ephemeralContent, 'Content Visibility Control');
-        if (visibilityControl) {
-          const visibilityText = visibilityControl.toLowerCase().trim();
-          if (visibilityText.includes('specific')) {
-            newSelections.lv3.ephemeralContent.visibilityControl = ['specific-groups'];
-          } else if (visibilityText.includes('public')) {
-            newSelections.lv3.ephemeralContent.visibilityControl = ['public'];
-          } else if (visibilityText.includes('private')) {
-            newSelections.lv3.ephemeralContent.visibilityControl = ['private'];
-          }
+        if (visibilityOptions.some(opt => opt.includes('public'))) {
+          newSelections.lv3.visibilityControl.push('public');
+        }
+        if (visibilityOptions.some(opt => opt.includes('private'))) {
+          newSelections.lv3.visibilityControl.push('private');
         }
       }
 

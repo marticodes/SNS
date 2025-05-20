@@ -85,10 +85,10 @@ function PanelLV2({ selections }) {
       <div className="options">
         <strong>Audience</strong>
         <label>
-          <input type="checkbox" checked={selections?.audience?.includes('everyone')} disabled={true}/> Everyone
+          <input type="radio" checked={selections?.audience?.includes('everyone')} disabled={true}/> Everyone
         </label>
         <label>
-          <input type="checkbox" checked={selections?.audience?.includes('with-connection')} disabled={true}/> With Connection
+          <input type="radio" checked={selections?.audience?.includes('with-connection')} disabled={true}/> With Connection
         </label>
       </div>
     </div>
