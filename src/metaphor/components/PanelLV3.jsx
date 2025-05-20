@@ -13,10 +13,10 @@ function PanelLV3({ selections }) {
 
       <div className="options">
         <label>
-          <input type="checkbox" checked={selections?.ephemeralContent?.contentTypes?.includes('yes')} disabled={true}/> Yes
+          <input type="radio" checked={selections?.ephemeralContent?.contentTypes?.includes('yes')} disabled={true}/> Yes
         </label>
         <label>
-          <input type="checkbox" checked={selections?.ephemeralContent?.contentTypes?.includes('no')} disabled={true}/> No
+          <input type="radio" checked={selections?.ephemeralContent?.contentTypes?.includes('no')} disabled={true}/> No
         </label>
       </div>
 

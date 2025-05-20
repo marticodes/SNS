@@ -1177,6 +1177,17 @@ app.get('/api/features/lvl/one/',
     }
 );
 
+app.get('/api/features/lvl/one/descriptions',
+  async (req, res) => {
+      try {
+        const descriptions = await fsDAO.getLvlOneDescriptions();
+        res.status(200).json(descriptions);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error getting lvl one descriptions ${err}` });
+      }
+    }
+);
+
 app.get('/api/features/lvl/two/',
   async (req, res) => {
       try {
@@ -1217,6 +1228,21 @@ app.post('/api/features/lvl/one/add',
         res.status(201).json({ina});
       } catch (err) {
         res.status(503).json({ error: `BE: Error inserting lvl one features ${err}` });
+      }
+    }
+);
+
+app.post('/api/features/lvl/one/descriptions/add',
+  async (req, res) => {
+      try {
+        const ina = await fsDAO.insertLvlOneDescriptions(
+          req.body.keyword,
+          req.body.llm_descr,
+          req.body.user_descr
+        );
+        res.status(201).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error inserting lvl one descriptions ${err}` });
       }
     }
 );
@@ -1314,7 +1340,7 @@ async function generateKeyAttributes(description, metaphorKeyword) {
         },
         { 
           role: "user", 
-          content: `Given the metaphor keyword "${metaphorKeyword}" and this metaphor description: "${description}", 
+          content: `Given the metaphor keyword "${metaphorKeyword}", 
           analyze it based on these attributes and return ONLY a JSON object with the following structure:
           {
             "Atmosphere": "...",
@@ -1372,31 +1398,71 @@ async function generateSocialMediaFeatures(attributes) {
           provide social media features organized in the following format:
 
           LV1: Network Structure
-          Timeline Types: [Feed-based/Chat-based]
-          Content Order: [Chronological/Algorithmic]
-          Connection Type: [Network-based/Group-based]
-          
+          - **Timeline Types**: Define how content is organized for users.
+            - Feed-based: Aggregates posts into a single scrolling interface (e.g., Facebook, Instagram).
+            - Chat-based: Segments conversations into thematic spaces or threads (e.g., Slack, Discord).
+          - **Content Order**: Specifies the arrangement of content users see.
+            - Chronological: Content is displayed in the order it is posted (e.g., Twitter's "Latest Tweets" view).
+            - Algorithmic: Content is displayed based on relevance or popularity (e.g., Instagram, TikTok).
+          - **Connection Type**: Defines how users are connected and interact.
+            - Network-based: Connections between individuals such as friends or followers (e.g., Instagram, Twitter).
+            - Group-based: Collective participation within a predefined community (e.g., Reddit, Slack channels).
+
           LV2: Interaction Mechanisms
-          Commenting: [Flat Threads/Nested Threads]
-          Reactions: [Like/Upvote-Downvote/Expanded Reactions]
-          Content Management: [Edit/Delete]
-          Account Types: [Public/Private (one-way)/Private (mutual)]
-          Identity Options: [Real-name/Pseudonymous/Anonymous]
-          Messaging:
-          Types: [Private (1:1)/Group]
-          Audience: [Everyone/With connections]
-          
+          - **Commenting**: Determines how users can respond to content.
+            - Flat Threads: Comments are displayed as a single-layered list.
+            - Nested Threads: Replies to comments are structured in a hierarchy.
+          - **Reactions**: Enables users to express their opinion on content.
+            - Like: A single positive acknowledgment (e.g., heart on Instagram posts).
+            - Upvote/Downvote: Allows for ranking content positively or negatively (e.g., Reddit).
+            - Expanded Reactions: Offers a range of reactions such as "love," "haha," "angry," etc. (e.g., Facebook's reaction system).
+          - **Content Management**: Outlines options for editing or removing posts.
+            - Edit: Modify content after posting (e.g., X/Twitter edit feature for subscribers).
+            - Delete: Permanently remove content from the platform.
+          - **Account Types**: Defines privacy and accessibility. (multiple can be selected)
+            - Public: Content is accessible to everyone.
+            - Private (one-way): Follower requests are required, but users don’t need mutual consent (e.g., Instagram private accounts).
+            - Private (mutual): Both parties must agree to connect (e.g., LinkedIn).
+          - **Identity Options**: Specifies how users represent themselves.
+            - Real-name: Users must use their real identity (e.g., LinkedIn).
+            - Pseudonymous: Users can use aliases (e.g., Instagram).
+            - Anonymous: Users are not identified (e.g., 4chan, Whisper).
+          - **Messaging**:
+            - Types: (multiple can be selected)
+              - Private one-on-one (e.g., Facebook Messenger) 
+              - group messaging (e.g., WhatsApp groups).
+            - Audience: You can message with people who have connection to you or everyone.
+              - With connection 
+              - everyone.
+
           LV3: Advanced Features & Customization
-          Ephemeral Content:
-          Enabled: [Yes/No]
-          Content Visibility Control: [Public/Private]
-          Content Discovery:
-          Recommendations: [Topic-based Suggestions/Popularity-based Suggestions]
-          Networking Control: [Block/Mute]
-          Privacy Settings: [Invited Contents Only (e.g., Slack)/Show All (e.g., Instagram)]
-          Community Features: [Open Groups (e.g., Instagram)/Closed Groups (e.g., Facebook)]
+          - **Ephemeral Content**: Temporary content that disappears after a set time.
+            - Enabled: Platforms like Snapchat or Instagram Stories. (just reply with Yes or No)
+          - **Content Visibility Control**: Defines audience customization options.
+            - Public: Content is visible to all users
+            - Private: Content visibility is restricted
+          - **Content Discovery**: Methods of introducing users to new content.
+          - Recommendations:
+            - Topic-based Suggestions: Recommendations based on user interests (e.g., Pinterest).
+            - Popularity-based Suggestions: Recommendations based on trending content (e.g., TikTok's "For You" page).
+          - **Networking Control**: Tools to manage social interactions. (multiple can be selected)
+            - Block: Prevents another user from interacting with you
+            - Mute: Silences another user without notifying them
+          - **Privacy Settings**: Configures boundaries for interactions.
+            - Invited Content Only: Access is limited to invited users (e.g., Slack).
+            - Show All: Content is publicly visible to anyone (e.g., Instagram).
+          - **Community Features**: Defines group participation dynamics. (select this feature only if group-type is selected in level one)
+            - Open Groups: Anyone can join (e.g., Instagram hashtags, Reddit communities).
+            - Closed Groups: Membership is by approval or invitation only (e.g., Facebook Groups).
           
-          Do not use bolded text or []`
+        The answer structure should look like something like this:
+        
+        LV1: Network Structure
+        Timeline Types: Chat-based
+        Content Order: Algorithmic
+        and so on...
+        
+        Do not use bolded text or []`
         }
       ],
     });

@@ -25,6 +25,29 @@ const FeatureSelectionDAO = {
         });
     },
 
+    async getLvlOneDescriptions(){
+        return new Promise((resolve, reject) => {
+            try {         
+                const sql = 'SELECT keyword, llm_descr, user_descr FROM LvlOneFeature';
+                db.get(sql, [], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve(null);
+                    } else {
+                        resolve({
+                            keyword: row.keyword,
+                            llm_descr: row.llm_descr,
+                            user_descr: row.user_descr
+                        });
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
     async getLvlTwoFeatures(){
         return new Promise((resolve, reject) => {
             try {         
@@ -128,7 +151,25 @@ const FeatureSelectionDAO = {
                 reject(error);
             }
         });
+    },
 
+    async insertLvlOneDescriptions(keyword, llm_descr, user_descr){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'INSERT INTO LvlOneFeature (keyword, llm_descr, user_descr) VALUES (?,?,?)';
+                db.run(sql, [keyword, llm_descr, user_descr], function(err) { 
+                    if (err) {
+                        reject(err);
+                    } else if (this.changes === 0) { 
+                        resolve(false);
+                    } else {
+                        resolve(this.lastID);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
     },
 
     async insertLvlTwoFeature(commenting, account_type, identity, messaging_mem, messaging_control, messaging_audience, sharing, reactions){
