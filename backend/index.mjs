@@ -1177,6 +1177,17 @@ app.get('/api/features/lvl/one/',
     }
 );
 
+app.get('/api/features/lvl/one/descriptions',
+  async (req, res) => {
+      try {
+        const descriptions = await fsDAO.getLvlOneDescriptions();
+        res.status(200).json(descriptions);
+      } catch (err) {
+        res.status(500).json({ error: `BE: Error getting lvl one descriptions ${err}` });
+      }
+    }
+);
+
 app.get('/api/features/lvl/two/',
   async (req, res) => {
       try {
@@ -1217,6 +1228,21 @@ app.post('/api/features/lvl/one/add',
         res.status(201).json({ina});
       } catch (err) {
         res.status(503).json({ error: `BE: Error inserting lvl one features ${err}` });
+      }
+    }
+);
+
+app.post('/api/features/lvl/one/descriptions/add',
+  async (req, res) => {
+      try {
+        const ina = await fsDAO.insertLvlOneDescriptions(
+          req.body.keyword,
+          req.body.llm_descr,
+          req.body.user_descr
+        );
+        res.status(201).json({ina});
+      } catch (err) {
+        res.status(503).json({ error: `BE: Error inserting lvl one descriptions ${err}` });
       }
     }
 );
