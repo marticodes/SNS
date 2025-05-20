@@ -190,6 +190,12 @@ function MainPage() {
     return result;
   };
 
+  const formatAttributesToText = (attributes) => {
+    return Object.entries(attributes)
+      .map(([key, value]) => `• ${key}: ${value}`)
+      .join('\n');
+  };
+
   const handleMetaphorSubmit = async (formData) => {
     setIsLoading(true);
     try {
@@ -237,7 +243,6 @@ function MainPage() {
       }
 
       const step3Data = await step3Response.json();
-      console.log("Step 3 response:", step3Data);
       setLlmResponse(step3Data.features);
       
       // Parse the LLM response and update selections
@@ -246,7 +251,6 @@ function MainPage() {
       
       // Convert selections to integers and send to backend
       const integerSelections = convertSelectionsToIntegers(newSelections);
-      console.log("Converted integer selections:", integerSelections);
 
       const myUserID = parseInt(localStorage.getItem("userID"), 10);
 
@@ -266,7 +270,27 @@ function MainPage() {
       }
 
       const backendData = await backendResponse.json();
-      console.log("Backend response:", backendData);
+
+      // Format attributes into bullet-pointed text
+      const formattedAttributes = formatAttributesToText(step2Data.attributes);
+
+      // Send metaphor data to backend
+      const metaphorResponse = await fetch("http://localhost:3001/api/features/lvl/one/descriptions/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          keyword: formData.metaphorKeyword,
+          user_descr: description,
+          llm_descr: formattedAttributes
+        }),
+      });
+
+      if (!metaphorResponse.ok) {
+        const errorText = await metaphorResponse.text();
+        throw new Error(`Error sending metaphor data: ${metaphorResponse.statusText}. Details: ${errorText}`);
+      }
+
+      const metaphorData = await metaphorResponse.json();
 
       // Update the state after successful backend submission
       setSelections(newSelections);
