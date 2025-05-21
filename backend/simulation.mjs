@@ -1049,7 +1049,7 @@ const Simulation = {
             LLM Description: ${descriptions.llm_descr}
             User Description: ${descriptions.user_descr}`;
 
-            // 3. Create the user prompt for profile generation
+            // Create the user prompt for profile generation
             const userPrompt = `
             Create a social media user profile that embodies the metaphorical essence of ${descriptions.keyword}.
             Generate a JSON object with these required fields:

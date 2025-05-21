@@ -19,11 +19,11 @@ async function ActionSimulation() {
     try {
         const agentPromises = Array(49).fill().map(async (_, i) => {
             await Simulation.generateAgentFromMetaphor();
-            console.log(`Generated agent ${i + 1} of 10`);
+            console.log(`Generated agent ${i + 1} of 50`);
         });
         
         await Promise.all(agentPromises);
-        console.log("All 10 agents generated successfully!");
+        console.log("All 50 agents generated successfully!");
     } catch (error) {
         console.error("Error generating agents:", error);
     }
@@ -67,7 +67,7 @@ async function ActionSimulation() {
                     body: JSON.stringify({
                         user_id_1: user1,
                         user_id_2: user2,
-                        relation_type: 1,
+                        relation_type: 2,
                         restricted: 0,
                         closeness: 0
                     })
