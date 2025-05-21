@@ -337,7 +337,7 @@ const Simulation = {
     },
     async addAGReaction(user_id, system_prompt) {
         try {
-          // 0) pull in the agent’s flags
+          // 0) pull in the agent's flags
           const { timeline, reactions: reactionFlag } = await FeatureSelectionDAO.getFeatures(user_id);
       
           const sel = (timeline !== 1)
@@ -1014,6 +1014,19 @@ const Simulation = {
           }
           agentData.email = uniqueEmail;
           
+          let existingIdName = await UserDAO.findByIdName(agentData.id_name);
+          if (existingIdName) {
+              // Modify the id_name until it is unique
+              let unique = false;
+              while (!unique) {
+                  agentData.id_name = agentData.id_name + '_' + Math.floor(Math.random() * 10000);
+                  existingIdName = await UserDAO.findByIdName(agentData.id_name);
+                  if (!existingIdName) {
+                      unique = true;
+                  }
+              }
+          }
+          
           const newUserId = await Simulation.insertUserPipeline(agentData);
           console.log("New agent inserted with ID:", newUserId);
           return newUserId;
@@ -1021,7 +1034,110 @@ const Simulation = {
         } catch (error) {
           console.error("Error generating agent from group chats:", error);
         }
-      }
-    }      
+      },
+      
+    async generateAgentFromMetaphor() {
+        try {
+            // 1. Get the metaphorical descriptions and create a system prompt
+            const descriptions = await FeatureSelectionDAO.getLvlOneDescriptions();
+            if (!descriptions) {
+                console.error("No feature descriptions found.");
+                return;
+            }
+            const systemPrompt = `You are an AI that generates social media user profiles based on metaphorical descriptions. 
+            Create a personality that embodies these metaphorical characteristics:
+            LLM Description: ${descriptions.llm_descr}
+            User Description: ${descriptions.user_descr}`;
+
+            // 3. Create the user prompt for profile generation
+            const userPrompt = `
+            Create a social media user profile that embodies the metaphorical essence of ${descriptions.keyword}.
+            Generate a JSON object with these required fields:
+            {
+                "id_name": "A unique identifier starting with 'ID_'",
+                "user_name": "A name that reflects the metaphorical nature",
+                "email": "A thematic email address",
+                "password": "A strong password",
+                "user_bio": "A bio that incorporates the metaphorical theme",
+                "profile_picture": "A URL using https://i.pravatar.cc/120?u= with a random parameter",
+                "posting_trait": "Float between 0-1",
+                "commenting_trait": "Float between 0-1",
+                "reacting_trait": "Float between 0-1",
+                "messaging_trait": "Float between 0-1",
+                "updating_trait": "Float between 0-1",
+                "comm_trait": "Float between 0-1",
+                "notification_trait": "Float between 0-1",
+                "interests": ["At least 3 interests from the predefined list"],
+                "persona_name": "A name derived from the metaphor",
+                "social_group_name": "A group name aligned with the metaphor"
+            }
+
+            Ensure the personality traits and interests align with the metaphorical description.
+            The predefined interests list: ["Animals", "Art & Design", "Automobiles", "DIY & Crafting", "Education", "Fashion", "Finance", "Fitness", "Food", "Gaming", "History & Culture", "Lifestyle", "Literature", "Movies", "Music", "Nature", "Personal Development", "Photography", "Psychology", "Religion", "Social", "Sports", "Technology", "Travel", "Wellness"]
+
+            Return only the JSON object.`;
+
+            const apiResponse = await generateResponse(systemPrompt, userPrompt);
+            let cleanResponse = apiResponse.trim();
+            if (cleanResponse.startsWith("```")) {
+                cleanResponse = cleanResponse.replace(/^```(json)?\s*/, "").replace(/```$/, "").trim();
+            }
+
+            let agentData;
+            try {
+                agentData = JSON.parse(cleanResponse);
+            } catch (e) {
+                console.error("Failed to parse API response:", e, "Response:", cleanResponse);
+                return;
+            }
+
+            let existingUser = await UserDAO.findByUserName(agentData.user_name);
+            if (existingUser) {
+                let unique = false;
+                while (!unique) {
+                    agentData.user_name = agentData.user_name + '_' + Math.floor(Math.random() * 10000);
+                    existingUser = await UserDAO.findByUserName(agentData.user_name);
+                    if (!existingUser) {
+                        unique = true;
+                    }
+                }
+            }
+
+            const originalEmail = agentData.email;
+            let uniqueEmail = originalEmail;
+            let emailCounter = 1;
+            let emailExists = await UserDAO.findByEmail(uniqueEmail);
+            while (emailExists) {
+                const [local, domain] = originalEmail.split('@');
+                uniqueEmail = `${local}_${emailCounter}@${domain}`;
+                emailCounter++;
+                emailExists = await UserDAO.findByEmail(uniqueEmail);
+            }
+            agentData.email = uniqueEmail;
+
+            // ID randomization
+            let existingIdName = await UserDAO.findByIdName(agentData.id_name);
+            if (existingIdName) {
+                // Modify the id_name until it is unique
+                let unique = false;
+                while (!unique) {
+                    agentData.id_name = agentData.id_name + '_' + Math.floor(Math.random() * 10000);
+                    existingIdName = await UserDAO.findByIdName(agentData.id_name);
+                    if (!existingIdName) {
+                        unique = true;
+                    }
+                }
+            }
+            const newUserId = await Simulation.insertUserPipeline(agentData);
+
+            
+            console.log("New metaphorical agent inserted with ID:", newUserId);
+            return newUserId;
+
+        } catch (error) {
+            console.error("Error generating agent from metaphor:", error);
+        }
+    }, 
+}      
 export default Simulation;
 

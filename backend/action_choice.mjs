@@ -52,11 +52,11 @@ const ActionChoice = {
         "Update restriction": "updating_trait",
         "View a story": "comm_trait",
         "Read unread messages": "notification_trait",
-        
+        "Send message in group chat": "messaging_trait",
     },
 
       // API-based actions: These are actions that uses GPT-4o to generate content
-      APIBasedActions: [
+    APIBasedActions: [
         "Update user bio",
         "Start new DM",
         "Start new group chat",
@@ -68,9 +68,8 @@ const ActionChoice = {
         "Add post",
         "React",
         "Add a story",
-        "Join channel"
-        // "Share post in chat": "messaging_trait", // This was commented out previously. not sure why.
-        // "Send message in group chat": "messaging_trait", // This was never used in previous version.
+        "Join channel",
+        "Send message in group chat",
     ],
 
     // Feature-based actions: These are actions that uses internal API to update the database
@@ -116,7 +115,7 @@ const ActionChoice = {
       "Start new DM":           { lv1: {},                             lv2: {},                         lv3: {} },
       "Start new group chat":   { lv1: {},                             lv2: {},                         lv3: { messaging_mem: [2, 3] } },
       "Send message":           { lv1: {},                             lv2: {},                         lv3: {} },
-      "Share post in chat":     { lv1: { timeline: [1] },              lv2: {},                         lv3: {} },
+    //   "Share post in chat":     { lv1: { timeline: [1] },              lv2: {},                         lv3: {} }, // deprecated
       "Add post":               { lv1: { timeline: [1] },              lv2: {},                         lv3: {} },
       "Add a story":            { lv1: {},                             lv2: {},                         lv3: { ephemerality: [1] } },
       "View a story":           { lv1: {},                             lv2: {},                         lv3: { ephemerality: [1] } },
@@ -134,6 +133,7 @@ const ActionChoice = {
       "Update restriction":     { lv1: {timeline: [1]},                lv2: {},                         lv3: {} },
       "Read unread messages":   { lv1: {},                             lv2: {},                         lv3: {} },
       "Update post visibility": { lv1: { timeline: [1] },              lv2: {},                         lv3: {} },
+      "Send message in group chat": { lv1: {},                             lv2: {},                         lv3: {} }, // this could be changed.
     },
 
     filterActionsByFeatures(actions, features) {

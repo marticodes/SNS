@@ -197,8 +197,8 @@ const UserDAO = {
     async insertUser(id_name, user_name, email, password, user_bio, profile_picture) {
         return new Promise((resolve, reject) => {
             try {
-                visibility = Math.floor(Math.random() * 2) + 1;
-                activity_level = Math.floor(Math.random() * 10) + 1;
+                const visibility = Math.floor(Math.random() * 2) + 1;
+                const activity_level = Math.floor(Math.random() * 10) + 1;
                 const sql = 'INSERT INTO User (id_name, user_name, email, password, user_bio, profile_picture, status, visibility, activity_level) VALUES (?,?,?,?,?,?,?,?,?)';
                 db.run(sql, [id_name, user_name, email, password, user_bio, profile_picture, 1, visibility, activity_level], function(err) { 
                     if (err) {
@@ -212,8 +212,8 @@ const UserDAO = {
                                     VALUES (?, ?, ?, ?)`;
                         db.run(log_sql, [ id, 5, `Created an account`, timestamp], function (log_err) {
                             if (log_err) {
-                                        return reject(log_err);
-                                        }
+                                return reject(log_err);
+                            }
                         });  
                         resolve(id);
                     }

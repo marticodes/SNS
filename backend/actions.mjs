@@ -15,6 +15,17 @@ function getUserIds() {
 }
 
 async function ActionSimulation() {
+    // First generate 50 agents
+    try {
+        for (let i = 0; i < 50; i++) {
+            await Simulation.generateAgentFromMetaphor();
+            console.log(`Generated agent ${i + 1} of 50`);
+        }
+    } catch (error) {
+        console.error("Error generating agents:", error);
+    }
+
+    // Continue with the original simulation loop
     while (true) {
         try {
             const userIds = await getUserIds();
