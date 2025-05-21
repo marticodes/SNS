@@ -44,10 +44,6 @@ const ActionChoice = {
         "Add a story": "posting_trait",
         "Join channel": "comm_trait",
         "Update post visibility": "updating_trait",
-        "Send friend request": "comm_trait",
-        "Accept friend request": "comm_trait",
-        "Delete friend request": "comm_trait",
-        "Delete relation": "comm_trait",
         "Update relation": "updating_trait",
         "Update restriction": "updating_trait",
         "View a story": "comm_trait",
@@ -55,7 +51,13 @@ const ActionChoice = {
         "Send message in group chat": "messaging_trait",
     },
 
-    // All available actions
+    // Relation creation actions
+    relationActions: [
+        "Send friend request",
+        "Accept friend request",
+    ],
+
+    // All available regular actions
     availableActions: [
         "Update user bio",
         "Start new DM",
@@ -71,10 +73,6 @@ const ActionChoice = {
         "Join channel",
         "Send message in group chat",
         "Update post visibility",
-        "Send friend request",
-        "Accept friend request",
-        "Delete friend request",
-        "Delete relation",
         "Update relation",
         "Update restriction",
         "View a story",
@@ -123,8 +121,6 @@ const ActionChoice = {
       "Add channel post":       { lv1: {},                             lv2: {},                         lv3: {content_order: [2]} },
       "Send friend request":    { lv1: {timeline: [1]},                lv2: {},                         lv3: {} },
       "Accept friend request":  { lv1: {timeline: [1]},                lv2: {},                         lv3: {} },
-      "Delete friend request":  { lv1: {timeline: [1]},                lv2: {},                         lv3: {} },
-      "Delete relation":        { lv1: {},                             lv2: {},                         lv3: {} },
       "Update relation":        { lv1: {},                             lv2: {},                         lv3: {} },
       "Update restriction":     { lv1: {timeline: [1]},                lv2: {},                         lv3: {} },
       "Read unread messages":   { lv1: {},                             lv2: {},                         lv3: {} },
@@ -197,15 +193,14 @@ const ActionChoice = {
             "Add a story": () => Simulation.addAGStory(user_id, system_prompt),
             "Join channel": () => Simulation.joinChannel(user_id, system_prompt),
             "Update post visibility": () => Simulation.updateAGPostVisibility(user_id),
-            "Send friend request": () => Simulation.sendRequest(user_id),
-            "Accept friend request": () => Simulation.acceptRequest(user_id),
-            "Delete friend request": () => Simulation.deleteRequest(user_id),
-            "Delete relation": () => Simulation.deleteAGRelation(user_id),
             "Update relation": () => Simulation.updateAGRelation(user_id),
             "Update restriction": () => Simulation.deleteAGRestriction(user_id),
             "View a story": () => Simulation.viewAGStory(user_id),
             "Read unread messages": () => Simulation.readAGMessages(user_id),
             "Send message in group chat": () => Simulation.insertAGMessage(user_id, system_prompt),
+            // Relation actions
+            "Send friend request": () => Simulation.sendRequest(user_id),
+            "Accept friend request": () => Simulation.acceptRequest(user_id),
         };
 
         if (actions[chosen]) {
@@ -215,26 +210,64 @@ const ActionChoice = {
         return null;
     },
 
-    async performAction(user_id) {
-        const user_activity_level = await UserDAO.getActivityLevel(user_id);
-        const statusCheck = await this.checkUserStatus(user_id, user_activity_level);
-        if (statusCheck !== true) return statusCheck;
+    /**
+     * Check if the user is active and has a status
+     * @param {*} user_id 
+     * @returns 
+     */
+    async checkActivityAndStatus(user_id) {
+        const activity_level = await UserDAO.getActivityLevel(user_id);
+        const status = await this.checkUserStatus(user_id, activity_level);
+        return status === true ? true : status;
+    },
 
+    /**
+     * Select an action from the available actions
+     * @param {*} actions - The actions to choose from
+     * @param {*} fallback_action - The action to use if no other action is available
+     * @param {*} user_id - The user id
+     * @param {*} needs_prompt - Whether the action needs a system prompt
+     * @returns 
+     */
+    async selectAction(actions, fallback_action, user_id, needs_prompt = false) {
         const user_trait = await TraitDAO.getUserTraits(user_id);
         const features = await FeatureSelectionDAO.getFeatures();
         
-        const weightedActions = this.calculateWeights(this.availableActions, user_trait);
-        const filtered = this.filterActionsByFeatures(weightedActions, features);
+        const weighted = this.calculateWeights(actions, user_trait);
+        const filtered = this.filterActionsByFeatures(weighted, features);
         const picked = this.selectActionFromFiltered(filtered);
 
-        // Generate system prompt for content generation
-        const system_prompt = await this.generateSystemPrompt(user_id);
+        const system_prompt = needs_prompt ? await this.generateSystemPrompt(user_id) : null;
 
         if (!picked) {
-            return this.executeAction("Start new DM", user_id, system_prompt, user_trait);
+            return this.executeAction(fallback_action, user_id, system_prompt, user_trait);
         }
 
         return this.executeAction(picked.action, user_id, system_prompt, user_trait);
+    },
+
+    /**
+     * Perform an action based on the user's activity level
+     * @param {*} user_id - The user id
+     * @returns 
+     */
+    async performAction(user_id) {
+        const status = await this.checkActivityAndStatus(user_id);
+        if (status !== true) return status;
+
+        return this.selectAction(this.availableActions, "Start new DM", user_id, true);
+    },
+
+    /**
+     * Perform a relation action
+     * @param {*} user_id - The user id
+     * @returns 
+     */
+    async performRelationAction(user_id) {
+        const status = await this.checkActivityAndStatus(user_id);
+        if (status !== true) return status;
+
+        return this.selectAction(this.relationActions, "Send friend request", user_id, false);
     },
 };
 

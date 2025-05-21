@@ -281,7 +281,24 @@ const RelationDAO = {
                 }
             });
         });
-    }    
+    },
+
+    async getTotalRelations() {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT COUNT(*) as total FROM Relations';
+                db.get(sql, [], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(row.total);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
 
 };
 

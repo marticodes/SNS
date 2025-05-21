@@ -15,31 +15,83 @@ function getUserIds() {
 }
 
 async function ActionSimulation() {
-    // First generate 50 agents
-    // try {
-    //     for (let i = 0; i < 50; i++) {
-    //         await Simulation.generateAgentFromMetaphor();
-    //         console.log(`Generated agent ${i + 1} of 50`);
-    //     }
-    // } catch (error) {
-    //     console.error("Error generating agents:", error);
-    // }
+    ////////////////Agent generation.////////////////////
+    try {
+        const agentPromises = Array(49).fill().map(async (_, i) => {
+            await Simulation.generateAgentFromMetaphor();
+            console.log(`Generated agent ${i + 1} of 10`);
+        });
+        
+        await Promise.all(agentPromises);
+        console.log("All 10 agents generated successfully!");
+    } catch (error) {
+        console.error("Error generating agents:", error);
+    }
 
-    // Continue with the original simulation loop
+    ////////////////Relation generation.////////////////////
+    const targetRelations = 600;
+    const existingRelations = new Set(); // Track existing relations
+    
+    while (true) {
+        try {
+            // Check current total
+            const response = await fetch('http://localhost:3001/api/relations/total');
+            const currentRelations = (await response.json()).total;
+            console.log(`Current total relations: ${currentRelations}/${targetRelations}`);
+            
+            if (currentRelations >= targetRelations) {
+                console.log("Reached target relations count!");
+                break;
+            }
+
+            // Get all users
+            const userIds = await getUserIds();
+            
+            // Create 10 random relations
+            for (let i = 0; i < 10; i++) {
+                const user1 = userIds[Math.floor(Math.random() * userIds.length)];
+                let user2 = userIds[Math.floor(Math.random() * userIds.length)];
+                
+                // Keep trying until we find a new unique relation
+                const relationKey = `${Math.min(user1, user2)}-${Math.max(user1, user2)}`;
+                while (user1 === user2 || existingRelations.has(relationKey)) {
+                    user2 = userIds[Math.floor(Math.random() * userIds.length)];
+                    relationKey = `${Math.min(user1, user2)}-${Math.max(user1, user2)}`;
+                }
+                
+                existingRelations.add(relationKey);
+
+                await fetch('http://localhost:3001/api/relations/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id_1: user1,
+                        user_id_2: user2,
+                        relation_type: 1,
+                        restricted: 0,
+                        closeness: 0
+                    })
+                });
+                console.log(`Added relation: ${user1} -> ${user2}`);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    ////////////////Action generation.////////////////////
     while (true) {
         try {
             const userIds = await getUserIds();
         
             if (userIds.length > 0) {
-                // Process all users in parallel
                 await Promise.all(userIds.map(async (user_id) => {
                     try {
-                        // Run all actions for this user in parallel
                         const [apiAction1] = await Promise.all([
                             ActionChoice.performAction(user_id),
                         ]);
-
-                        // Log all actions for this user
                         console.log(`Agent ${user_id} performed actions:`, {apiAction1});
                     } catch (error) {
                         console.error(`Error with agent ${user_id}:`, error);

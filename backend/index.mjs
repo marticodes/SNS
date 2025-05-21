@@ -645,6 +645,17 @@ app.delete('/api/relations/delete/',
     }
 );
 
+app.get('/api/relations/total',
+    async (req, res) => {
+        try {
+            const total = await relationDao.getTotalRelations();
+            res.status(200).json({ total });
+        } catch (err) {
+            res.status(500).json({ error: `BE: Error getting total relations count ${err}` });
+        }
+    }
+);
+
 
 
 //// Requests Api
