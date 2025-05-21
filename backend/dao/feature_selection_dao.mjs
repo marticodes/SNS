@@ -257,9 +257,26 @@ const FeatureSelectionDAO = {
                 reject(error);
             }
         });
-    }
+    },
 
-
+    async updateLvlOneDescriptions(keyword, llm_descr, user_descr) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'UPDATE LvlOneFeature SET keyword = ?, llm_descr = ?, user_descr = ?';
+                db.run(sql, [keyword, llm_descr, user_descr], function(err) {
+                    if (err) {
+                        reject(err);
+                    } else if (this.changes === 0) {
+                        resolve(false); // No rows were updated
+                    } else {
+                        resolve(true); // Update successful
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
 
 };
 
