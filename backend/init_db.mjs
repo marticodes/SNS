@@ -291,7 +291,7 @@ async function initDb() {
 
     return new Promise((resolve, reject) => {
         db.serialize(() => {
-            // Simple sequential execution
+            // Create tables first
             for (const sql of tables) {
                 db.run(sql, (err) => {
                     if (err) {
@@ -300,7 +300,46 @@ async function initDb() {
                     }
                 });
             }
-            resolve();
+
+            // Add test user
+            const testUser = {
+                id_name: "Test",
+                user_name: "testuser",
+                email: "test@example.com",
+                password: "123",
+                user_bio: "This is a test user account",
+                status: 1, 
+                visibility: 1,
+                activity_level: 1,
+                is_login: 0
+            };
+
+            const insertUserQuery = `
+                INSERT OR IGNORE INTO User (
+                    id_name, user_name, email, password, user_bio, 
+                    status, visibility, activity_level, is_login
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            db.run(insertUserQuery, [
+                testUser.id_name,
+                testUser.user_name,
+                testUser.email,
+                testUser.password,
+                testUser.user_bio,
+                testUser.status,
+                testUser.visibility,
+                testUser.activity_level,
+                testUser.is_login
+            ], function(err) {
+                if (err) {
+                    console.error('Error inserting test user:', err);
+                    reject(err);
+                } else {
+                    console.log('Test user created successfully');
+                    resolve();
+                }
+            });
         });
     });
 }
