@@ -16,14 +16,14 @@ function getUserIds() {
 
 async function ActionSimulation() {
     // First generate 50 agents
-    try {
-        for (let i = 0; i < 50; i++) {
-            await Simulation.generateAgentFromMetaphor();
-            console.log(`Generated agent ${i + 1} of 50`);
-        }
-    } catch (error) {
-        console.error("Error generating agents:", error);
-    }
+    // try {
+    //     for (let i = 0; i < 50; i++) {
+    //         await Simulation.generateAgentFromMetaphor();
+    //         console.log(`Generated agent ${i + 1} of 50`);
+    //     }
+    // } catch (error) {
+    //     console.error("Error generating agents:", error);
+    // }
 
     // Continue with the original simulation loop
     while (true) {
@@ -35,16 +35,12 @@ async function ActionSimulation() {
                 await Promise.all(userIds.map(async (user_id) => {
                     try {
                         // Run all actions for this user in parallel
-                        const [apiAction1, featureAction] = await Promise.all([
-                            ActionChoice.performAPIBasedAction(user_id),
-                            ActionChoice.performFeatureBasedAction(user_id)
+                        const [apiAction1] = await Promise.all([
+                            ActionChoice.performAction(user_id),
                         ]);
 
                         // Log all actions for this user
-                        console.log(`Agent ${user_id} performed actions:`, {
-                            apiAction1,
-                            featureAction
-                        });
+                        console.log(`Agent ${user_id} performed actions:`, {apiAction1});
                     } catch (error) {
                         console.error(`Error with agent ${user_id}:`, error);
                     }

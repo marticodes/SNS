@@ -55,8 +55,8 @@ const ActionChoice = {
         "Send message in group chat": "messaging_trait",
     },
 
-      // API-based actions: These are actions that uses GPT-4o to generate content
-    APIBasedActions: [
+    // All available actions
+    availableActions: [
         "Update user bio",
         "Start new DM",
         "Start new group chat",
@@ -70,10 +70,6 @@ const ActionChoice = {
         "Add a story",
         "Join channel",
         "Send message in group chat",
-    ],
-
-    // Feature-based actions: These are actions that uses internal API to update the database
-    FeatureBasedActions: [
         "Update post visibility",
         "Send friend request",
         "Accept friend request",
@@ -82,7 +78,7 @@ const ActionChoice = {
         "Update relation",
         "Update restriction",
         "View a story",
-        "Read unread messages",
+        "Read unread messages"
     ],
 
     // Calculate weights for actions
@@ -188,7 +184,6 @@ const ActionChoice = {
 
     async executeAction(chosen, user_id, system_prompt = null, user_trait = null) {
         const actions = {
-            // API-based actions
             "Update user bio": () => Simulation.updateAGUserBio(user_id, system_prompt),
             "Start new DM": () => Simulation.insertDM(user_id, system_prompt),
             "Start new group chat": () => Simulation.insertGroupChat(user_id, system_prompt),
@@ -201,8 +196,6 @@ const ActionChoice = {
             "React": () => Simulation.addAGReaction(user_id, system_prompt),
             "Add a story": () => Simulation.addAGStory(user_id, system_prompt),
             "Join channel": () => Simulation.joinChannel(user_id, system_prompt),
-
-            // Feature-based actions
             "Update post visibility": () => Simulation.updateAGPostVisibility(user_id),
             "Send friend request": () => Simulation.sendRequest(user_id),
             "Accept friend request": () => Simulation.acceptRequest(user_id),
@@ -212,6 +205,7 @@ const ActionChoice = {
             "Update restriction": () => Simulation.deleteAGRestriction(user_id),
             "View a story": () => Simulation.viewAGStory(user_id),
             "Read unread messages": () => Simulation.readAGMessages(user_id),
+            "Send message in group chat": () => Simulation.insertAGMessage(user_id, system_prompt),
         };
 
         if (actions[chosen]) {
@@ -221,7 +215,7 @@ const ActionChoice = {
         return null;
     },
 
-    async performAPIBasedAction(user_id) {
+    async performAction(user_id) {
         const user_activity_level = await UserDAO.getActivityLevel(user_id);
         const statusCheck = await this.checkUserStatus(user_id, user_activity_level);
         if (statusCheck !== true) return statusCheck;
@@ -229,10 +223,11 @@ const ActionChoice = {
         const user_trait = await TraitDAO.getUserTraits(user_id);
         const features = await FeatureSelectionDAO.getFeatures();
         
-        const weightedActions = this.calculateWeights(this.APIBasedActions, user_trait);
+        const weightedActions = this.calculateWeights(this.availableActions, user_trait);
         const filtered = this.filterActionsByFeatures(weightedActions, features);
         const picked = this.selectActionFromFiltered(filtered);
 
+        // Generate system prompt for content generation
         const system_prompt = await this.generateSystemPrompt(user_id);
 
         if (!picked) {
@@ -240,25 +235,6 @@ const ActionChoice = {
         }
 
         return this.executeAction(picked.action, user_id, system_prompt, user_trait);
-    },
-
-    async performFeatureBasedAction(user_id) {
-        const user_activity_level = await UserDAO.getActivityLevel(user_id);
-        const statusCheck = await this.checkUserStatus(user_id, user_activity_level);
-        if (statusCheck !== true) return statusCheck;
-
-        const user_trait = await TraitDAO.getUserTraits(user_id);
-        const features = await FeatureSelectionDAO.getFeatures();
-        
-        const weightedActions = this.calculateWeights(this.FeatureBasedActions, user_trait);
-        const filtered = this.filterActionsByFeatures(weightedActions, features);
-        const picked = this.selectActionFromFiltered(filtered);
-
-        if (!picked) {
-            return this.executeAction("Update post visibility", user_id, null, user_trait);
-        }
-
-        return this.executeAction(picked.action, user_id, null, user_trait);
     },
 };
 
