@@ -1065,7 +1065,7 @@ const Simulation = {
             
             USERNAME REQUIREMENTS:
             - Strictly follow this identity style: ${identity_prompt}
-            - CRUCIAL: The username MUST be completely independent of the metaphorical theme ('${descriptions.keyword}'). It should NOT reflect the metaphor in any way, sound natural, and be plausible for the specified identity style.
+            - CRUCIAL: The username MUST be completely independent of the metaphorical theme ('${descriptions.keyword}'). It should NOT reflect the metaphor in any way.
             - The username must follow standard social media conventions.
             ${existingUserNames.length > 0 ? `
             - ABSOLUTELY ESSENTIAL: The username MUST be different from these existing names:
@@ -1077,7 +1077,7 @@ const Simulation = {
                 "user_name": "A username strictly adhering to the USERNAME REQUIREMENTS above. It MUST NOT be related to the metaphorical theme in any way.",
                 "email": "A thematic email address, can be related to the metaphor or username strategy",
                 "password": "A strong password",
-                "user_bio": "A concise (1-3 sentences, approx 150 chars) and engaging social media bio. This bio MUST creatively and subtly weave in the metaphorical theme of '${descriptions.keyword}'. It should NOT be a direct statement of the metaphor. ${existingUserBios.length > 0 ? `It MUST be distinct from these existing bios: ${existingUserBios.map(bio => `"${bio}"`).join('; ')}. ` : ''}No emojis.",
+                "user_bio": "A concise (1-3 sentences, approx 150 chars) and engaging social media bio. This bio should NOT weave in the metaphorical theme of '${descriptions.keyword} or metaphor.' ${existingUserBios.length > 0 ? `It MUST be distinct from these existing bios: ${existingUserBios.map(bio => `"${bio}"`).join('; ')}. ` : ''}No emojis.",
                 "profile_picture": "A URL using https://i.pravatar.cc/120?u= with a random parameter",
                 "posting_trait": "Float between 0-1",
                 "commenting_trait": "Float between 0-1",
