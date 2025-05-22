@@ -1249,7 +1249,8 @@ app.post('/api/features/lvl/one/descriptions/add',
       const updated = await fsDAO.updateLvlOneDescriptions(
         req.body.keyword,
         req.body.llm_descr,
-        req.body.user_descr
+        req.body.user_descr,
+        req.body.user_count
       );
       if (updated) {
         res.status(200).json({ message: "Description updated successfully" });
@@ -1422,6 +1423,7 @@ async function generateSocialMediaFeatures(attributes) {
           - **Connection Type**: Defines how users are connected and interact.
             - Network-based: Connections between individuals such as friends or followers (e.g., Instagram, Twitter).
             - Group-based: Collective participation within a predefined community (e.g., Reddit, Slack channels).
+          - **User Count**: Defines the exact number of users on the platform. Don't just pick middle number. think about attributes and the number of users it should have. The number should be minimum 5, and maximum 100. 
 
           LV2: Interaction Mechanisms
           - **Commenting**: Determines how users can respond to content.

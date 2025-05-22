@@ -28,7 +28,7 @@ const FeatureSelectionDAO = {
     async getLvlOneDescriptions(){
         return new Promise((resolve, reject) => {
             try {         
-                const sql = 'SELECT keyword, llm_descr, user_descr FROM LvlOneFeature';
+                const sql = 'SELECT keyword, llm_descr, user_descr, user_count FROM LvlOneFeature';
                 db.get(sql, [], (err, row) => {
                     if (err) {
                         reject(err);
@@ -38,8 +38,28 @@ const FeatureSelectionDAO = {
                         resolve({
                             keyword: row.keyword,
                             llm_descr: row.llm_descr,
-                            user_descr: row.user_descr
+                            user_descr: row.user_descr,
+                            user_count: row.user_count
                         });
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
+    async getUserCount(){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT user_count FROM LvlOneFeature';
+                db.get(sql, [], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve(null);
+                    } else {
+                        resolve(row.user_count);
                     }
                 });
             } catch (error) {
@@ -153,11 +173,11 @@ const FeatureSelectionDAO = {
         });
     },
 
-    async insertLvlOneDescriptions(keyword, llm_descr, user_descr){
+    async insertLvlOneDescriptions(keyword, llm_descr, user_descr, user_count){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO LvlOneFeature (keyword, llm_descr, user_descr) VALUES (?,?,?)';
-                db.run(sql, [keyword, llm_descr, user_descr], function(err) { 
+                const sql = 'INSERT INTO LvlOneFeature (keyword, llm_descr, user_descr, user_count) VALUES (?,?,?,?)';
+                db.run(sql, [keyword, llm_descr, user_descr, user_count], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
@@ -259,11 +279,11 @@ const FeatureSelectionDAO = {
         });
     },
 
-    async updateLvlOneDescriptions(keyword, llm_descr, user_descr) {
+    async updateLvlOneDescriptions(keyword, llm_descr, user_descr, user_count) {
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'UPDATE LvlOneFeature SET keyword = ?, llm_descr = ?, user_descr = ?';
-                db.run(sql, [keyword, llm_descr, user_descr], function(err) {
+                const sql = 'UPDATE LvlOneFeature SET keyword = ?, llm_descr = ?, user_descr = ?, user_count = ?';
+                db.run(sql, [keyword, llm_descr, user_descr, user_count], function(err) {
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) {

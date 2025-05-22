@@ -1,6 +1,7 @@
 import ActionChoice from './action_choice.mjs';
 import db from './db.mjs';
 import Simulation from './simulation.mjs';
+import FeatureSelectionDAO from './dao/feature_selection_dao.mjs';
 
 function getUserIds() {
     return new Promise((resolve, reject) => {
@@ -17,9 +18,10 @@ function getUserIds() {
 async function ActionSimulation() {
     ////////////////Agent generation.////////////////////
     try {
-        const agentPromises = Array(49).fill().map(async (_, i) => {
+        const userCount = await FeatureSelectionDAO.getUserCount();
+        const agentPromises = Array(userCount).fill().map(async (_, i) => {
             await Simulation.generateAgentFromMetaphor();
-            console.log(`Generated agent ${i + 1} of 50`);
+            console.log(`Generated agent ${i + 1} of ${userCount}`);
         });
         
         await Promise.all(agentPromises);
@@ -29,7 +31,8 @@ async function ActionSimulation() {
     }
 
     ////////////////Relation generation.////////////////////
-    const targetRelations = 600;
+    const userCount = await FeatureSelectionDAO.getUserCount();
+    const targetRelations = Math.round((userCount * (userCount - 1)) / 2 * 0.6);  // 60% of n choose 2, rounded
     const existingRelations = new Set(); // Track existing relations
     
     while (true) {

@@ -598,7 +598,8 @@ const Simulation = {
 
         if (frens.length < 2) return; 
 
-        let count = Math.floor(Math.random() * (frens.length - 1)) + 2;
+        // Limit to max 3 other participants (4 total including the user)
+        let count = Math.min(Math.floor(Math.random() * (frens.length - 1)) + 2, 3);
         let sel_fren = frens.sort(() => Math.random() - 0.5).slice(0, count);
 
         sel_fren.push(user_id);
@@ -1046,8 +1047,7 @@ const Simulation = {
             }
             const systemPrompt = `You are an AI that generates social media user profiles based on metaphorical descriptions. 
             Create a personality that embodies these metaphorical characteristics:
-            LLM Description: ${descriptions.llm_descr}
-            User Description: ${descriptions.user_descr}`;
+            LLM Description: ${descriptions.llm_descr}`;
 
             // Create the user prompt for profile generation
             const userPrompt = `
@@ -1129,7 +1129,6 @@ const Simulation = {
                 }
             }
             const newUserId = await Simulation.insertUserPipeline(agentData);
-
             
             console.log("New metaphorical agent inserted with ID:", newUserId);
             return newUserId;

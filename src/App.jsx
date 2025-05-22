@@ -273,7 +273,6 @@ function MainPage() {
 
       // Format attributes into bullet-pointed text
       const formattedAttributes = formatAttributesToText(step2Data.attributes);
-
       // Send metaphor data to backend
       const metaphorResponse = await fetch("http://localhost:3001/api/features/lvl/one/descriptions/add", {
         method: "POST",
@@ -281,7 +280,8 @@ function MainPage() {
         body: JSON.stringify({
           keyword: formData.metaphorKeyword,
           user_descr: description,
-          llm_descr: formattedAttributes
+          llm_descr: formattedAttributes,
+          user_count: newSelections.user_count
         }),
       });
 
@@ -349,6 +349,10 @@ function MainPage() {
       // Parse Connection Type
       const connection = extractValue(lv1Content, 'Connection Type');
       if (connection) newSelections.connection = connection.toLowerCase();
+
+      // Parse User Count
+      const userCount = extractValue(lv1Content, 'User Count');
+      if (userCount) newSelections.user_count = parseInt(userCount);
     }
 
     // Parse LV2 selections

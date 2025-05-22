@@ -1,4 +1,4 @@
-export default function LvlOneFeature(lvl_one_id, timeline, connection_type, content_order, keyword, llm_descr, user_descr) {
+export default function LvlOneFeature(lvl_one_id, timeline, connection_type, content_order, keyword, llm_descr, user_descr, user_count) {
     this.lvl_one_id = lvl_one_id;
     this.timeline = timeline;
     this.connection_type = connection_type;
@@ -6,4 +6,5 @@ export default function LvlOneFeature(lvl_one_id, timeline, connection_type, con
     this.keyword = keyword;
     this.llm_descr = llm_descr;
     this.user_descr = user_descr;
+    this.user_count = user_count;
 }

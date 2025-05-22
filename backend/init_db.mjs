@@ -123,6 +123,7 @@ async function initDb() {
             "timeline" INTEGER,
             "connection_type" INTEGER,
             "content_order" INTEGER,
+            "user_count" INTEGER,
             "keyword" TEXT,
             "llm_descr" TEXT,
             "user_descr" TEXT,
