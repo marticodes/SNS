@@ -1138,6 +1138,135 @@ const Simulation = {
             console.error("Error generating agent from metaphor:", error);
         }
     }, 
+
+    async generateAgentFromGoalsAndMetaphors() {
+        try {
+            const firstNames = ["James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Charles", "Thomas"];
+            const lastNames = ["Smith", "Johnson", "Brown", "Williams", "Jones", "Miller", "Davis", "García", "Rodriguez", "Wilson"];
+    
+            const goalRoles = [
+                { goal: "gain followers", role: "Influencer" },
+                { goal: "spread ideas", role: "Spreader" },
+                { goal: "seek emotional support", role: "Support-Seeker" },
+                { goal: "entertain others", role: "Entertainer" },
+                { goal: "moderate discussion", role: "Moderator" },
+                { goal: "raise awareness", role: "Activist" },
+                { goal: "connect with like-minded people", role: "Networker" },
+                { goal: "observe quietly", role: "Lurker" },
+                { goal: "write hate comments", role: "Bully" }
+            ];
+    
+            const generatedNames = new Set();  // To store unique names
+            while (generatedNames.size < 50) {
+                const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+                const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                const fullName = `${firstName} ${lastName}`;
+                generatedNames.add(fullName);
+            }
+    
+            const goalRole = goalRoles[Math.floor(Math.random() * goalRoles.length)];
+            const descriptions = await FeatureSelectionDAO.getLvlOneDescriptions();  // metaphorical descriptions
+            if (!descriptions) {
+                console.error("No feature descriptions found.");
+                return;
+            }
+    
+            const systemPrompt = `You are an AI that generates social media user profiles based on both user goals and metaphorical descriptions. 
+            The user has the goal of "${goalRole.goal}" and plays the role of "${goalRole.role}".
+            At the same time, create a personality that embodies these metaphorical characteristics:
+            LLM Description: ${descriptions.llm_descr}
+            User Description: ${descriptions.user_descr}`;
+    
+            // 4. Create the user prompt for profile generation, combining both metaphor and goal
+            const userPrompt = `
+            Create a social media user profile that embodies the goal of "${goalRole.goal}" and the role of "${goalRole.role}".
+            Ensure the profile reflects the metaphorical essence of the following descriptions:
+            LLM Description: ${descriptions.llm_descr}
+            User Description: ${descriptions.user_descr}
+            Generate a JSON object with these required fields:
+            {
+                "id_name": "A unique identifier starting with 'ID_'",
+                "user_name": "A name that reflects the metaphorical nature and goal-based behavior",
+                "email": "A thematic email address",
+                "password": "A strong password",
+                "user_bio": "A bio that incorporates both the metaphor and goal theme",
+                "profile_picture": "A URL using https://i.pravatar.cc/120?u= with a random parameter",
+                "posting_trait": "Float between 0-1",
+                "commenting_trait": "Float between 0-1",
+                "reacting_trait": "Float between 0-1",
+                "messaging_trait": "Float between 0-1",
+                "updating_trait": "Float between 0-1",
+                "comm_trait": "Float between 0-1",
+                "notification_trait": "Float between 0-1",
+                "interests": ["At least 3 interests from the predefined list"],
+                "persona_name": "A name derived from the goal",
+                "social_group_name": "A group name aligned with the goal and metaphor"
+            }
+    
+            Ensure the personality traits and interests align with both the metaphorical and goal-based descriptions.
+            The predefined interests list: ["Animals", "Art & Design", "Automobiles", "DIY & Crafting", "Education", "Fashion", "Finance", "Fitness", "Food", "Gaming", "History & Culture", "Lifestyle", "Literature", "Movies", "Music", "Nature", "Personal Development", "Photography", "Psychology", "Religion", "Social", "Sports", "Technology", "Travel", "Wellness"]
+    
+            Return only the JSON object.`;
+    
+            const apiResponse = await generateResponse(systemPrompt, userPrompt);
+            let cleanResponse = apiResponse.trim();
+            if (cleanResponse.startsWith("```")) {
+                cleanResponse = cleanResponse.replace(/^```(json)?\s*/, "").replace(/```$/, "").trim();
+            }
+    
+            let agentData;
+            try {
+                agentData = JSON.parse(cleanResponse);
+            } catch (e) {
+                console.error("Failed to parse API response:", e, "Response:", cleanResponse);
+                return;
+            }
+    
+            let uniqueName = Array.from(generatedNames).pop();
+            generatedNames.delete(uniqueName); 
+            let existingUser = await UserDAO.findByUserName(uniqueName);
+            while (existingUser) {
+                uniqueName = Array.from(generatedNames).pop();
+                generatedNames.delete(uniqueName);  
+                existingUser = await UserDAO.findByUserName(uniqueName);
+            }
+    
+            agentData.user_name = uniqueName;
+            
+            const originalEmail = agentData.email;
+            let uniqueEmail = originalEmail;
+            let emailCounter = 1;
+            let emailExists = await UserDAO.findByEmail(uniqueEmail);
+            while (emailExists) {
+                const [local, domain] = originalEmail.split('@');
+                uniqueEmail = `${local}_${emailCounter}@${domain}`;
+                emailCounter++;
+                emailExists = await UserDAO.findByEmail(uniqueEmail);
+            }
+            agentData.email = uniqueEmail;
+    
+            let existingIdName = await UserDAO.findByIdName(agentData.id_name);
+            if (existingIdName) {
+                let unique = false;
+                while (!unique) {
+                    agentData.id_name = agentData.id_name + '_' + Math.floor(Math.random() * 10000);
+                    existingIdName = await UserDAO.findByIdName(agentData.id_name);
+                    if (!existingIdName) {
+                        unique = true;
+                    }
+                }
+            }
+    
+            const newUserId = await Simulation.insertUserPipeline(agentData);
+    
+            console.log("New goal and metaphor-based agent inserted with ID:", newUserId);
+            return newUserId;
+    
+        } catch (error) {
+            console.error("Error generating agent from goal and metaphor:", error);
+        }
+    }
+    
 }      
 export default Simulation;
 
