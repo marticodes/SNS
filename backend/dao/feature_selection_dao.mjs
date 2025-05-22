@@ -88,6 +88,25 @@ const FeatureSelectionDAO = {
         });
     },
 
+    async getLvlTwoIdentity(){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT identity FROM LvlTwoFeature';
+                db.get(sql, [], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else if (!row) {
+                        resolve(null);
+                    } else {
+                        resolve(row.identity);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
+
     async getLvlThreeFeatures() {
         return new Promise((resolve, reject) => {
             try {

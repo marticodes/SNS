@@ -31,7 +31,7 @@ const ActionChoice = {
     },
 
     actionDefinitions: {
-        "Update user bio": "updating_trait",
+        // "Update user bio": "updating_trait",
         "Start new DM": "messaging_trait",
         "Start new group chat": "messaging_trait",
         "Add comment on post": "commenting_trait",
@@ -59,7 +59,7 @@ const ActionChoice = {
 
     // All available regular actions
     availableActions: [
-        "Update user bio",
+        // "Update user bio",
         "Start new DM",
         "Start new group chat",
         "Add comment on post",
@@ -105,7 +105,7 @@ const ActionChoice = {
     },
 
     requirements: {
-      "Update user bio":        { lv1: { timeline: [1] },              lv2: {},                         lv3: {} },
+    //   "Update user bio":        { lv1: { timeline: [1] },              lv2: {},                         lv3: {} },
       "Start new DM":           { lv1: {},                             lv2: {},                         lv3: {} },
       "Start new group chat":   { lv1: {},                             lv2: {},                         lv3: { messaging_mem: [2, 3] } },
       "Send message":           { lv1: {},                             lv2: {},                         lv3: {} },
@@ -180,7 +180,7 @@ const ActionChoice = {
 
     async executeAction(chosen, user_id, system_prompt = null, user_trait = null) {
         const actions = {
-            "Update user bio": () => Simulation.updateAGUserBio(user_id, system_prompt),
+            // "Update user bio": () => Simulation.updateAGUserBio(user_id, system_prompt),
             "Start new DM": () => Simulation.insertDM(user_id, system_prompt),
             "Start new group chat": () => Simulation.insertGroupChat(user_id, system_prompt),
             "Add comment on post": () => Simulation.insertAGCommentOnPost(user_id, system_prompt),

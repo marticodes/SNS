@@ -2,6 +2,7 @@ import ActionChoice from './action_choice.mjs';
 import db from './db.mjs';
 import Simulation from './simulation.mjs';
 import FeatureSelectionDAO from './dao/feature_selection_dao.mjs';
+import UserDAO from './dao/user_dao.mjs';
 
 function getUserIds() {
     return new Promise((resolve, reject) => {
@@ -19,13 +20,20 @@ async function ActionSimulation() {
     ////////////////Agent generation.////////////////////
     try {
         const userCount = await FeatureSelectionDAO.getUserCount();
-        const agentPromises = Array(userCount).fill().map(async (_, i) => {
-            await Simulation.generateAgentFromMetaphor();
-            console.log(`Generated agent ${i + 1} of ${userCount}`);
-        });
         
-        await Promise.all(agentPromises);
-        console.log("All 50 agents generated successfully!");
+        let existingUserNames = [];
+        let existingUserBios = [];
+                for (let i = 0; i < userCount; i++) {
+            if (i > 0) {
+                existingUserNames = await UserDAO.getUserNames();
+                existingUserBios = await UserDAO.getUserBios();
+            }
+            
+            await Simulation.generateAgentFromMetaphor(existingUserNames, existingUserBios);
+            console.log(`Generated agent ${i + 1} of ${userCount}`);
+        }
+        
+        console.log(`All ${userCount} agents generated successfully!`);
     } catch (error) {
         console.error("Error generating agents:", error);
     }

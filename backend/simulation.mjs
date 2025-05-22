@@ -144,17 +144,17 @@ async function selectChatFromInbox(user_id) {
 
 
 const Simulation = {
-    async updateAGUserBio(user_id, system_prompt) {
-        try {
-            const prev_bio = await UserDAO.getUserInfo(user_id).then(user => user.user_bio);
-            const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio. Make sure it is within 100 - 120 characters. Change tone in each generation and mimic it to how users on social media like Instagram and TikTok interact.`;
-            const new_bio = await generateResponse(system_prompt, user_prompt);
+    // async updateAGUserBio(user_id, system_prompt) {
+    //     try {
+    //         const prev_bio = await UserDAO.getUserInfo(user_id).then(user => user.user_bio);
+    //         const user_prompt = `You are about to update your user bio on social media. Your previous bio was: "${prev_bio}". Generate a new bio. Make sure it is within 100 - 120 characters. Change tone in each generation and mimic it to how users on social media like Instagram and TikTok interact.`;
+    //         const new_bio = await generateResponse(system_prompt, user_prompt);
             
-            await makeAPIRequest("http://localhost:3001/api/user/update/bio", "POST", { user_id, user_bio: new_bio });
-        } catch (error) {
-            console.error("Error updating user bio:", error);
-        }
-    },
+    //         await makeAPIRequest("http://localhost:3001/api/user/update/bio", "POST", { user_id, user_bio: new_bio });
+    //     } catch (error) {
+    //         console.error("Error updating user bio:", error);
+    //     }
+    // },
 
     async insertAGCommentOnPost(user_id, system_prompt) {
         try {
@@ -1037,28 +1037,47 @@ const Simulation = {
         }
       },
       
-    async generateAgentFromMetaphor() {
+    async generateAgentFromMetaphor(existingUserNames = [], existingUserBios = []) {
         try {
             // 1. Get the metaphorical descriptions and create a system prompt
             const descriptions = await FeatureSelectionDAO.getLvlOneDescriptions();
+            const identity_style = await FeatureSelectionDAO.getLvlTwoIdentity();
+            let identity_prompt;
+            if (identity_style === 1) {
+                identity_prompt = "The user is a real person using your real identity. Your name should be realistic and represent your true self. No numbers or special characters.";
+            } else if (identity_style === 2) {
+                identity_prompt = "The user is using a pseudonym. Create a consistent alternate identity that you maintain, but it's not your real name.";
+            } else if (identity_style === 3) {
+                identity_prompt = "The user is anonymous. Your identity should be generic and non-identifying, using placeholder-style names.";
+            }
             if (!descriptions) {
                 console.error("No feature descriptions found.");
                 return;
             }
             const systemPrompt = `You are an AI that generates social media user profiles based on metaphorical descriptions. 
             Create a personality that embodies these metaphorical characteristics:
-            LLM Description: ${descriptions.llm_descr}`;
+            LLM Description: ${descriptions.llm_descr}
+            IMPORTANT: The username should be generated independently of the metaphorical description, following only the identity style requirements.`;
 
             // Create the user prompt for profile generation
             const userPrompt = `
             Create a social media user profile that embodies the metaphorical essence of ${descriptions.keyword}.
+            
+            USERNAME REQUIREMENTS:
+            - Strictly follow this identity style: ${identity_prompt}
+            - CRUCIAL: The username MUST be completely independent of the metaphorical theme ('${descriptions.keyword}'). It should NOT reflect the metaphor in any way, sound natural, and be plausible for the specified identity style.
+            - The username must follow standard social media conventions.
+            ${existingUserNames.length > 0 ? `
+            - ABSOLUTELY ESSENTIAL: The username MUST be different from these existing names:
+              ${existingUserNames.join(', ')}` : ''}
+            
             Generate a JSON object with these required fields:
             {
                 "id_name": "A unique identifier starting with 'ID_'",
-                "user_name": "A name that reflects the metaphorical nature",
-                "email": "A thematic email address",
+                "user_name": "A username strictly adhering to the USERNAME REQUIREMENTS above. It MUST NOT be related to the metaphorical theme in any way.",
+                "email": "A thematic email address, can be related to the metaphor or username strategy",
                 "password": "A strong password",
-                "user_bio": "A bio that incorporates the metaphorical theme",
+                "user_bio": "A concise (1-3 sentences, approx 150 chars) and engaging social media bio. This bio MUST creatively and subtly weave in the metaphorical theme of '${descriptions.keyword}'. It should NOT be a direct statement of the metaphor. ${existingUserBios.length > 0 ? `It MUST be distinct from these existing bios: ${existingUserBios.map(bio => `"${bio}"`).join('; ')}. ` : ''}No emojis.",
                 "profile_picture": "A URL using https://i.pravatar.cc/120?u= with a random parameter",
                 "posting_trait": "Float between 0-1",
                 "commenting_trait": "Float between 0-1",
@@ -1067,7 +1086,7 @@ const Simulation = {
                 "updating_trait": "Float between 0-1",
                 "comm_trait": "Float between 0-1",
                 "notification_trait": "Float between 0-1",
-                "interests": ["At least 3 interests from the predefined list"],
+                "interests": ["At least 3 interests from the predefined list that align with the metaphorical description"],
                 "persona_name": "A name derived from the metaphor",
                 "social_group_name": "A group name aligned with the metaphor"
             }

@@ -395,6 +395,32 @@ const UserDAO = {
             resolve(row);
         });
         });
+    },
+
+    async getUserNames(){
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT user_name FROM User';
+            db.all(sql, [], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows.map(row => row.user_name));
+                }
+            });
+        });
+    },
+
+    async getUserBios(){
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT user_bio FROM User';
+            db.all(sql, [], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows.map(row => row.user_bio));
+                }
+            });
+        });
     }
 };
 
