@@ -110,22 +110,22 @@ const ActionChoice = {
       "Start new group chat":   { lv1: {},                             lv2: {},                         lv3: { messaging_mem: [2, 3] } },
       "Send message":           { lv1: {},                             lv2: {},                         lv3: {} },
     //   "Share post in chat":     { lv1: { timeline: [1] },              lv2: {},                         lv3: {} }, // deprecated
-      "Add post":               { lv1: { timeline: [1] },              lv2: {},                         lv3: {} },
+      "Add post":               { lv1: { timeline: [1], connection_type: [1] },  lv2: {},                         lv3: {} },
       "Add a story":            { lv1: {},                             lv2: {},                         lv3: { ephemerality: [1] } },
-      "View a story":           { lv1: {},                             lv2: {},                         lv3: { ephemerality: [1] } },
+    //   "View a story":           { lv1: {},                             lv2: {},                         lv3: { ephemerality: [1] } },
       "Add comment on post":    { lv1: { timeline: [1] },              lv2: {},                         lv3: {} },
       "Add comment on comment": { lv1: { timeline: [1] },              lv2: { commenting: [1] },        lv3: {} },
       "React":                  { lv1: {},                             lv2: {},                         lv3: {} },
-      "Create new channel":     { lv1: {},                             lv2: {},                         lv3: {content_order: [2]} },
-      "Join channel":           { lv1: {},                             lv2: {},                         lv3: {content_order: [2]} },
-      "Add channel post":       { lv1: {},                             lv2: {},                         lv3: {content_order: [2]} },
-      "Send friend request":    { lv1: {timeline: [1]},                lv2: {},                         lv3: {} },
-      "Accept friend request":  { lv1: {timeline: [1]},                lv2: {},                         lv3: {} },
+      "Create new channel":     { lv1: { connection_type: [2] },       lv2: {},                         lv3: {} },
+      "Join channel":           { lv1: { connection_type: [2] },       lv2: {},                         lv3: {} },
+      "Add channel post":       { lv1: { connection_type: [2] },       lv2: {},                         lv3: {} }, // need to check whether chat-based doesn't allow friend request.
+      "Send friend request":    { lv1: { timeline: [1] },                lv2: {},                         lv3: {} }, // also here
+      "Accept friend request":  { lv1: { timeline: [1] },                lv2: {},                         lv3: {} },
       "Update relation":        { lv1: {},                             lv2: {},                         lv3: {} },
-      "Update restriction":     { lv1: {timeline: [1]},                lv2: {},                         lv3: {} },
+      "Update restriction":     { lv1: { timeline: [1] },                lv2: {},                         lv3: {} },
       "Read unread messages":   { lv1: {},                             lv2: {},                         lv3: {} },
-      "Update post visibility": { lv1: { timeline: [1] },              lv2: {},                         lv3: {} },
-      "Send message in group chat": { lv1: {},                             lv2: {},                         lv3: {} }, // this could be changed.
+      "Update post visibility": { lv1: { timeline: [1] },              lv2: {},                         lv3: {} }, // post visibility (?)
+      "Send message in group chat": { lv1: {},                             lv2: {},                         lv3: { messaging_mem: [2, 3]} }, // this could be changed.
     },
 
     filterActionsByFeatures(actions, features) {
@@ -142,16 +142,61 @@ const ActionChoice = {
         });
     },
 
+    // filterActionsByFeatures(actions, features) {
+    //     return actions.filter(({ action }) => {
+    //         const reqEntry = this.requirements[action];
+    //         if (!reqEntry) return false;
+    
+    //         const reqList = Array.isArray(reqEntry) ? reqEntry : [reqEntry];
+    
+    //         return reqList.some(req => {
+    //             for (const level of ['lv1', 'lv2', 'lv3']) {
+    //                 for (let [k, allowed] of Object.entries(req[level] || {})) {
+    //                     if (!allowed.includes(features[k])) return false;
+    //                 }
+    //             }
+    //             return true;
+    //         });
+    //     });
+    // },
+
     selectActionFromFiltered(filtered) {
         let totalWeight = filtered.reduce((sum, a) => sum + a.weight, 0);
         let r = Math.random() * totalWeight;
         return filtered.find(a => (r -= a.weight) <= 0);
     },
 
+    getSocialMediaType(timeline, connection_type) {
+        const types = {
+            '1-1': {
+                type: 'Feed-based + Networked',
+                examples: ['Instagram', 'Facebook', 'LinkedIn']
+            },
+            '1-2': {
+                type: 'Feed-based + Group-based',
+                examples: ['Reddit', 'Facebook Groups', 'Nextdoor']
+            },
+            '2-1': {
+                type: 'Chat-based + Networked',
+                examples: ['WhatsApp (with contacts)', 'Telegram (direct messages)']
+            },
+            '2-2': {
+                type: 'Chat-based + Group-based',
+                examples: ['Slack', 'Discord', 'Microsoft Teams']
+            }
+        };
+    
+        const key = `${timeline}-${connection_type}`;
+        return types[key].examples || 'unknown';
+    },
+
     async generateSystemPrompt(user_id) {
         const persona = await PersonaDAO.getUserPersona(user_id);
         const social_groups = await SocialGroupDao.getUserSocialGroups(user_id);
         const interests = await UserInterestDAO.getUserInterests(user_id);
+        const lv1features = await FeatureSelectionDAO.getLvlOneFeatures();
+
+        const socialmedia_type = this.getSocialMediaType(lv1features.timeline, lv1features.connection_type);
 
         return `You are a social media user with the following characteristics:
         - Social identity: ${social_groups.join(", ")}
@@ -160,15 +205,15 @@ const ActionChoice = {
         
         These attributes describe who you are as a person, but you should NOT repeat or explicitly reference them in every post or message. Instead, let them subtly shape your tone, opinions, humor, and style.
         
-        You are a user on social media platforms like Instagram, Facebook, and TikTok. You create or participate in all kinds of content including:
-        - Comments under posts or reels
-        - Funny or supportive replies in group chats
-        - Direct messages (DMs) to friends or crushes
+        You are a user on social media platforms like ${socialmedia_type.join(", ")}. You create or participate in all kinds of content including:
+        - Comments under posts
+        - Supportive replies in group chats
+        - Direct messages (DMs) to friends
         - Casual, chaotic messages in group chats with inside jokes
         - Posts or stories (serious, emotional, random, or humorous)
         - Reactions to life events, viral content, or news
         - Relatable or witty responses to trends or prompts
-        - Long rants or short texts with typos and emojis
+        - Long rants or short texts with typos
         - Arguments, sarcastic comebacks, or wholesome support
         
         Use casual, human-like language with imperfections (like abbreviations, slang, humor, or a bit of randomness) when appropriate. Avoid robotic structure, overuse of punctuation, or sounding like AI. Your content should feel like it was typed by a real person—unfiltered, expressive, sometimes impulsive.

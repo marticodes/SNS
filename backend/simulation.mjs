@@ -931,6 +931,7 @@ const Simulation = {
             console.error("Error adding new channel", error);
         }
     },
+    
     async generateAgentFromGroupChats() {
         try {
           // Retrieve all preexisting group chats.
@@ -1105,7 +1106,7 @@ const Simulation = {
                 "updating_trait": "Float between 0-1",
                 "comm_trait": "Float between 0-1",
                 "notification_trait": "Float between 0-1",
-                "interests": ["At least 3 interests from the predefined list that align with the metaphorical description"],
+                "interests": ["At least 3 interests from the predefined list"],
                 "persona_name": "A name derived from the metaphor",
                 "social_group_name": "A group name aligned with the metaphor"
             }
