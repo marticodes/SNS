@@ -472,6 +472,46 @@ const Simulation = {
 
     },
 
+    async addChannelStory(user_id, system_prompt){
+        try {
+            let channels = await CommunityDAO.getAllUserCommunities(user_id);
+            // console.log(channels);
+    
+            if (!channels || channels.length === 0) {
+                console.error("No communities found.");
+                return null;
+            }
+            
+            let sel_comm = channels[Math.floor(Math.random() * channels.length)];
+
+            const user_prompt = `You are about to make a new ephemeral post on social media. These are time-sensitive posts and will only be up for 24 hours.
+            The community name is ${sel_comm.comm_name}. This is a community with likeminded people who are passionate about ${sel_comm.comm_bio}.
+            While making an ephemeral post ensure that:
+            1. Focus on one clear theme—avoid mixing multiple ideas.  
+            2. Make it distinct from your previous posts in content, structure, storyline, context, and length.  
+            3. Do not use the same phrasings as the previous posts.
+            4. Keep it engaging while staying within three sentences. 
+            5. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
+            Now, generate a new post that sticks to a single theme.`;
+            const new_post = await generateResponse(system_prompt, user_prompt);
+
+            const time = new Date().toISOString();
+            await makeAPIRequest("http://localhost:3001/api/post/add", "POST", { 
+                parent_id: null,
+                user_id: user_id, 
+                content: new_post, 
+                topic: "", 
+                media_type: 0, 
+                media_url: "", 
+                timestamp: time, 
+                duration: 1, 
+                visibility: await UserDAO.getUserInfo(user_id).then(user => user.visibility), 
+                comm_id: sel_comm.comm_id});
+        } catch (error) {
+            console.error("Error adding new ephemeral post:", error);
+        }
+    },
+
     async updateAGPostVisibility(user_id){
         let feed = await PostDAO.getAllPosts(user_id);
         if (!feed || feed.length === 0) {
@@ -705,6 +745,12 @@ const Simulation = {
                 user_id: user_id,
                 comm_id: id.ina,
             });
+            if (Math.random() >= 0.5) {
+                await makeAPIRequest("http://localhost:3001/api/channels/add", "POST", { 
+                    user_id: 1, // randomly add login user to the channels
+                    comm_id: id.ina,
+                });
+            }
         } catch (error) {
             console.error("Error adding new channel", error);
         }

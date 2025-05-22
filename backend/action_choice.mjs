@@ -160,10 +160,21 @@ const ActionChoice = {
     //     });
     // },
 
+    // selectActionFromFiltered(filtered) {
+    //     let totalWeight = filtered.reduce((sum, a) => sum + a.weight, 0);
+    //     let r = Math.random() * totalWeight;
+    //     return filtered.find(a => (r -= a.weight) <= 0);
+    // },
+
     selectActionFromFiltered(filtered) {
-        let totalWeight = filtered.reduce((sum, a) => sum + a.weight, 0);
+        const boosted = filtered.map(a => ({
+            ...a,
+            weight: a.action === "Join channel" ? Math.min(a.weight * 2, 1) : a.weight
+        }));
+
+        const totalWeight = boosted.reduce((sum, a) => sum + a.weight, 0);
         let r = Math.random() * totalWeight;
-        return filtered.find(a => (r -= a.weight) <= 0);
+        return boosted.find(a => (r -= a.weight) <= 0);
     },
 
     getSocialMediaType(timeline, connection_type) {
@@ -235,7 +246,8 @@ const ActionChoice = {
             "Send message": () => Simulation.insertAGMessage(user_id, system_prompt),
             "Add post": () => Simulation.generatePost(user_id, system_prompt),
             "React": () => Simulation.addAGReaction(user_id, system_prompt),
-            "Add a story": () => Simulation.addAGStory(user_id, system_prompt),
+            "Add a story": () => Simulation.addChannelStory(user_id, system_prompt),
+            "Add a story to channel": () => Simulation.addAGStory(user_id, system_prompt),
             "Join channel": () => Simulation.joinChannel(user_id, system_prompt),
             "Update post visibility": () => Simulation.updateAGPostVisibility(user_id),
             "Update relation": () => Simulation.updateAGRelation(user_id),
