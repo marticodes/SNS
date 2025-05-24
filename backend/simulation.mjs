@@ -768,7 +768,7 @@ const Simulation = {
         }
         
         let sel_comm = channels[Math.floor(Math.random() * channels.length)];
-        // console.log(sel_comm);
+        console.log(user_id, Math.floor(Math.random() * channels.length));
         
         const user_prompt = `You are about to make a new post in a community. 
             The community name is ${sel_comm.comm_name}. This is a community with likeminded people who are passionate about ${sel_comm.comm_bio}.
@@ -954,8 +954,9 @@ const Simulation = {
     },
 
     async joinChannel(user_id, system_prompt){
-        let communities = await CommunityDAO.getAllUserCommunities(user_id);
-        if (!communities || communities.length === 0) {
+        let all_communities = await CommunityDAO.getAllCommunities();
+        
+        if (!all_communities || all_communities.length === 0) {
             console.error("No communities found.");
             return null;
         }
@@ -964,7 +965,7 @@ const Simulation = {
         Be direct and reply with **only the community ID** of the selected community.  
 
         Available communities:  
-        ${communities.map(comm => `ID: ${comm.comm_id} | Name: ${comm.comm_name} | Bio: ${comm.comm_bio}`).join('\n')}`;
+        ${all_communities.map(comm => `ID: ${comm.comm_id} | Name: ${comm.comm_name} | Bio: ${comm.comm_bio}`).join('\n')}`;
 
         let comm_id = await generateResponse(system_prompt, user_prompt);   
         

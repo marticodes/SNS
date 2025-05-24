@@ -19,8 +19,8 @@ function getUserIds() {
 async function ActionSimulation() {
     ////////////////Agent generation.////////////////////
     try {
-        // const userCount = await FeatureSelectionDAO.getUserCount();
-        const userCount = 20;
+        const userCount = await FeatureSelectionDAO.getUserCount();
+        // const userCount = 15;
         
         let existingUserNames = [];
         let existingUserBios = [];
@@ -40,8 +40,8 @@ async function ActionSimulation() {
     }
 
     ////////////////Relation generation.////////////////////
-    // const userCount = await FeatureSelectionDAO.getUserCount();
-    const userCount = 20;
+    const userCount = await FeatureSelectionDAO.getUserCount();
+    // const userCount = 15;
     const targetRelations = Math.round((userCount * (userCount - 1)) / 2 * 0.6);  // 60% of n choose 2, rounded
     const existingRelations = new Set(); // Track existing relations
     
@@ -105,7 +105,9 @@ async function ActionSimulation() {
                         const [apiAction1] = await Promise.all([
                             ActionChoice.performAction(user_id),
                         ]);
+                
                         console.log(`Agent ${user_id} performed actions:`, {apiAction1});
+                        
                     } catch (error) {
                         console.error(`Error with agent ${user_id}:`, error);
                     }

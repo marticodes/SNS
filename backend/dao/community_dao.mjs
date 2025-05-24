@@ -32,6 +32,25 @@ const CommunityDAO = {
         });
     },
     
+    async getAllCommunities(){
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT * FROM Community';
+                db.all(sql, [], (err, rows) => {
+                   if (err) {
+                        reject(err);
+                    } else {
+                        const communities = rows.map(row => 
+                            new Community(row.comm_id, row.comm_name, row.comm_image, row.comm_bio, row.duration)
+                        );
+                        resolve(communities); // Always return an array
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
     
     async getCommunityInfo(comm_id){
         return new Promise((resolve, reject) => {
