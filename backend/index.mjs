@@ -1416,7 +1416,7 @@ async function generateSocialMediaFeatures(attributes) {
           LV1: Network Structure
           - **Timeline Types**: Define how content is organized for users.
             - Feed-based: Aggregates posts into a single scrolling interface (e.g., Facebook, Instagram).
-            - Chat-based: Segments conversations into thematic spaces or threads (e.g., Slack, Discord).
+            - Chat-based: Segments conversations into thematic spaces or threads by using messages instead of posts (e.g., Slack, Discord).
           - **Content Order**: Specifies the arrangement of content users see.
             - Chronological: Content is displayed in the order it is posted (e.g., Twitter's "Latest Tweets" view).
             - Algorithmic: Content is displayed based on relevance or popularity (e.g., Instagram, TikTok).
