@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import NFPage from "./pages/NF-Main";
 import NCPage from "./pages/NC-Main";
@@ -10,6 +10,7 @@ import MetaphorPrompt from "./metaphor/ver4";
 import PanelLV1 from "./metaphor/components/PanelLV1";
 import PanelLV2 from "./metaphor/components/PanelLV2";
 import PanelLV3 from "./metaphor/components/PanelLV3";
+import FinalPage from "./FinalPage";
 import "./App.css";
 
 function MainPage() {
@@ -24,11 +25,26 @@ function MainPage() {
   const [llmResponse, setLlmResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Load selections from localStorage when component mounts
+  useEffect(() => {
+    const savedSelections = localStorage.getItem('snsSelections');
+    if (savedSelections) {
+      try {
+        setSelections(JSON.parse(savedSelections));
+      } catch (error) {
+        console.error('Error loading selections from localStorage:', error);
+      }
+    }
+  }, []);
+
   const handleSelectionChange = (key, value) => {
-    setSelections(prev => ({
-      ...prev,
+    const newSelections = {
+      ...selections,
       [key]: value,
-    }));
+    };
+    setSelections(newSelections);
+    // Save to localStorage
+    localStorage.setItem('snsSelections', JSON.stringify(newSelections));
   };
 
   const convertSelectionsToIntegers = (selections) => {
@@ -585,6 +601,7 @@ function MainPage() {
     return newSelections;
   };
 
+
   const handleGoToSimulation = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -638,6 +655,7 @@ function App() {
         <Route path="/user/:userId" element={<UserPage />} />
         <Route path="/dms/*" element={<ChatPage />} />
         <Route path="/login" element={<LogIn />} />
+        <Route path="/final" element={<FinalPage />} />
         <Route path="*" element={<div>Page Not Found</div>} />
       </Routes>
     </Router>
