@@ -51,6 +51,10 @@ const ChatDAO = {
     },
 
     async insertGroupChat(user_ids, chat_name, chat_image, creator = 0, duration = 0) {
+        if (user_ids.length > 10) {
+            return reject("Cannot add more than 10 participants to the group chat.");
+        }
+
         return new Promise((resolve, reject) => {
             // db.serialize()를 사용하여 쿼리들이 순차적으로 실행되도록 보장
             db.serialize(() => {

@@ -206,6 +206,9 @@ const ActionChoice = {
         const social_groups = await SocialGroupDao.getUserSocialGroups(user_id);
         const interests = await UserInterestDAO.getUserInterests(user_id);
         const lv1features = await FeatureSelectionDAO.getLvlOneFeatures();
+        const lv2features = await FeatureSelectionDAO.getLvlTwoFeatures();
+        const lv3features = await FeatureSelectionDAO.getLvlThreeFeatures();
+
 
         const socialmedia_type = this.getSocialMediaType(lv1features.timeline, lv1features.connection_type);
 
