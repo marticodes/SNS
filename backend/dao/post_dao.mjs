@@ -279,6 +279,26 @@ const PostDAO = {
             }
         });
     },
+    //ADDED FUNC //
+    async getRecentPostsByUserInCommunity(user_id, comm_id) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT * FROM Post WHERE user_id = ? AND comm_id = ? ORDER BY timestamp DESC LIMIT 3'; // Get 3 most recent posts
+                db.all(sql, [user_id, comm_id], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else if (rows.length === 0) {
+                        resolve([]);  // No posts found
+                    } else {
+                        const posts = rows.map(row => new Post(row.post_id, row.parent_id, row.user_id, row.content, row.topic, row.media_type, row.media_url, row.timestamp, row.duration, row.visibility, row.comm_id, row.hashtag));
+                        resolve(posts);  // Return posts
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
 
     async getPostIdsWithHashtag(content){
         return new Promise((resolve, reject) => {
