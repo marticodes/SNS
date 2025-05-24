@@ -411,12 +411,19 @@ function MainPage() {
       const accountTypes = extractValue(lv2Content, 'Account Types');
       if (accountTypes) {
         const accountText = accountTypes.toLowerCase().trim();
-        if (accountText.includes('public')) {
-          newSelections.lv2.accountTypes = ['public'];
-        } else if (accountText.includes('private') && accountText.includes('one-way')) {
-          newSelections.lv2.accountTypes = ['private-one-way'];
-        } else if (accountText.includes('private') && accountText.includes('mutual')) {
-          newSelections.lv2.accountTypes = ['private-mutual'];
+        newSelections.lv2.accountTypes = [];
+        
+        // Split by comma and handle each type
+        const types = accountText.split(',').map(type => type.trim());
+        
+        if (types.some(type => type === 'public')) {
+          newSelections.lv2.accountTypes.push('public');
+        }
+        if (types.some(type => type.includes('private') && type.includes('one-way'))) {
+          newSelections.lv2.accountTypes.push('private-one-way');
+        }
+        if (types.some(type => type.includes('private') && type.includes('mutual'))) {
+          newSelections.lv2.accountTypes.push('private-mutual');
         }
       }
 
@@ -438,17 +445,17 @@ function MainPage() {
       if (messagingMatch) {
         const messagingContent = messagingMatch[1];
         
-        // Parse Types
+        // Parse Types - improved pattern matching
         const types = extractValue(messagingContent, 'Types');
         if (types) {
           const typesText = types.toLowerCase().trim();
-          const typeOptions = typesText.split(',').map(opt => opt.trim());
           newSelections.lv2.messagingTypes = [];
           
-          if (typeOptions.some(opt => opt.includes('private') || opt.includes('one-on-one'))) {
+          // Check for both formats: comma-separated and "one-on-one, group messaging"
+          if (typesText.includes('private') || typesText.includes('one-on-one')) {
             newSelections.lv2.messagingTypes.push('private');
           }
-          if (typeOptions.some(opt => opt.includes('group'))) {
+          if (typesText.includes('group')) {
             newSelections.lv2.messagingTypes.push('group');
           }
         }
@@ -482,21 +489,19 @@ function MainPage() {
         };
       }
 
-      // Parse Content Visibility Control
+      // Parse Content Visibility Control - handle simple line-by-line format
       const visibilityControl = extractValue(lv3Content, 'Content Visibility Control');
       if (visibilityControl) {
         const visibilityText = visibilityControl.toLowerCase().trim();
-
-        const visibilityOptions = visibilityText.split(',').map(opt => opt.trim());
         newSelections.lv3.visibilityControl = [];
         
-        if (visibilityOptions.some(opt => opt.includes('specific'))) {
-          newSelections.lv3.visibilityControl.push('specific-groups');
-        }
-        if (visibilityOptions.some(opt => opt.includes('public'))) {
+        // Split by newlines and check each line
+        const lines = visibilityText.split('\n').map(line => line.trim().toLowerCase());
+        
+        if (lines.some(line => line === 'public')) {
           newSelections.lv3.visibilityControl.push('public');
         }
-        if (visibilityOptions.some(opt => opt.includes('private'))) {
+        if (lines.some(line => line === 'private')) {
           newSelections.lv3.visibilityControl.push('private');
         }
       }
@@ -507,13 +512,13 @@ function MainPage() {
         const discoveryContent = discoveryMatch[1];
         newSelections.lv3.contentDiscovery = {};
 
-        // Parse Recommendations
-        const recommendations = extractValue(discoveryContent, 'Recommendations');
+        // Parse Recommendations - now handles direct suggestions
+        const recommendations = extractValue(discoveryContent, 'Recommendations') || discoveryContent.trim();
         if (recommendations) {
           const recText = recommendations.toLowerCase().trim();
-          if (recText.includes('topic')) {
+          if (recText.includes('topic') || recText.includes('topic-based')) {
             newSelections.lv3.contentDiscovery.recommendations = ['topic-based'];
-          } else if (recText.includes('popular')) {
+          } else if (recText.includes('popular') || recText.includes('popularity-based')) {
             newSelections.lv3.contentDiscovery.recommendations = ['popularity-based'];
           }
         }
