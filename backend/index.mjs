@@ -1250,7 +1250,8 @@ app.post('/api/features/lvl/one/descriptions/add',
         req.body.keyword,
         req.body.llm_descr,
         req.body.user_descr,
-        req.body.user_count
+        req.body.user_count,
+        req.body.llm_final
       );
       if (updated) {
         res.status(200).json({ message: "Description updated successfully" });
@@ -1324,7 +1325,7 @@ app.post("/api/llm", async (req, res) => {
   try {
     if (step === 2) {
       // Step 2: Convert Description to Key Attributes
-      console.log("Received input for step 2:", input);
+      //console.log("Received input for step 2:", input);
       const attributes = await generateKeyAttributes(input.description, input.metaphorKeyword);
       sessions.set(sessionId, { step: 2, attributes });
       return res.json({ attributes });
@@ -1384,7 +1385,7 @@ async function generateKeyAttributes(description, metaphorKeyword) {
       ],
     });
 
-    console.log("Key Attributes API Response:", completion.choices[0]?.message.content);
+    //console.log("Key Attributes API Response:", completion.choices[0]?.message.content);
 
     try {
       const jsonResponse = JSON.parse(completion.choices[0]?.message.content || "{}");
@@ -1438,7 +1439,7 @@ async function generateSocialMediaFeatures(attributes) {
             - Delete: Permanently remove content from the platform.
           - **Account Types**: Defines privacy and accessibility. (multiple can be selected)
             - Public: Content is accessible to everyone.
-            - Private (one-way): Follower requests are required, but users don’t need mutual consent (e.g., Instagram private accounts).
+            - Private (one-way): Follower requests are required, but users don't need mutual consent (e.g., Instagram private accounts).
             - Private (mutual): Both parties must agree to connect (e.g., LinkedIn).
           - **Identity Options**: Specifies how users represent themselves.
             - Real-name: Users must use their real identity (e.g., LinkedIn).
@@ -1478,6 +1479,8 @@ async function generateSocialMediaFeatures(attributes) {
         Timeline Types: Chat-based
         Content Order: Algorithmic
         and so on...
+
+        Then at the end of the response, can you add your reasoning for the answer? Give specific reasoning for all your selections.
         
         Do not use bolded text or []`
         }

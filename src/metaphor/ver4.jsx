@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./ver4.css";
 
-const MetaphorPrompt = ({ onSubmit }) => {
+const MetaphorPrompt = ({ onSubmit, onSaveDescription }) => {
   const [formData, setFormData] = useState({
     metaphorKeyword: "",
     atmosphere: "",
@@ -19,14 +19,21 @@ const MetaphorPrompt = ({ onSubmit }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleKeywordSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    // Only send the keyword to LLM
+    onSubmit({ metaphorKeyword: formData.metaphorKeyword });
+  };
+
+  const handleDescriptionSubmit = (e) => {
+    e.preventDefault();
+    // Send the full description to backend
+    onSaveDescription(formData);
   };
 
   return (
     <div className="metaphor-prompt-container">
-      <form onSubmit={handleSubmit} className="metaphor-form">
+      <form className="metaphor-form">
         <h3>Metaphor Input</h3>
         <div className="metaphor-keyword">
           <label htmlFor="metaphorKeyword">Metaphor Keyword:</label>
@@ -40,6 +47,7 @@ const MetaphorPrompt = ({ onSubmit }) => {
             className="input-blank"
           />
         </div>
+        <button type="button" onClick={handleKeywordSubmit} className="submit-button">Send keyword to LLM</button>
         <h4>Metaphor Description</h4>
         <p>
           In a space that feels 
@@ -115,7 +123,7 @@ const MetaphorPrompt = ({ onSubmit }) => {
             className="input-blank"
           />.
         </p>
-        <button type="submit" className="submit-button">Send it to LLM</button>
+        <button type="button" onClick={handleDescriptionSubmit} className="submit-button">Save the description</button>
       </form>
     </div>
   );

@@ -139,7 +139,7 @@ function MainPage() {
     // LV3 Conversions
     if (selections.lv3) {
       // Ephemeral Content
-      console.log('Debug - selections.lv3:', selections.lv3);
+      //console.log('Debug - selections.lv3:', selections.lv3);
       if (selections.lv3.ephemeralContent) {
         result.ephemerality = selections.lv3.ephemeralContent.enabled ? 1 : 0;
       }
@@ -196,13 +196,58 @@ function MainPage() {
       .join('\n');
   };
 
+  const handleSaveDescription = async (formData) => {
+    setIsLoading(true);
+    try {
+      // Create a formatted description from the form data
+      const narrativeDescription = `In a space that feels ${formData.atmosphere}, people come together ${formData.reasonForGathering}, often connecting ${formData.connectionStyle}. They usually ${formData.durationOfParticipation}, interact through ${formData.communicationStyle}, and present themselves using ${formData.identityType}. Most people are here to ${formData.interactionGoal}, and they have the option to ${formData.participationControl}.`;
+
+      // Create structured attributes description
+      const structuredAttributes = `• Atmosphere: ${formData.atmosphere}
+      • GatheringType: ${formData.reasonForGathering}
+      • ConnectingEnvironment: ${formData.connectionStyle}
+      • TemporalEngagement: ${formData.durationOfParticipation}
+      • CommunicationFlow: ${formData.communicationStyle}
+      • ActorType: ${formData.identityType}
+      • ContentOrientation: ${formData.interactionGoal}
+      • ParticipationControl: ${formData.participationControl}`;
+
+      // Combine both descriptions
+      const fullDescription = `${narrativeDescription}\n\nStructured Attributes:\n${structuredAttributes}`;
+
+      // Send metaphor data to backend
+      const metaphorResponse = await fetch("http://localhost:3001/api/features/lvl/one/descriptions/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          keyword: formData.metaphorKeyword,
+          user_descr: fullDescription,
+          llm_descr: formData.llm_descr || "", // Use existing LLM description if available
+          user_count: formData.user_count || 10,
+          llm_final: formData.llm_final || "" // Use existing LLM final response if available
+        }),
+      });
+
+      if (!metaphorResponse.ok) {
+        const errorText = await metaphorResponse.text();
+        throw new Error(`Error sending metaphor data: ${metaphorResponse.statusText}. Details: ${errorText}`);
+      }
+
+      const metaphorData = await metaphorResponse.json();
+      console.log('Saved description:', metaphorData);
+
+    } catch (error) {
+      console.error("Failed to save description:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleMetaphorSubmit = async (formData) => {
     setIsLoading(true);
     try {
       // Create a formatted description from the form data
       const description = `In a space that feels ${formData.atmosphere}, people come together ${formData.reasonForGathering}, often connecting ${formData.connectionStyle}. They usually ${formData.durationOfParticipation}, interact through ${formData.communicationStyle}, and present themselves using ${formData.identityType}. Most people are here to ${formData.interactionGoal}, and they have the option to ${formData.participationControl}.`;
-
-      console.log("Sending to step 2:", { description, metaphorKeyword: formData.metaphorKeyword });
 
       // Step 2: Convert description to attributes
       const step2Response = await fetch("http://localhost:3001/api/llm", {
@@ -224,7 +269,6 @@ function MainPage() {
       }
 
       const step2Data = await step2Response.json();
-      console.log("Step 2 response:", step2Data);
       
       // Step 3: Convert attributes to features
       const step3Response = await fetch("http://localhost:3001/api/llm", {
@@ -252,15 +296,12 @@ function MainPage() {
       // Convert selections to integers and send to backend
       const integerSelections = convertSelectionsToIntegers(newSelections);
 
-      const myUserID = parseInt(localStorage.getItem("userID"), 10);
-
       // Send to backend
       const backendResponse = await fetch("http://localhost:3001/api/features/all/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...integerSelections,
-          user_id: myUserID
         }),
       });
 
@@ -270,28 +311,7 @@ function MainPage() {
       }
 
       const backendData = await backendResponse.json();
-
-      // Format attributes into bullet-pointed text
-      const formattedAttributes = formatAttributesToText(step2Data.attributes);
-      // Send metaphor data to backend
-      const metaphorResponse = await fetch("http://localhost:3001/api/features/lvl/one/descriptions/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          keyword: formData.metaphorKeyword,
-          user_descr: description,
-          llm_descr: formattedAttributes,
-          user_count: newSelections.user_count
-        }),
-      });
-
-      if (!metaphorResponse.ok) {
-        const errorText = await metaphorResponse.text();
-        throw new Error(`Error sending metaphor data: ${metaphorResponse.statusText}. Details: ${errorText}`);
-      }
-
-      const metaphorData = await metaphorResponse.json();
-
+      
       // Update the state after successful backend submission
       setSelections(newSelections);
 
@@ -579,7 +599,7 @@ function MainPage() {
       </header>
       <main>
         <div className="metaphor-section">
-          <MetaphorPrompt onSubmit={handleMetaphorSubmit} />
+          <MetaphorPrompt onSubmit={handleMetaphorSubmit} onSaveDescription={handleSaveDescription} />
           {isLoading ? (
             <div className="loading-message">Processing your metaphor...</div>
           ) : (

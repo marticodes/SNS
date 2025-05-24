@@ -28,7 +28,7 @@ const FeatureSelectionDAO = {
     async getLvlOneDescriptions(){
         return new Promise((resolve, reject) => {
             try {         
-                const sql = 'SELECT keyword, llm_descr, user_descr, user_count FROM LvlOneFeature';
+                const sql = 'SELECT keyword, llm_descr, user_descr, user_count, llm_final FROM LvlOneFeature';
                 db.get(sql, [], (err, row) => {
                     if (err) {
                         reject(err);
@@ -39,7 +39,8 @@ const FeatureSelectionDAO = {
                             keyword: row.keyword,
                             llm_descr: row.llm_descr,
                             user_descr: row.user_descr,
-                            user_count: row.user_count
+                            user_count: row.user_count,
+                            llm_final: row.llm_final
                         });
                     }
                 });
@@ -192,11 +193,11 @@ const FeatureSelectionDAO = {
         });
     },
 
-    async insertLvlOneDescriptions(keyword, llm_descr, user_descr, user_count){
+    async insertLvlOneDescriptions(keyword, llm_descr, user_descr, user_count, llm_final){
         return new Promise((resolve, reject) => {
             try {
-                const sql = 'INSERT INTO LvlOneFeature (keyword, llm_descr, user_descr, user_count) VALUES (?,?,?,?)';
-                db.run(sql, [keyword, llm_descr, user_descr, user_count], function(err) { 
+                const sql = 'INSERT INTO LvlOneFeature (keyword, llm_descr, user_descr, user_count, llm_final) VALUES (?,?,?,?,?)';
+                db.run(sql, [keyword, llm_descr, user_descr, user_count, llm_final], function(err) { 
                     if (err) {
                         reject(err);
                     } else if (this.changes === 0) { 
@@ -298,23 +299,27 @@ const FeatureSelectionDAO = {
         });
     },
 
-    async updateLvlOneDescriptions(keyword, llm_descr, user_descr, user_count) {
-        return new Promise((resolve, reject) => {
-            try {
-                const sql = 'UPDATE LvlOneFeature SET keyword = ?, llm_descr = ?, user_descr = ?, user_count = ?';
-                db.run(sql, [keyword, llm_descr, user_descr, user_count], function(err) {
-                    if (err) {
-                        reject(err);
-                    } else if (this.changes === 0) {
-                        resolve(false); // No rows were updated
-                    } else {
-                        resolve(true); // Update successful
-                    }
-                });
-            } catch (error) {
-                reject(error);
+    async updateLvlOneDescriptions(keyword, llm_descr, user_descr, user_count, llm_final) {
+        try {
+            // First check if any records exist
+            const checkSql = 'SELECT COUNT(*) as count FROM LvlOneFeature';
+            const checkResult = await db.get(checkSql);
+            
+            if (checkResult.count === 0) {
+                // If no records exist, insert a new one
+                const insertSql = 'INSERT INTO LvlOneFeature (keyword, llm_descr, user_descr, user_count, llm_final) VALUES (?, ?, ?, ?, ?)';
+                await db.run(insertSql, [keyword, llm_descr, user_descr, user_count, llm_final]);
+            } else {
+                // If records exist, update the first one
+                const updateSql = 'UPDATE LvlOneFeature SET keyword = ?, llm_descr = ?, user_descr = ?, user_count = ?, llm_final = ? WHERE lvl_one_id = (SELECT MIN(lvl_one_id) FROM LvlOneFeature)';
+                await db.run(updateSql, [keyword, llm_descr, user_descr, user_count, llm_final]);
             }
-        });
+            
+            return { success: true };
+        } catch (error) {
+            console.error('Error updating lvl one descriptions', error);
+            throw error;
+        }
     },
 
 };
