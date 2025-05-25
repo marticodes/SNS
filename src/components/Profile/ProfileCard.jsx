@@ -179,7 +179,7 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
       {isMyProfile && (
         <button
           onClick={() => setIsEditing(true)}
-          style={{ ...followButtonStyle, marginTop: "10px", backgroundColor: "#28a745" }}
+          style={{ ...followButtonStyle, marginTop: "10px", backgroundColor: "#28a745", fontSize: "14px" }}
         >
           Edit Profile
         </button>
@@ -213,7 +213,7 @@ const profilePicStyle = {
 
 const usernameStyle = {
   margin: "10px 0",
-  fontSize: "22px",
+  fontSize: "20px",
   fontWeight: "bold",
   color: "#333",
 };
@@ -239,7 +239,7 @@ const statsContainerStyle = {
 
 const statsStyle = {
   margin: "0",
-  fontSize: "16px",
+  fontSize: "14px",
   color: "#555",
   cursor: "pointer", // Makes it look clickable
 };

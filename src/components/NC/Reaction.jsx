@@ -19,6 +19,7 @@ const ReactionSummaryContainer = styled.div`
 const ReactionDiv = styled.div`
   display: flex;
   gap: 0.5rem;
+  position: relative;
 `
 
 const ReactionItem = styled.div`
@@ -31,17 +32,20 @@ const ReactionItem = styled.div`
 
 const EmojiPickerContainer = styled.div`
   position: absolute;
+  top: 100%; 
+  left: -10px;
+  margin-top: 8px;
   background: white;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 10px;
+  padding: 5px 10px;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  display: ${(props) => (props.show ? 'block' : 'none')};
+  display: ${(props) => (props.show ? 'flex' : 'none')};
   z-index: 1000;
 `;
 
 const EmojiOption = styled.span`
-  font-size: 1.5rem;
+  font-size: 1.0rem;
   cursor: pointer;
   margin: 5px;
 
@@ -51,7 +55,7 @@ const EmojiOption = styled.span`
 `;
 
 const SelectedEmoji = styled.span`
-  font-size: 1rem;
+  font-size: 1.0rem;
   margin-left: 5px;
 `;
 

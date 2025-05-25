@@ -7,7 +7,7 @@ const ContentDiv = styled.div`
 `;
 
 const Text = styled.p`
-  font-size: 1rem;
+  font-size: 14px;
   margin-bottom: 1rem;
   color: #000;
 `;

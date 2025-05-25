@@ -220,6 +220,7 @@ const GroupMessage = ({ message, isCurrentUser, onReply, chatId }) => {
         margin: "10px 0",
         gap: "10px",
         position: "relative",
+        textAlign: isCurrentUser ? "right" : "left"
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => {
@@ -228,8 +229,8 @@ const GroupMessage = ({ message, isCurrentUser, onReply, chatId }) => {
       }}
     >
       {isCurrentUser && iconContainer}
-
-      <div
+      {!isCurrentUser && 
+        <div
         style={{
           width: "40px",
           height: "40px",
@@ -251,10 +252,11 @@ const GroupMessage = ({ message, isCurrentUser, onReply, chatId }) => {
           />  
 
       </div>
+      }
+        
 
       {/* Message Content */}
-      <div style={{ maxWidth: "75%" }}>
-        
+      <div style={{  maxWidth: "75%"}}>
         {/* Sender Name */}
         <div
           style={{
@@ -270,7 +272,6 @@ const GroupMessage = ({ message, isCurrentUser, onReply, chatId }) => {
             {formatTimestamp(message.timestamp)}
           </span>
         </div>
-        {!isCurrentUser && iconContainer}
 
         {showProfileCard && (
           <div
@@ -296,14 +297,18 @@ const GroupMessage = ({ message, isCurrentUser, onReply, chatId }) => {
         {/* Message Bubble */}
         <div
           style={{
-            padding: "10px",
+            padding: "10px 15px",
             backgroundColor: isCurrentUser ? "#D1E7FF" : "#F2F3F5",
             color: isCurrentUser ? "#000" : "#000",
             borderRadius: "8px",
             cursor: "pointer",
-            fontSize: "16px",
+            fontSize: "14px",
             lineHeight: "1.4",
             position: "relative",
+            display: "inline-block",
+            width: "fit-content",
+            whiteSpace: "pre-wrap", 
+            wordBreak: "break-word", 
           }}
         >
           {message.replyTo && (
@@ -351,9 +356,9 @@ const GroupMessage = ({ message, isCurrentUser, onReply, chatId }) => {
             ))}
           </div>
         )}
-
         </div>
       </div>
+      {!isCurrentUser && iconContainer}
     </div>
   );
 };

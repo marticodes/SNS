@@ -4,10 +4,11 @@ import styled from 'styled-components';
 // Styled Components
 const ContentDiv = styled.div`
   margin-top: 1rem;
+  text-align: left;
 `;
 
 const Text = styled.p`
-  font-size: 1rem;
+  font-size: 14px;
   margin-bottom: 1rem;
   color: #000;
 `;

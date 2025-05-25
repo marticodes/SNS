@@ -27,9 +27,10 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
           padding: "15px",
           margin: "0",
           borderBottom: "0.1px solid #ddd",
-          fontSize: "17.2px",
+          fontSize: "18px",
           fontWeight: "bold",
           backgroundColor: "#fff",
+          textAlign: "left"
         }}
       >
         Communities

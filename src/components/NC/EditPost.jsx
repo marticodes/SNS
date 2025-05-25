@@ -31,7 +31,7 @@ const TextArea = styled.textarea`
   width: 95%;
   height: 300px;
   padding: 1rem;
-  font-size: 1rem;
+  font-size: 12px;
   border: 1px solid #ddd;
   border-radius: 5px;
   resize: none;
@@ -56,7 +56,7 @@ const UploadLabel = styled.label`
   padding: 8px 12px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 13px;
 
   &:hover {
     background-color: #0056b3;

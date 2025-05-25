@@ -225,7 +225,7 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
       style={{
         display: "flex",
         alignItems: "flex-start",
-        margin: "10px 0",
+        margin: "15px 5px",
         gap: "10px",
       }}
     >
@@ -271,7 +271,7 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
           <span
             style={{
               fontSize: "12px",
-              color: "#999",
+              color: "#007bff",
               marginLeft: "5px",
             }}
           >
@@ -315,7 +315,7 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
             color: "#000",
             borderRadius: "8px",
             cursor: "pointer",
-            fontSize: "16px",
+            fontSize: "13px",
             lineHeight: "1.4",
             position: "relative",
           }}
