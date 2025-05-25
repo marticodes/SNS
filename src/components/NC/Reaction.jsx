@@ -559,7 +559,7 @@ const Reaction = ({ user_id, post_id, onCommentClick, communityId }) => {
           {levelTwoFeatures?.reactions === 3 && (
             <>
               <ReactionItem onClick={toggleEmojiPicker}>
-                <MdOutlineEmojiEmotions />
+                <MdOutlineEmojiEmotions style={{ fontSize: '1.3rem' }} />
               </ReactionItem>
               {selectedEmoji && <SelectedEmoji onClick={deleteEmoji}>{selectedEmoji}</SelectedEmoji>}
 

@@ -5,7 +5,7 @@ import { FaSearch, FaHome } from "react-icons/fa";
 const FeedHeader = styled.div`
   width: 100%;
   padding: 1rem 0;
-  background-color: #f9f9f9;
+  background-color:rgb(255, 255, 255);
   border-bottom: 1px solid #ddd;
   position: sticky;
   top: 0;
