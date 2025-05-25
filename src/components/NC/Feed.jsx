@@ -61,10 +61,10 @@ const Feed = ({ postss, user, commentType = "nested", isProfilePage = false, com
   ) : (
     <div style={{ textAlign: "center", marginTop: "20px" }}>
       <h1 style={{ color: "black", fontSize: "20px" }}>
-        Oops, it seems like there is no post for you!
+        Select a community to see posts!
       </h1>
       <p style={{ color: "black", fontSize: "14px" }}>
-        Try adding a post or look into another community!
+        If you clicked into a community and there is no post, try another one!
       </p>
     </div>
   );

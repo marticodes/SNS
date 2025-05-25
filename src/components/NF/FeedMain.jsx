@@ -10,7 +10,7 @@ import NavBar from "../NavBar/Small"
 const FeedContainer = styled.div`
   display: flex;
   width: 100%;
-  background-color: #f4f4f4;
+  background-color:rgb(255, 255, 255);
 
 `;
 

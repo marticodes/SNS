@@ -88,7 +88,7 @@ const UserList = ({ users, onUserClick}) => {
           style={{
             marginLeft: "80px", 
             marginTop: "5px",
-            marginBottom: "-5px", 
+            marginBottom: "-3px", 
             cursor: "pointer", 
           }}
           onClick={handleOpenNewChat} 

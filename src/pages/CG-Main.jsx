@@ -232,7 +232,7 @@ const CGPage = () => {
           <>
             <ChatHeader
               currentCommunity={currentCommunity.comm_name}
-              ProfilePics={currentCommunity.comm_image}
+              ProfilePics={"https://picsum.photos/seed/${encodeURIComponent(currentCommunity.comm_image)}/30/30"}
               onSearch={handleSearch}
               bio={currentCommunity.comm_bio}
             />

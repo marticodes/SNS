@@ -58,7 +58,7 @@ function Page3() {
         <PanelLV3 selectedConnection={selections.connection} selections={selections.lv3} />
       </div>
       <button
-          className="simulation-button"
+          className="simulation-buttonx"
           onClick={() => handleGoToSimulation()}
         >
           Go to Simulation
