@@ -308,11 +308,37 @@ const FeatureSelectionDAO = {
             if (checkResult.count === 0) {
                 // If no records exist, insert a new one
                 const insertSql = 'INSERT INTO LvlOneFeature (keyword, llm_descr, user_descr, user_count, llm_final) VALUES (?, ?, ?, ?, ?)';
-                await db.run(insertSql, [keyword, llm_descr, user_descr, user_count, llm_final]);
+                await db.run(insertSql, [keyword, llm_descr || "", user_descr || "", user_count || "", llm_final || ""]);
             } else {
-                // If records exist, update the first one
-                const updateSql = 'UPDATE LvlOneFeature SET keyword = ?, llm_descr = ?, user_descr = ?, user_count = ?, llm_final = ? WHERE lvl_one_id = (SELECT MIN(lvl_one_id) FROM LvlOneFeature)';
-                await db.run(updateSql, [keyword, llm_descr, user_descr, user_count, llm_final]);
+                // If records exist, update only the provided fields
+                const updateFields = [];
+                const updateValues = [];
+                
+                if (keyword !== undefined) {
+                    updateFields.push('keyword = ?');
+                    updateValues.push(keyword);
+                }
+                if (llm_descr !== undefined) {
+                    updateFields.push('llm_descr = ?');
+                    updateValues.push(llm_descr);
+                }
+                if (user_descr !== undefined) {
+                    updateFields.push('user_descr = ?');
+                    updateValues.push(user_descr);
+                }
+                if (user_count !== undefined) {
+                    updateFields.push('user_count = ?');
+                    updateValues.push(user_count);
+                }
+                if (llm_final !== undefined) {
+                    updateFields.push('llm_final = ?');
+                    updateValues.push(llm_final);
+                }
+                
+                if (updateFields.length > 0) {
+                    const updateSql = `UPDATE LvlOneFeature SET ${updateFields.join(', ')} WHERE lvl_one_id = (SELECT MIN(lvl_one_id) FROM LvlOneFeature)`;
+                    await db.run(updateSql, updateValues);
+                }
             }
             
             return { success: true };

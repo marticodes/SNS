@@ -1,0 +1,13 @@
+.simulation-buttonn {
+  padding: 12px 24px; /* Reduced padding */
+  background-color: #57c478; /* Updated color */
+  color: white;
+  font-size: 16px; /* Reduced font size */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+  width: 800px; /* Set a fixed width */
+  text-align: center; /* Center the text */
+}
