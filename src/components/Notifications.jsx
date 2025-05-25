@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
 import ProfileCard from "../components/PopUpProfileCard";
+import ReactDom from "react-dom";
 
 const userId = localStorage.getItem("userID");
 const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
@@ -261,7 +262,7 @@ export default function NotificationPanel({ onClose }) {
     width: "320px",
     backgroundColor: "#fff",
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-    zIndex: 1000000000,
+    zIndex: 10000, 
     overflowY: "auto",
     borderLeft: "1px solid #e0e0e0",
   };

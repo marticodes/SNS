@@ -33,7 +33,7 @@ const ChatHeader = ({ currentCommunity, ProfilePics, onSearch, bio }) => {
             }}
           />
         )}
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
           <h2 style={{ margin: 0, color: "#032F50", fontSize: "18px" }}>
             {currentCommunity || "."}
           </h2>

@@ -30,6 +30,7 @@ const MessageList = ({ messages, onReply }) => {
         overflowY: "auto",
         padding: "10px",
         backgroundColor: "#fff",
+        textAlign: "left",
       }}
     >
       {messages.map((message) => (

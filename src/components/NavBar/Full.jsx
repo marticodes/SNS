@@ -200,7 +200,7 @@ const NavItem = ({ icon, label, link, onClick }) => {
       onClick={onClick} // Attach click handler
     >
       <div style={{ fontSize: "24px" }}>{icon}</div>
-      <span style={{ fontSize: "18px" }}>{label}</span>
+      <span style={{ fontSize: "15px" }}>{label}</span>
     </a>
   );
 };

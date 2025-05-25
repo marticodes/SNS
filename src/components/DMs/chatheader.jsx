@@ -11,7 +11,7 @@ const ChatHeader = ({ currentChatUser, ProfilePics, onSearch }) => {
   };
 
   return (
-    <div style={{ display: "flex", padding: "10px 20px", backgroundColor: "#fff", borderBottom: "0.1px solid #B0BEC5" }}>
+    <div style={{ display: "flex", padding: "10px 20px", backgroundColor: "#fff", borderBottom: "0.1px solid #B0BEC5", textAlign: "left"}}>
       {currentChatUser && (
         <img
           src={ProfilePics} // Use the dummy image URL based on user name
@@ -23,7 +23,7 @@ const ChatHeader = ({ currentChatUser, ProfilePics, onSearch }) => {
           }}
         />
       )}
-      <h2 style={{ margin: 0, color: '#032F50'}}>{currentChatUser || "."}</h2>
+      <h2 style={{ margin: 0, color: '#032F50', fontSize: "18px"}}>{currentChatUser || "."}</h2>
       <input
         type="text"
         value={searchQuery}

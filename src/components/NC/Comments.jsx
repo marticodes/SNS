@@ -82,6 +82,7 @@ const TextContent = styled.div`
   background-color: #ffffff;
   border-radius: 5px;
   flex: 1;
+  text-align: left;
 
   p {
     margin: 0 0 5px 0;
