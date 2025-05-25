@@ -166,7 +166,7 @@ const Simulation = {
                 return;
             }
             const closeness = await RelationDAO.getRelation(user_id, sel_post.user_id);
-            const user_prompt = `You are about to comment on a post. The content of the post is: "${sel_post.content}". On a scale of 1 to 10, your closeness level with the person is "${closeness}". Generate a comment for the post. Leave an emoji about 10% of the time. Vary your mood: supportive, curious, witty, or reflective—but don’t be upbeat every time.Ensure your phrasing is <30% lexically overlapping with any of your last 3 comments. `;
+            const user_prompt = `You are about to comment on a post. The content of the post is: "${sel_post.content}". On a scale of 1 to 10, your closeness level with the person is "${closeness}". Generate a comment for the post that is a one liner 60% of the time. Leave an emoji only when it is absolutely necessary not otherwise. Vary your mood slightly: supportive, curious, witty, or reflective but deliver it in a calm nochalant way—but don’t be upbeat every time. Dive deep into the post and try to talk about specific things related to the post. Switch it up with small comments like "wow, good read" or "interesting perspective, I was thinking about this the other day". Avoid using an exclamation mark unless absolutely necessary.Ensure your phrasing is <30% lexically overlapping with any of your last 3 comments. `;
             const comment = await generateResponse(system_prompt, user_prompt);
 
             const time = new Date().toISOString();
@@ -196,7 +196,7 @@ const Simulation = {
                 return;
             }
 
-            const user_prompt = `You are about to comment on a comment to a post. The content of the post is: "${sel_post.content}". The content of the comment is: "${sel_comment.content}". Generate a comment for the comment "${sel_comment.content}". Change tone in each generation and mimic it to how users on social media like Instagram and TikTok interact. Limit the length of the comment to 5 - 12 words. Leave an emoji about 10% of the time. Vary your mood: supportive, curious, witty, or reflective—but don’t be upbeat every time.Ensure your phrasing is <30% lexically overlapping with any of your last 3 comments.`;
+            const user_prompt = `You are about to comment on a comment to a post. The content of the post is: "${sel_post.content}". The content of the comment is: "${sel_comment.content}". Generate a comment for the comment "${sel_comment.content}". Change tone in each generation and mimic it to how users on social media like Instagram and TikTok interact. Limit the length of the comment to 5 - 12 words. Leave an emoji only if absolutely necessary avoid it otherwise. Vary your mood: supportive, curious, witty, or reflective—but don’t be upbeat every time.Ensure your phrasing is <30% lexically overlapping with any of your last 3 comments.`;
             const comment = await generateResponse(system_prompt, user_prompt);
 
             const time = new Date().toISOString();
@@ -235,16 +235,16 @@ const Simulation = {
             else last_messages = sel_messages.slice(-5); 
             // console.log(last_messages);
             
-            if(sel_messages.length > 0){
-                const lastMessage = last_messages[last_messages.length - 1]; // Get the last message
-                if (lastMessage.sender_id === user_id) {
-                    console.log("Last message is from the agent. No response generated.");
-                    return;
-                }
-                formattedMessages = last_messages
-                .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
-                .join("\n");
-            }
+            // if(sel_messages.length > 0){
+            //     const lastMessage = last_messages[last_messages.length - 1]; // Get the last message
+            //     if (lastMessage.sender_id === user_id) {
+            //         console.log("Last message is from the agent. No response generated.");
+            //         return;
+            //     }
+            //     formattedMessages = last_messages
+            //     .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
+            //     .join("\n");
+            // }
 
             let people = await ChatDAO.getChatMembers(receiver);
             people = people.filter(id => id !== user_id);
@@ -252,14 +252,14 @@ const Simulation = {
 //CHECK FOR TWO PERSON CHAT. 
             let isTwoPersonChat = people.length === 1;
 
-            if (isTwoPersonChat) {
-                // Ensure that the last message was from the other person
-                const lastMessage = sel_messages[sel_messages.length - 1];
-                if (lastMessage.sender_id === user_id) {
-                    console.log(`User ${user_id} has sent the last message. Skipping post.`);
-                    return;
-                }
-            }
+            // if (isTwoPersonChat) {
+            //     // Ensure that the last message was from the other person
+            //     const lastMessage = sel_messages[sel_messages.length - 1];
+            //     if (lastMessage.sender_id === user_id) {
+            //         console.log(`User ${user_id} has sent the last message. Skipping post.`);
+            //         return;
+            //     }
+            // }
     
             let closeness_levels = await Promise.all(
                 people.map(async (person) => {
@@ -285,6 +285,7 @@ const Simulation = {
                 Goals:
                 • Respond naturally and personally to the last message.
                 • Do not repeat phrases or sentiments from earlier messages.
+                • You can use common chat shortforms like "wby", love, luv, ngl, lol, lmao
                 • Try to keep the conversation engaging and personal. You may ask a follow-up question, express your opinion, or share a new idea.
                 • Limit your response to 1–2 short sentences, with no more than 12 words per message.
                 • Remember, build on the conversation and ask for deeper questions on the topic being discussed. You have to ensure conversation flows naturally and builds upon the core topic in the lasts messages. For example is someone is talking about food, you may give an example of a spefic food you just eating. If someone is asking what's up? You need to give a proper reply of what you did that day like attended a class on business studies.  
@@ -307,6 +308,7 @@ const Simulation = {
                 • Do not repeat phrases or sentiments from earlier messages.
                 • Keep the conversation varied. Introduce new angles, switch the tone, or share a new topic.
                 • Limit your response to 1–2 short sentences, with no more than 12 words per message.
+                • Avoid using an exclamation mark unless absolutely necessary.
                 • Remember, build on the conversation and ask for deeper questions on the topic being discussed. You have to ensure conversation flows naturally and builds upon the core topic in the lasts messages. For example is someone is talking about food, you may give an example of a spefic food you just eating. If someone is asking what's up? You need to give a proper reply of what you did that day like attended a class on business studies.  
                 • About **10% of the time**, include a one-line off-topic quip (a meme, weekend plan, news headline, etc.) unrelated to the main thread.
                 Now, generate the next message(s) as separate bubbles.`;
@@ -334,203 +336,6 @@ const Simulation = {
         }
     },
     
-    // async insertAGMessage(user_id, system_prompt, receiver = null) {
-    //     try {
-    //         if(!receiver){
-    //             receiver = await selectChatFromInbox(user_id);
-    //             if (receiver == null) {
-    //                 console.log("No chatrooms found");
-    //                 return;
-    //             }
-    //         }
-    //         const sel_messages =  await MessageDAO.getMessagesByChatId(receiver);
-
-    //         let last_messages = "";
-    //         let formattedMessages = "";
-
-    //         if (!sel_messages || sel_messages.length === 0) {
-    //             formattedMessages = "No messages";
-    //         }
-            
-    //         else last_messages = sel_messages.slice(-5); 
-    //         // console.log(last_messages);
-            
-    //         if(sel_messages.length > 0){
-    //             const lastMessage = last_messages[last_messages.length - 1]; // Get the last message
-    //             if (lastMessage.sender_id === user_id) {
-    //                 console.log("Last message is from the agent. No response generated.");
-    //                 return;
-    //             }
-    //             formattedMessages = last_messages
-    //             .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
-    //             .join("\n");
-    //         }
-
-    //         let people = await ChatDAO.getChatMembers(receiver);
-    //         people = people.filter(id => id !== user_id);
-
-    //         let closeness_levels = await Promise.all(
-    //             people.map(async (person) => {
-    //                 let closeness = await RelationDAO.getCloseness(user_id, person);
-    //                 return closeness;
-    //             })
-    //         );
-    //         let social_groups = await SocialGroupDao.getGroupsByIds(people);
-
-    //         // const user_prompt = `There is a conversation happening in the chatroom.
-    //         // The last messages in the chatroom were: "${formattedMessages}"
-    //         // The messages provided will give you context. Your user_id is ${user_id}. 
-    //         // Please message naturally and be mindful of which messages are sent by you and which are sent by the other members.
-    //         // If there is a conversation that is already happening, respond to it instead of starting a new question.
-    //         // Excluding you, there are "${people.length}" other people in the chatroom.
-    //         // Your closeness levels to the people in the chatroom on a scale of 1 to 10 are "${closeness_levels}". 
-    //         // You belong to "${social_groups}" soial groups together.
-    //         // Rules:
-    //         // 1. Limit each message to 1 sentence. Break down the sentence further into multiple texts so it is realistic. (Vary within this range). 
-    //         // 2. DO NOT redundantly repeat or reiterate your partner's words.
-    //         // 3. Choose and reply to the core part of a message than responding to every line.
-    //         // 4. Make it distinct from the previous messages in phrasings, structure, and length. 
-    //         // 5. There is no need to speak in full sentences every time. 
-    //         // Using the provided information as a premise to adopt a tone and style, generate a message to contribute to the ongoing conversation or start a new conversation as you see fit.`;
-    //         const user_prompt = `
-    //         There is an ongoing group chat. The last messages were:
-    //         "${formattedMessages}"
-            
-    //         Context:
-    //         • Your user_id is ${user_id}.
-    //         • There are ${people.length} other people here.
-    //         • Your closeness levels to them (1–10) are: ${closeness_levels}.
-    //         • You share these social groups: ${social_groups}.
-            
-    //         Goals:
-    //         • Reply naturally to the core of the last message, or start a new thread if it feels right.
-    //         • Do NOT repeat your partners’ exact words.
-    //         • Use one or two short sentences with at most 5 - 12 words per message bubble.
-    //         • Vary your emoji frequency and slang level according to your persona’s voice profile.
-    //         • If you write more than one sentence, split them into separate messages.
-    //         • If the last three messages have a similar gist, start a new topic. 
-    //         • After each bubble, simulate a typing delay of **10–90 seconds** before sending the next.
-    //         • About **10% of the time**, include a one-line off-topic quip (a meme, weekend plan, news headline, etc.) unrelated to the main thread.
-            
-    //         Now generate the next message(s) as separate bubbles.`;
-    //       const rawResponse = await generateResponse(system_prompt, user_prompt);
-      
-    //       // Take only the first sentence
-    //       let firstSentence = rawResponse.split(/(?<=[.?!])\s+/)[0] || rawResponse;
-    //       // Limit to max 8 words
-    //       const words = firstSentence.trim().split(/\s+/).slice(0, 12);
-    //       const shortMessage = words.join(' ');
-      
-    //       const time = new Date().toISOString();
-    //       await makeAPIRequest("http://localhost:3001/api/messages/add", "POST", {
-    //         chat_id: receiver,
-    //         sender_id: user_id,
-    //         reply_id: null,
-    //         content: shortMessage,
-    //         media_type: 0,
-    //         media_url: null,
-    //         timestamp: time,
-    //       });
-    //     } catch (error) {
-    //         console.error("Error adding comment:", error);
-    //     }
-    // },
-    // async insertAGMessage(user_id, system_prompt, receiver=null){
-
-    //     try {
-    //         if(!receiver){
-    //             receiver = await selectChatFromInbox(user_id);
-    //             if (receiver == null) {
-    //                 console.log("No chatrooms found");
-    //                 return;
-    //             }
-    //         }
-    //         const sel_messages =  await MessageDAO.getMessagesByChatId(receiver);
-
-    //         let last_messages = "";
-    //         let formattedMessages = "";
-
-    //         if (!sel_messages || sel_messages.length === 0) {
-    //             formattedMessages = "No messages";
-    //         }
-            
-    //         else last_messages = sel_messages.slice(-5); 
-    //         // console.log(last_messages);
-            
-    //         if(sel_messages.length > 0){
-    //             const lastMessage = last_messages[last_messages.length - 1]; // Get the last message
-    //             if (lastMessage.sender_id === user_id) {
-    //                 console.log("Last message is from the agent. No response generated.");
-    //                 return;
-    //             }
-    //             formattedMessages = last_messages
-    //             .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
-    //             .join("\n");
-    //         }
-
-    //         let people = await ChatDAO.getChatMembers(receiver);
-    //         people = people.filter(id => id !== user_id);
-
-    //         let closeness_levels = await Promise.all(
-    //             people.map(async (person) => {
-    //                 let closeness = await RelationDAO.getCloseness(user_id, person);
-    //                 return closeness;
-    //             })
-    //         );
-    //         let social_groups = await SocialGroupDao.getGroupsByIds(people);
-
-    //         // const user_prompt = `There is a conversation happening in the chatroom.
-    //         // The last messages in the chatroom were: "${formattedMessages}"
-    //         // The messages provided will give you context. Your user_id is ${user_id}. 
-    //         // Please message naturally and be mindful of which messages are sent by you and which are sent by the other members.
-    //         // If there is a conversation that is already happening, respond to it instead of starting a new question.
-    //         // Excluding you, there are "${people.length}" other people in the chatroom.
-    //         // Your closeness levels to the people in the chatroom on a scale of 1 to 10 are "${closeness_levels}". 
-    //         // You belong to "${social_groups}" soial groups together.
-    //         // Rules:
-    //         // 1. Limit each message to 1 sentence. Break down the sentence further into multiple texts so it is realistic. (Vary within this range). 
-    //         // 2. DO NOT redundantly repeat or reiterate your partner's words.
-    //         // 3. Choose and reply to the core part of a message than responding to every line.
-    //         // 4. Make it distinct from the previous messages in phrasings, structure, and length. 
-    //         // 5. There is no need to speak in full sentences every time. 
-    //         // Using the provided information as a premise to adopt a tone and style, generate a message to contribute to the ongoing conversation or start a new conversation as you see fit.`;
-    //         const user_prompt = `
-    //         There is an ongoing group chat. The last messages were:
-    //         "${formattedMessages}"
-            
-    //         Context:
-    //         • Your user_id is ${user_id}.
-    //         • There are ${people.length} other people here.
-    //         • Your closeness levels to them (1–10) are: ${closeness_levels}.
-    //         • You share these social groups: ${social_groups}.
-            
-    //         Goals:
-    //         • Reply naturally to the core of the last message, or start a new thread if it feels right.
-    //         • Do NOT repeat your partners’ exact words.
-    //         • Use one or two short sentences with at most 5 - 8 words per message bubble.
-    //         • Vary your emoji frequency and slang level according to your persona’s voice profile.
-    //         • If you write more than one sentence, split them into separate messages.
-    //         • After each bubble, simulate a typing delay of **10–90 seconds** before sending the next.
-    //         • About **10% of the time**, include a one-line off-topic quip (a meme, weekend plan, news headline, etc.) unrelated to the main thread.
-            
-    //         Now generate the next message(s) as separate bubbles.`;
-    //         const message = await generateResponse(system_prompt, user_prompt);
-
-    //         const time = new Date().toISOString();
-    //         await makeAPIRequest("http://localhost:3001/api/messages/add", "POST", {
-    //             chat_id: receiver,
-    //             sender_id: user_id,
-    //             reply_id: null,
-    //             content: message,
-    //             media_type:0,
-    //             media_url: null,
-    //             timestamp: time,
-    //         });
-    //     } catch (error) {
-    //         console.error("Error adding message:", error);
-    //     }
-    // },
-
     async generatePost(user_id, system_prompt) {
         try {
             const lvl1 = await FeatureSelectionDAO.getLvlOneFeatures();
@@ -571,7 +376,8 @@ const Simulation = {
             7. 7. **Distinctness requirement:**  
             - **Lexical overlap** with any of your last 3 posts must be under 30% (i.e., no more than 30% of words in common).  
             - **Semantic similarity** (cosine similarity) with any of your last 3 posts must be below 0.7.  
-
+            8. Avoid using an exclamation mark unless absolutely necessary.
+            9. The tone should be calm and nonchalant most of the time. 
             The contents of some of your previous posts are:${last_posts}. 
             Now, generate a new post that sticks to a single theme and meets all of the above criteria.`;
             const new_post = await generateResponse(system_prompt, user_prompt);
@@ -921,7 +727,8 @@ const Simulation = {
             const user_prompt = `You are about to create a group chat with "${sel_fren.length}" people. 
             Your closeness levels to the people on a scale of 1 to 10 are "${closeness_levels}". 
             You belong to "${social_groups}" soial groups together. 
-            Using the provided information as a premise, generate a name for the group chat. Be straightforward and reply with just the name`;
+            Come up with a friendly, colloquial chat name that real people would actually use—think “Friday Hang” “Movie Night,” or “Study sesh.” Don’t sound like a title card; make it feel like something friends would key in.
+            Using the provided information as a premise, generate a name for the group chat. The name should be a single word 50 % of the time. Be straightforward and reply with just the name`;
             
             const name = await generateResponse(system_prompt, user_prompt);
             try {
@@ -943,10 +750,10 @@ const Simulation = {
 
     async createAGChannel(user_id, system_prompt){
         let user_prompt = `You are about to create a new community channel.
-        Using the provided information as a premise, generate a name for the community channel. Be straightforward and reply with just the name`;
+        Using the provided information as a premise, generate a name for the community channel. It should mimic channels like we see on platforms like Reddit. Come up with a friendly, colloquial channel name that real people would actually use. Use a single word 50% of the time. Be straightforward and reply with just the name`;
         let name = await generateResponse(system_prompt, user_prompt);
         
-        user_prompt = `You just created a channel ${name}. Now create a bio for this channel. 
+        user_prompt = `You just created a channel ${name}. Now create a bio for this channel. It should mimic channels like we see on platforms like Reddit.
         The bio should be a one-liner that describes the purpose of the channel.`;
         let bio = await generateResponse(system_prompt, user_prompt);
 
@@ -1036,8 +843,23 @@ const Simulation = {
             While making a post ensure that:
             1. Your post must be aligned with the community topic.
             2. Focus on one clear theme—avoid mixing multiple ideas.  
-            3. Keep it engaging while staying within three sentences. 
             4. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
+            5. Important: Mimic how community posts are on platforms like Reddit.  
+            Do NOT sound like a corporate announcement or a generic AI.
+            The theme of the post is only one and posts mimic the example platforms in length, tone, emoji/hashtag usage, typical formality and formatting. The tone should be calm and nonchalant most of the time. 
+            2. Make sure that your new post is signficantly different in content and context to your old posts. 
+            3. **Structure the post clearly.** Avoid adding multiple unrelated ideas in a single post.  
+            4. Make sure that the post has newlines and paragraphs to make it more readable.
+            1. Focus on one clear theme—avoid mixing multiple ideas.  
+            2. Make sure it is distinct from your previous posts in content, structure, storyline, context, and especially length.  
+            3. Do not use the same phrasings as the previous posts.
+            4. Keep it engaging while staying within three sentences and 120 - 150 characters.  
+            5. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
+            6. Check your last 3 posts if they exist. Ensure that if 2 of them are generic, the next one has extremely specific details. 
+            7. 7. **Distinctness requirement:**  
+            - **Lexical overlap** with any of your last 3 posts must be under 30% (i.e., no more than 30% of words in common).  
+            - **Semantic similarity** (cosine similarity) with any of your last 3 posts must be below 0.7.  
+            8. Avoid using exclamation mark unless absolutely necessary. 
             Now, generate a new post that sticks to a single theme.`;
             const new_post = await generateResponse(system_prompt, user_prompt);
 
@@ -1267,7 +1089,7 @@ const Simulation = {
       
       The JSON object must include the following keys:
       - "id_name": A unique identifier starting with "ID_".
-      - "user_name": A plausible first name.
+      - "user_name": A plausible first name for example "stephenc01" or "cutepotato" or "msq1313". 
       - "email": A plausible email address.
       - "password": A sample strong password.
       - "user_bio": A brief description about the user.
@@ -1395,6 +1217,7 @@ const Simulation = {
             - Strictly follow this identity style: ${identity_prompt}
             - CRUCIAL: The username MUST be completely independent of the metaphorical theme ('${descriptions.keyword}'). It should NOT reflect the metaphor in any way.
             - The username must follow standard social media conventions.
+            - Examples of username include "cutepotato" or "stephenhere" or "Ella_21" or "NataliAdamss_"
             ${existingUserNames.length > 0 ? `
             - ABSOLUTELY ESSENTIAL: The username MUST be different from these existing names:
               ${existingUserNames.join(', ')}` : ''}
@@ -1408,15 +1231,15 @@ const Simulation = {
                 "user_bio": "A concise (1-3 sentences, approx 150 chars) and engaging social media bio. This bio should NOT weave in the metaphorical theme of '${descriptions.keyword} or metaphor.' ${existingUserBios.length > 0 ? `It MUST be distinct from these existing bios: ${existingUserBios.map(bio => `"${bio}"`).join('; ')}. ` : ''}No emojis.",
                 "profile_picture": "A URL using https://i.pravatar.cc/120?u= with a random parameter",
                 "posting_trait": "Float between 0-1",
-                "commenting_trait": "Float between 0.5-1",//CHANGED
-                "reacting_trait": "Float between 0.5-1",  //CHANGED
-                "messaging_trait": "Float between 0.5-1",//CHANGED
+                "commenting_trait": "Float between 0.5-1",
+                "reacting_trait": "Float between 0.5-1",  
+                "messaging_trait": "Float between 0.5-1",
                 "updating_trait": "Float between 0-1",
                 "comm_trait": "Float between 0-1",
                 "notification_trait": "Float between 0-1",
                 "interests": ["At least 3 interests from the predefined list"],
-                "persona_name": "A name derived from the metaphor",
-                "social_group_name": "A group name aligned with the metaphor"
+                "persona_name": "A name derived from the metaphor. Make sure it captures the user's personality completely and mimics how a real human being on such a social media would come across as.",
+                "social_group_name": "A group name aligned with the metaphor. Make sure it ranges in tone, length and nuance."
             }
 
             Ensure the personality traits and interests align with the metaphorical description.
