@@ -100,18 +100,7 @@ async function ActionSimulation() {
             const userIds = await getUserIds();
         
             if (userIds.length > 0) {
-<<<<<<< HEAD
                 await Promise.all(userIds.map(async (user_id) => {
-=======
-                // 2% chance to create a new agent.
-                if (Math.random() < 0.02) {
-                    const newAgentId = await Simulation.generateAgentFromGoals();
-                    console.log(`New agent created with id: ${newAgentId}`);
-                } else {
-                    // Otherwise, select an existing agent to perform a random action.
-                    const randomIndex = Math.floor(Math.random() * userIds.length);
-                    const user_id = userIds[randomIndex];
->>>>>>> a732f35 (in progress)
                     try {
                         const [apiAction1] = await Promise.all([
                             ActionChoice.performAction(user_id),
