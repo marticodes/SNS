@@ -103,7 +103,7 @@ const ProfileEdit = ({
             <img src={profileImage} alt="Profile" className="image" />
           </div>
           <div className="profile-actions">
-            <button className="edit-button" onClick={() => fileInputRef.current.click()}>
+            <button className="edit-button" onClick={() => fileInputRef.current.click()} style={{fontSize: '13px'}}>
               Edit Image
             </button>
             <input
@@ -116,6 +116,7 @@ const ProfileEdit = ({
             <button
               className="delete-button"
               onClick={() => setProfileImage("https://via.placeholder.com/150")}
+              style={{fontSize: '13px'}}
             >
               Delete Image
             </button>
@@ -124,7 +125,7 @@ const ProfileEdit = ({
 
         <div className="input-group">
           <label>Bio</label>
-          <textarea value={bio} onChange={(e) => setBio(e.target.value)} />
+          <textarea style={{fontSize: '12px'}} value={bio} onChange={(e) => setBio(e.target.value)} />
         </div>
 
         {[1, 2].includes(caseId) && (
@@ -139,7 +140,7 @@ const ProfileEdit = ({
           </div>
         )}
 
-        <button className="edit-interests-button" onClick={() => setShowInterestPopup(true)}>
+        <button className="edit-interests-button" onClick={() => setShowInterestPopup(true)} style={{fontSize: '13px'}}>
           Change Personal Interests
         </button>
 
@@ -173,7 +174,7 @@ const ProfileEdit = ({
 
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
-        <button className="confirm-button" onClick={handleConfirmChanges}>
+        <button className="confirm-button" onClick={handleConfirmChanges} style={{fontSize: '13px'}}>
           Confirm Changes
         </button>
       </div>

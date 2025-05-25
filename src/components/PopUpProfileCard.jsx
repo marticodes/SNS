@@ -170,8 +170,10 @@ const ProfileCard = ({ idname, username, id, userPic, bio }) => {
 };
 
 const bioStyle = {
-  margin: "1px 0",
+  margin: "15px 0",
   color: "#333",
+  fontSize: "14px",
+  fontStyle: "italic"
 };
 
 const profileCardStyle = {
@@ -181,7 +183,7 @@ const profileCardStyle = {
   boxShadow: "0 6px 10px rgba(0, 0, 0, 0.15)",
   textAlign: "center",
   width: "250px",
-  fontFamily: "Arial, sans-serif",
+  fontFamily: "Inter",
 };
 
 const profilePicStyle = {
@@ -194,14 +196,14 @@ const profilePicStyle = {
 
 const usernameStyle = {
   margin: "1px 0",
-  fontSize: "20px",
-  fontWeight: "bold",
+  fontSize: "18px",
+  fontWeight: "600",
   color: "#333",
 };
 
 const idStyle = {
   margin: "1px 0",
-  fontSize: "12px",
+  fontSize: "14px",
   fontWeight: "bold",
   color: "#333",
 };
@@ -218,7 +220,7 @@ const buttonEditStyle = {
   gap: "10px",
   marginTop: "10px",
   backgroundColor : "#7CB9E8",
-
+  fontSize: "13px"
 };
 
 const followButtonStyle = {

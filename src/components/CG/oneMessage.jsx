@@ -315,7 +315,7 @@ const SingleMessage = ({ message, onReply, scrollToMessage }) => {
             color: "#000",
             borderRadius: "8px",
             cursor: "pointer",
-            fontSize: "14px",
+            fontSize: "13px",
             lineHeight: "1.4",
             position: "relative",
           }}
