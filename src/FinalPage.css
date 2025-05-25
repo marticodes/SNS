@@ -1,0 +1,43 @@
+.panels-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  width: 100%;
+  max-width: 1800px; /* Increased from default */
+  margin: 0 auto;
+}
+
+.panels-container > * {
+  flex: 1;
+  min-width: 400px; /* Minimum width for each panel */
+  max-width: 600px; /* Maximum width for each panel */
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+/* Make the main container wider */
+.App {
+  max-width: 2000px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Ensure the header spans the full width */
+.App-header {
+  width: 100%;
+  max-width: 2000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Make the main content area wider */
+main {
+  width: 100%;
+  max-width: 2000px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-top: 100px;
+}

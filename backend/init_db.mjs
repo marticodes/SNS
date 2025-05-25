@@ -127,6 +127,7 @@ async function initDb() {
             "keyword" TEXT,
             "llm_descr" TEXT,
             "user_descr" TEXT,
+            "llm_final" TEXT,
             PRIMARY KEY("lvl_one_id")
         )`,
 
