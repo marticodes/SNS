@@ -1023,17 +1023,12 @@ const Simulation = {
         }
         
         let sel_comm = channels[Math.floor(Math.random() * channels.length)];
-<<<<<<< HEAD
-        console.log(user_id, Math.floor(Math.random() * channels.length));
-        
-=======
         // USER CHECK! //
         const recentPosts = await PostDAO.getRecentPostsByUserInCommunity(user_id, sel_comm.comm_id);
         if (recentPosts.length >= 3) {  // LIMITING POST TO 3 //
             console.log(`User ${user_id} has already posted 3 times in community ${sel_comm.comm_name}. Skipping post.`);
             return;  // Exit
         }
->>>>>>> c1e06a1 (better prompting?)
         const user_prompt = `You are about to make a new post in a community. 
             The community name is ${sel_comm.comm_name}. This is a community with likeminded people who are passionate about ${sel_comm.comm_bio}.
             While making a post ensure that:
