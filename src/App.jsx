@@ -10,7 +10,8 @@ import MetaphorPrompt from "./metaphor/ver4";
 import PanelLV1 from "./metaphor/components/PanelLV1";
 import PanelLV2 from "./metaphor/components/PanelLV2";
 import PanelLV3 from "./metaphor/components/PanelLV3";
-import FinalPage from "./FinalPage";
+import Page2 from "./Page2";
+import Page3 from "./Page3";
 import "./App.css";
 
 function MainPage() {
@@ -212,53 +213,6 @@ function MainPage() {
       .join('\n');
   };
 
-  const handleSaveDescription = async (formData) => {
-    setIsLoading(true);
-    try {
-      // Create a formatted description from the form data
-      const narrativeDescription = `In a space that feels ${formData.atmosphere}, people come together ${formData.reasonForGathering}, often connecting ${formData.connectionStyle}. They usually ${formData.durationOfParticipation}, interact through ${formData.communicationStyle}, and present themselves using ${formData.identityType}. Most people are here to ${formData.interactionGoal}, and they have the option to ${formData.participationControl}.`;
-
-      // Create structured attributes description
-      const structuredAttributes = `• Atmosphere: ${formData.atmosphere}
-      • GatheringType: ${formData.reasonForGathering}
-      • ConnectingEnvironment: ${formData.connectionStyle}
-      • TemporalEngagement: ${formData.durationOfParticipation}
-      • CommunicationFlow: ${formData.communicationStyle}
-      • ActorType: ${formData.identityType}
-      • ContentOrientation: ${formData.interactionGoal}
-      • ParticipationControl: ${formData.participationControl}`;
-
-      // Combine both descriptions
-      const fullDescription = `${narrativeDescription}\n\nStructured Attributes:\n${structuredAttributes}`;
-
-      // Send metaphor data to backend
-      const metaphorResponse = await fetch("http://localhost:3001/api/features/lvl/one/descriptions/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          keyword: formData.metaphorKeyword,
-          user_descr: fullDescription,
-          llm_descr: formData.llm_descr || "", // Use existing LLM description if available
-          user_count: selections.user_count || 10,
-          llm_final: formData.llm_final || "" // Use existing LLM final response if available
-        }),
-      });
-
-      if (!metaphorResponse.ok) {
-        const errorText = await metaphorResponse.text();
-        throw new Error(`Error sending metaphor data: ${metaphorResponse.statusText}. Details: ${errorText}`);
-      }
-
-      const metaphorData = await metaphorResponse.json();
-      console.log('Saved description:', metaphorData);
-
-    } catch (error) {
-      console.error("Failed to save description:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleMetaphorSubmit = async (formData) => {
     setIsLoading(true);
     try {
@@ -285,6 +239,7 @@ function MainPage() {
       }
 
       const step2Data = await step2Response.json();
+      console.log("Step 2 Data:", step2Data);
       
       // Step 3: Convert attributes to features
       const step3Response = await fetch("http://localhost:3001/api/llm", {
@@ -303,14 +258,17 @@ function MainPage() {
       }
 
       const step3Data = await step3Response.json();
+      console.log("Step 3 Data:", step3Data);
       setLlmResponse(step3Data.features);
       
       // Parse the LLM response and update selections
       const newSelections = {};
       parseLLMResponse(step3Data.features, newSelections);
+      console.log("New Selections after parsing:", newSelections);
       
       // Convert selections to integers and send to backend
       const integerSelections = convertSelectionsToIntegers(newSelections);
+      console.log("Integer Selections:", integerSelections);
 
       // Send to backend
       const backendResponse = await fetch("http://localhost:3001/api/features/all/add", {
@@ -330,6 +288,30 @@ function MainPage() {
       
       // Update the state after successful backend submission
       setSelections(newSelections);
+      console.log("Setting selections state to:", newSelections);
+      
+      // Save to localStorage
+      localStorage.setItem('snsSelections', JSON.stringify(newSelections));
+      console.log("Saved to localStorage:", newSelections);
+
+      const metaphorResponse = await fetch("http://localhost:3001/api/features/lvl/one/descriptions/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          keyword: formData.metaphorKeyword,
+          llm_descr: JSON.stringify(step2Data.attributes),
+          user_count: newSelections.user_count,
+          llm_final: step3Data.features,
+        }),
+      });
+
+      if (!metaphorResponse.ok) {
+        const errorText = await metaphorResponse.text();
+        throw new Error(`Error sending metaphor data: ${metaphorResponse.statusText}. Details: ${errorText}`);
+      }
+
+      const metaphorData = await metaphorResponse.json();
+      console.log('Saved description:', metaphorData);
 
     } catch (error) {
       console.error("Failed to process metaphor:", error);
@@ -552,25 +534,31 @@ function MainPage() {
         const discoveryContent = discoveryMatch[1];
         newSelections.lv3.contentDiscovery = {};
 
-        // Parse Recommendations - now handles direct suggestions
+        // Parse Recommendations - now handles multiple suggestions
         const recommendations = extractValue(discoveryContent, 'Recommendations') || discoveryContent.trim();
         if (recommendations) {
           const recText = recommendations.toLowerCase().trim();
+          newSelections.lv3.contentDiscovery.recommendations = [];
+          
           if (recText.includes('topic') || recText.includes('topic-based')) {
-            newSelections.lv3.contentDiscovery.recommendations = ['topic-based'];
-          } else if (recText.includes('popular') || recText.includes('popularity-based')) {
-            newSelections.lv3.contentDiscovery.recommendations = ['popularity-based'];
+            newSelections.lv3.contentDiscovery.recommendations.push('topic-based');
+          }
+          if (recText.includes('popular') || recText.includes('popularity-based')) {
+            newSelections.lv3.contentDiscovery.recommendations.push('popularity-based');
           }
         }
 
-        // Parse Networking Control
+        // Parse Networking Control - now handles multiple controls
         const networking = extractValue(discoveryContent, 'Networking Control');
         if (networking) {
           const networkingText = networking.toLowerCase().trim();
+          newSelections.lv3.networkingControl = [];
+          
           if (networkingText.includes('block')) {
-            newSelections.lv3.networkingControl = ['block'];
-          } else if (networkingText.includes('mute')) {
-            newSelections.lv3.networkingControl = ['mute'];
+            newSelections.lv3.networkingControl.push('block');
+          }
+          if (networkingText.includes('mute')) {
+            newSelections.lv3.networkingControl.push('mute');
           }
         }
 
@@ -601,7 +589,6 @@ function MainPage() {
     return newSelections;
   };
 
-
   const handleGoToSimulation = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -616,28 +603,19 @@ function MainPage() {
       </header>
       <main>
         <div className="metaphor-section">
-          <MetaphorPrompt onSubmit={handleMetaphorSubmit} onSaveDescription={handleSaveDescription} />
+          <MetaphorPrompt onSubmit={handleMetaphorSubmit}/>
           {isLoading ? (
             <div className="loading-message">Processing your metaphor...</div>
           ) : (
             llmResponse && (
               <button
                 className="simulation-button"
-                onClick={() => handleGoToSimulation()}
+                onClick={() => navigate("/2")}
               >
-                Go to Simulation
+                Go to Next Page
               </button>
             )
           )}
-        </div>
-        <div className="llm-response">
-          <h3>Generated Response:</h3>
-          <div className="response-content">{llmResponse}</div>
-        </div>
-        <div className="panels-container">
-          <PanelLV1 selections={selections} />
-          <PanelLV2 selections={selections.lv2} />
-          <PanelLV3 selectedConnection={selections.connection} selections={selections.lv3} />
         </div>
       </main>
     </div>
@@ -655,7 +633,8 @@ function App() {
         <Route path="/user/:userId" element={<UserPage />} />
         <Route path="/dms/*" element={<ChatPage />} />
         <Route path="/login" element={<LogIn />} />
-        <Route path="/final" element={<FinalPage />} />
+        <Route path="/2" element={<Page2 />} />
+        <Route path="/3" element={<Page3 />} />
         <Route path="*" element={<div>Page Not Found</div>} />
       </Routes>
     </Router>

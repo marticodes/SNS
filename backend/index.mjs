@@ -1456,7 +1456,7 @@ async function generateSocialMediaFeatures(attributes) {
           LV3: Advanced Features & Customization
           - **Ephemeral Content**: Temporary content that disappears after a set time.
             - Enabled: Platforms like Snapchat or Instagram Stories. (just reply with Yes or No)
-          - **Content Visibility Control**: Defines audience customization options.
+          - **Content Visibility Control**: Defines audience customization options. (choose between Public or Private)
             - Public: Content is visible to all users
             - Private: Content visibility is restricted
           - **Content Discovery**: Methods of introducing users to new content.

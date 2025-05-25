@@ -33,7 +33,7 @@ body {
   padding: 20px;
   color: rgb(0, 0, 0);
   width: 100%;
-  position: fixed;
+  position: centered;
   top: 0;
   left: 0;
   z-index: 100;
