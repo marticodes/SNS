@@ -20,7 +20,7 @@ async function ActionSimulation() {
     ////////////////Agent generation.////////////////////
     try {
         // const userCount = await FeatureSelectionDAO.getUserCount();
-        const userCount = 0;
+        const userCount = 10;
         
         let existingUserNames = [];
         let existingUserBios = [];
@@ -41,7 +41,7 @@ async function ActionSimulation() {
 
     ////////////////Relation generation.////////////////////
     // const userCount = await FeatureSelectionDAO.getUserCount();
-    const userCount = 0;
+    const userCount = 10;
     const targetRelations = Math.round((userCount * (userCount - 1)) / 2 * 0.6);  // 60% of n choose 2, rounded
     const existingRelations = new Set(); // Track existing relations
     
