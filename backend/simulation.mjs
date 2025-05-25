@@ -164,7 +164,7 @@ const Simulation = {
                 return;
             }
             const closeness = await RelationDAO.getRelation(user_id, sel_post.user_id);
-            const user_prompt = `You are about to comment on a post. The content of the post is: "${sel_post.content}". On a scale of 1 to 10, your closeness level with the person is "${closeness}". Generate a comment for the post.`;
+            const user_prompt = `You are about to comment on a post. The content of the post is: "${sel_post.content}". On a scale of 1 to 10, your closeness level with the person is "${closeness}". Generate a comment for the post. Make sure it is between 50 - 100 characters. Change tone in each generation and mimic it to how users on social media like Instagram and TikTok interact.`;
             const comment = await generateResponse(system_prompt, user_prompt);
 
             const time = new Date().toISOString();
@@ -313,7 +313,7 @@ const Simulation = {
             1. Focus on one clear theme—avoid mixing multiple ideas.  
             2. Make it distinct from your previous posts in content, structure, storyline, context, and length.  
             3. Do not use the same phrasings as the previous posts.
-            4. Keep it engaging while staying within three sentences. 
+            4. Keep it engaging while staying within three sentences and 120 - 150 characters.  
             5. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
             The contents of some of your previous posts are:${last_posts}. 
             Now, generate a new post that sticks to a single theme.`;
@@ -1000,7 +1000,7 @@ const Simulation = {
       
           const systemPrompt = "You are an AI that generates random social media user profiles in JSON format.";
           const userPrompt = `
-      Generate a random social media user profile in JSON format using the following group chat context:
+      Generate a random social media user profile in JSON format. The user need's to be someone who is likely to send a message into the following group chat however the profile and related attriibutes should be independant of the chat.Using the following group chat context lightly shape the user profile.:
       Group Chat Name: ${chatName}
       Group Chat Description: ${chatDescription}
       
@@ -1012,15 +1012,15 @@ const Simulation = {
       - "user_bio": A brief description about the user.
       - "profile_picture": A URL using "https://i.pravatar.cc/120?u=" with a random query parameter.
       - "posting_trait": A random floating-point number between 0 and 1 with two decimal places.
-      - "commenting_trait": A random floating-point number between 0 and 1 with two decimal places.
-      - "reacting_trait": A random floating-point number between 0 and 1 with two decimal places.
+      - "commenting_trait": A random floating-point number between 0.5 and 1 with two decimal places.
+      - "reacting_trait": A random floating-point number between 0.5 and 1 with two decimal places.
       - "messaging_trait": A random floating-point number between 0 and 1 with two decimal places.
       - "updating_trait": A random floating-point number between 0 and 1 with two decimal places.
       - "comm_trait": A random floating-point number between 0 and 1 with two decimal places.
       - "notification_trait": A random floating-point number between 0 and 1 with two decimal places.
       - "interests":  An array of at least three interests chosen from the following list: ["Animals", "Art & Design", "Automobiles", "DIY & Crafting", "Education", "Fashion", "Finance", "Fitness", "Food", "Gaming", "History & Culture", "Lifestyle", "Literature", "Movies", "Music", "Nature", "Personal Development", "Photography", "Psychology", "Religion", "Social", "Sports", "Technology", "Travel", "Wellness"].
-      - "persona_name": Derived from the group chat name.
-      - "social_group_name": Derived from the group chat name.
+      - "persona_name": A plausible persona fitting the profile you create.
+      - "social_group_name": A plausible social group name fitting the profile you create.
       Return only the JSON object.
           `;
       
