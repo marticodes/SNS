@@ -239,7 +239,7 @@ function MainPage() {
           keyword: formData.metaphorKeyword,
           user_descr: fullDescription,
           llm_descr: formData.llm_descr || "", // Use existing LLM description if available
-          user_count: formData.user_count || 10,
+          user_count: selections.user_count || 10,
           llm_final: formData.llm_final || "" // Use existing LLM final response if available
         }),
       });
