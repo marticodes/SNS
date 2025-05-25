@@ -295,6 +295,7 @@ const ActionChoice = {
         
         const weighted = this.calculateWeights(actions, user_trait);
         const filtered = this.filterActionsByFeatures(weighted, features);
+        console.log('filtered action', filtered);
         const picked = this.selectActionFromFiltered(filtered);
 
         const system_prompt = needs_prompt ? await this.generateSystemPrompt(user_id) : null;

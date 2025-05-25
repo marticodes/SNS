@@ -21,6 +21,8 @@ import ActionLogsDAO from './dao/action_logs_dao.mjs';
 import { OPENAI_API_KEY } from './apiKey.mjs';
 import FeedDAO from "./dao/feed_dao.mjs";
 import FeatureSelectionDAO from "./dao/feature_selection_dao.mjs";
+import ActionChoice from './action_choice.mjs';
+
 
 const natural = await import("natural");
 const { TfIdf } = natural.default; 
