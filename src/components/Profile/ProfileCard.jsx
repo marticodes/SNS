@@ -53,7 +53,7 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
         userId={id}
         initialName={username}
         initialBio={bio}
-        initialImage={userPic}
+        initialImage={`http://localhost:3001${userPic}`}
         initialPrivateProfile={isPrivate}
         onSave={handleSaveChanges}
         onClose={handleClose}
@@ -143,7 +143,7 @@ const ProfileCard = ({ username, id, userid, userPic, bio, followers, following,
     <div style={profileCardStyle}>
       <div style={{ display: "flex", alignItems: "center" }}>
         <img
-          src={userPic}
+          src={myUserId === "1" ? `http://localhost:3001${userPic}` : userPic}
           alt={`${username}'s Profile`}
           style={{ ...profilePicStyle, marginRight: "20px", marginLeft: "30px" }}
         />
