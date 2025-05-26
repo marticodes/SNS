@@ -1433,7 +1433,7 @@ async function generateSocialMediaFeatures(attributes) {
           - **Reactions**: Enables users to express their opinion on content.
             - Like: A single positive acknowledgment (e.g., heart on Instagram posts).
             - Upvote/Downvote: Allows for ranking content positively or negatively (e.g., Reddit).
-            - Expanded Reactions: Offers a range of reactions such as "love," "haha," "angry," etc. (e.g., Facebook's reaction system).
+            - Expanded Reactions: Use of emojis such as "love," "haha," "angry," etc. (e.g., Facebook's reaction system).
           - **Content Management**: Outlines options for editing or removing posts.
             - Edit: Modify content after posting (e.g., X/Twitter edit feature for subscribers).
             - Delete: Permanently remove content from the platform.
