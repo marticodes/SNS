@@ -415,13 +415,13 @@ function MainPage() {
       const management = extractValue(lv2Content, 'Content Management');
       if (management) {
         const managementText = management.toLowerCase().trim();
-        const managementOptions = managementText.split(',').map(opt => opt.trim());
         newSelections.lv2.contentManagement = [];
         
-        if (managementOptions.includes('edit')) {
+        // Check for both edit and delete in the text
+        if (managementText.includes('edit')) {
           newSelections.lv2.contentManagement.push('edit');
         }
-        if (managementOptions.includes('delete')) {
+        if (managementText.includes('delete')) {
           newSelections.lv2.contentManagement.push('delete');
         }
       }
@@ -433,9 +433,9 @@ function MainPage() {
         newSelections.lv2.accountTypes = [];
         
         // Split by comma and handle each type
-        const types = accountText.split(',').map(type => type.trim());
+        const types = accountText.split(/[,\/]/).map(type => type.trim());
         
-        if (types.some(type => type === 'public')) {
+        if (types.some(type => type.includes('public'))) {
           newSelections.lv2.accountTypes.push('public');
         }
         if (types.some(type => type.includes('private') && type.includes('one-way'))) {
