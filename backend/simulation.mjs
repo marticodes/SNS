@@ -215,6 +215,10 @@ const Simulation = {
         }
     },
     async insertAGMessage(user_id, system_prompt, receiver = null) {
+        if (user_id === 1) {
+            console.log("Skipping simulation for real user (ID = 1)");
+            return;
+          }
         try {
             if(!receiver){
                 receiver = await selectChatFromInbox(user_id);
@@ -232,19 +236,19 @@ const Simulation = {
                 formattedMessages = "No messages";
             }
             
-            else last_messages = sel_messages.slice(-5); 
-            // console.log(last_messages);
+            //else last_messages = sel_messages.slice(-5); 
+            //console.log(last_messages);
             
-            // if(sel_messages.length > 0){
-            //     const lastMessage = last_messages[last_messages.length - 1]; // Get the last message
-            //     if (lastMessage.sender_id === user_id) {
-            //         console.log("Last message is from the agent. No response generated.");
-            //         return;
-            //     }
-            //     formattedMessages = last_messages
-            //     .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
-            //     .join("\n");
-            // }
+            if(sel_messages.length > 0){
+                const lastMessage = last_messages[last_messages.length - 1];  //Get the last message
+                if (lastMessage.sender_id === user_id) {
+                    console.log("Last message is from the agent. No response generated.");
+                    return;
+                }
+                formattedMessages = last_messages
+                .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
+                .join("\n");
+            }
 
             let people = await ChatDAO.getChatMembers(receiver);
             people = people.filter(id => id !== user_id);
@@ -252,14 +256,14 @@ const Simulation = {
 //CHECK FOR TWO PERSON CHAT. 
             let isTwoPersonChat = people.length === 1;
 
-            // if (isTwoPersonChat) {
-            //     // Ensure that the last message was from the other person
-            //     const lastMessage = sel_messages[sel_messages.length - 1];
-            //     if (lastMessage.sender_id === user_id) {
-            //         console.log(`User ${user_id} has sent the last message. Skipping post.`);
-            //         return;
-            //     }
-            // }
+            if (isTwoPersonChat) {
+                // Ensure that the last message was from the other person
+                const lastMessage = sel_messages[sel_messages.length - 1];
+                if (lastMessage.sender_id === user_id) {
+                    console.log(`User ${user_id} has sent the last message. Skipping post.`);
+                    return;
+                }
+            }
     
             let closeness_levels = await Promise.all(
                 people.map(async (person) => {
@@ -285,11 +289,12 @@ const Simulation = {
                 Goals:
                 • Respond naturally and personally to the last message.
                 • Do not repeat phrases or sentiments from earlier messages.
-                • You can use common chat shortforms like "wby", love, luv, ngl, lol, lmao
+                • You can use common chat shortforms or slangs like wby, love, luv, ngl, lol, lmao
                 • Try to keep the conversation engaging and personal. You may ask a follow-up question, express your opinion, or share a new idea.
                 • Limit your response to 1–2 short sentences, with no more than 12 words per message.
                 • Remember, build on the conversation and ask for deeper questions on the topic being discussed. You have to ensure conversation flows naturally and builds upon the core topic in the lasts messages. For example is someone is talking about food, you may give an example of a spefic food you just eating. If someone is asking what's up? You need to give a proper reply of what you did that day like attended a class on business studies.  
                 • About **10% of the time**, include a one-line off-topic quip (a meme, weekend plan, news headline, etc.) unrelated to the main thread.
+                • If there is any question in the chat make sure to reply to it before replying with more questions. 
                 Now, generate the next message as a single bubble.`
     
                 :
@@ -309,6 +314,7 @@ const Simulation = {
                 • Keep the conversation varied. Introduce new angles, switch the tone, or share a new topic.
                 • Limit your response to 1–2 short sentences, with no more than 12 words per message.
                 • Avoid using an exclamation mark unless absolutely necessary.
+                • If there is any question in the chat make sure to reply to it before replying with more questions. 
                 • Remember, build on the conversation and ask for deeper questions on the topic being discussed. You have to ensure conversation flows naturally and builds upon the core topic in the lasts messages. For example is someone is talking about food, you may give an example of a spefic food you just eating. If someone is asking what's up? You need to give a proper reply of what you did that day like attended a class on business studies.  
                 • About **10% of the time**, include a one-line off-topic quip (a meme, weekend plan, news headline, etc.) unrelated to the main thread.
                 Now, generate the next message(s) as separate bubbles.`;
@@ -319,7 +325,7 @@ const Simulation = {
             let firstSentence = rawResponse.split(/(?<=[.?!])\s+/)[0] || rawResponse;
             const words = firstSentence.trim().split(/\s+/).slice(0, 12);
             const shortMessage = words.join(' ');
-    
+
             const time = new Date().toISOString();
             await makeAPIRequest("http://localhost:3001/api/messages/add", "POST", {
                 chat_id: receiver,
@@ -656,7 +662,7 @@ const Simulation = {
             console.error("Error deleting relation:", error);
         }
     },
-
+      
     async insertDM(user_id, system_prompt){
         let frens = await RelationDAO.getUsersByRelation(user_id, 2);
         if (!frens || frens.length === 0) {
@@ -692,6 +698,7 @@ const Simulation = {
         Simulation.insertAGMessage(user_id, system_prompt, chat_id);
     },
 
+      
     async insertGroupChat(user_id, system_prompt){
         let frens = await RelationDAO.getUsersByRelation(user_id, 2);
         if (!frens || frens.length === 0) {
