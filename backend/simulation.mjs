@@ -575,10 +575,11 @@ const Simulation = {
             - Length (120–150 characters, max three sentences) and tone (avoid exclamation marks unless necessary)
             - Formatting (informal, no bullet points, no bold/italic, use natural paragraph breaks)
             - Hashtag use (use minimal, aligning to the platform’s culture, don’t overdo it)
-            Do NOT sound like a corporate announcement or a generic AI.
+            Do NOT sound like a corporate announcement or a generic AI.  
 
             The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
             Post requirements:
+            0. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
             1. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
             2. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
             3. Your post must be significantly different from your last three posts in:
@@ -758,14 +759,15 @@ const Simulation = {
             You are a user on social media platforms like ${platforms.join(", ")}.
             You are about to make a new **ephemeral** post on social media. These are time-sensitive posts and will only be up for 24 hours.
             When writing a new ephemeral post, mimic the typical style of that platform in terms of:
-            - Short and concise length (~60 characters, max three sentences) 
+            - Short and concise length (30~40 characters, max two sentences) 
             - Informal, spontaneous, or unpolished tone (avoid exclamation marks unless necessary)
             - Personal and emotionally expressive
             - Formatting (no bullet points, no bold/italic, use natural paragraph breaks)
-            Do NOT sound like a corporate announcement or a generic AI.
+            Do NOT sound like a corporate announcement or a generic AI. 
 
             The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
             Post requirements:
+            0. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
             1. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
             2. Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
             3. Your post must be significantly different from your last three posts in:
@@ -851,14 +853,15 @@ const Simulation = {
 
             You are a user on social media platforms like ${platforms.join(", ")}.
             When writing a new ephemeral post, mimic the typical style of that platform in terms of:
-            - Short and concise length (~60 characters, max three sentences) 
+            - Short and concise length (30~40 characters, max two sentences) 
             - Informal, spontaneous, or unpolished tone (avoid exclamation marks unless necessary)
             - Personal and emotionally expressive
             - Formatting (no bullet points, no bold/italic, use natural paragraph breaks)
-            Do NOT sound like a corporate announcement or a generic AI.
+            Do NOT sound like a corporate announcement or a generic AI. 
 
             The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
             Post requirements:
+            0. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
             1. Your post must be aligned with the community topic.
             2. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
             3. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
@@ -1212,10 +1215,11 @@ const Simulation = {
             - Length (120–150 characters, max three sentences) and tone (avoid exclamation marks unless necessary)
             - Formatting (informal, no bullet points, no bold/italic, use natural paragraph breaks)
             - Hashtag use (use minimal, aligning to the platform’s culture, don’t overdo it)
-            Do NOT sound like a corporate announcement or a generic AI.
+            Do NOT sound like a corporate announcement or a generic AI.. 
 
             The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
             Post requirements:
+            0. Do NOT start the sentence with "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
             1. Your post must be aligned with the community topic.
             2. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
             3. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
@@ -1230,7 +1234,7 @@ const Simulation = {
         
             Now, generate a new post that sticks to a single theme and meets all of the above criteria.
             `;
-            
+
             const new_post = await generateResponse(system_prompt, user_prompt);
 
             const time = new Date().toISOString();
