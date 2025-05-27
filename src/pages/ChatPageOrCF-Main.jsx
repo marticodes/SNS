@@ -21,9 +21,88 @@ const ChatPage = () => {
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [chatList, setchatList] = useState([]);
   
+  console.log("Initial chatId from URL:", chatId);
+
+  // Initialize chat when chatId changes
   useEffect(() => {
-    setCurrentChatId(chatId);
-  }, [chatId]);
+    const initializeChat = async () => {
+      if (!chatId) return;
+      
+      console.log("Initializing chat with ID:", chatId);
+      setCurrentChatId(chatId);
+
+      try {
+        // Step 1: Fetch chat info
+        const chatResponse = await fetch(`http://localhost:3001/api/chat/${chatId}`);
+        if (!chatResponse.ok) {
+          throw new Error(`Failed to fetch chat info: ${chatResponse.status}`);
+        }
+        const chatInfo = await chatResponse.json();
+        console.log("Chat info received:", chatInfo);
+
+        if (!chatInfo) {
+          throw new Error("No chat info received");
+        }
+
+        // Step 2: Get user/group info based on chat type
+        if (chatInfo.group_chat === 0) {
+          // Direct message
+          const otherUserId = parseInt(chatInfo.user_id_1, 10) === userId 
+            ? parseInt(chatInfo.user_id_2, 10) 
+            : chatInfo.user_id_1;
+          
+          console.log("Fetching user info for ID:", otherUserId);
+          const userResponse = await fetch(`http://localhost:3001/api/user/${otherUserId}`);
+          if (!userResponse.ok) {
+            throw new Error(`Failed to fetch user info: ${userResponse.status}`);
+          }
+          const userData = await userResponse.json();
+          console.log("User data received:", userData);
+          
+          if (!userData || !userData.user_name) {
+            throw new Error("Invalid user data received");
+          }
+          
+          setCurrentChatUser(userData.user_name);
+        } else {
+          // Group chat
+          const groupResponse = await fetch(`http://localhost:3001/api/members/chat/${chatId}`);
+          if (!groupResponse.ok) {
+            throw new Error(`Failed to fetch group members: ${groupResponse.status}`);
+          }
+          const groupData = await groupResponse.json();
+          console.log("Group members received:", groupData);
+          
+          const groupNames = await Promise.all(
+            groupData.map(async (member) => {
+              const userResponse = await fetch(`http://localhost:3001/api/user/${member}`);
+              if (!userResponse.ok) {
+                throw new Error(`Failed to fetch group member info: ${userResponse.status}`);
+              }
+              const userData = await userResponse.json();
+              return userData.user_name;
+            })
+          );
+          
+          const groupName = groupNames.join(", ");
+          console.log("Setting group name:", groupName);
+          setCurrentChatUser(groupName);
+        }
+      } catch (error) {
+        console.error("Error initializing chat:", error);
+        // Don't set Unknown User, let the UI handle the null state
+        setCurrentChatUser(null);
+      }
+    };
+
+    initializeChat();
+  }, [chatId, userId]);
+
+  // Add debug logging for state changes
+  useEffect(() => {
+    console.log("State update - currentChatUser:", currentChatUser);
+    console.log("State update - currentChatId:", currentChatId);
+  }, [currentChatUser, currentChatId]);
 
   useEffect(() => {
     const fetchChats = () => {
@@ -213,8 +292,7 @@ const ChatPage = () => {
           <>
             <ChatHeader
               currentChatUser={currentChatUser}
-              //ProfilePics={chatList.find((chat) => chat.name === currentChatUser)?.image}
-              ProfilePics={"https://picsum.photos/seed/${encodeURIComponent(currentChatUser)}/30/30"}
+              ProfilePics={chatList.find(chat => chat.name === currentChatUser)?.image || `https://picsum.photos/seed/${encodeURIComponent(currentChatUser)}/30/30`}
               onSearch={handleSearch}
             />
             <MessageList
