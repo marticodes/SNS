@@ -232,23 +232,37 @@ const Simulation = {
             let last_messages = "";
             let formattedMessages = "";
 
+            //if (!sel_messages || sel_messages.length === 0) {
+             //   formattedMessages = "No messages";
+            //}
             if (!sel_messages || sel_messages.length === 0) {
                 formattedMessages = "No messages";
-            }
-            
+              } else {
+                last_messages = sel_messages.slice(-5);
+                formattedMessages = last_messages
+                  .map(msg => `(${msg.sender_id}): "${msg.content}"`)
+                  .join("\n");
+          
+                // Skip if the very last message was already from this agent
+                const lastMessage = last_messages[last_messages.length - 1];
+                if (lastMessage.sender_id === user_id) {
+                  console.log("Last message is from the agent. No response generated.");
+                  return;
+                }
+              }
             //else last_messages = sel_messages.slice(-5); 
             //console.log(last_messages);
             
-            if(sel_messages.length > 0){
-                const lastMessage = last_messages[last_messages.length - 1];  //Get the last message
-                if (lastMessage.sender_id === user_id) {
-                    console.log("Last message is from the agent. No response generated.");
-                    return;
-                }
-                formattedMessages = last_messages
-                .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
-                .join("\n");
-            }
+            //if(sel_messages.length > 0){
+                //const lastMessage = last_messages[last_messages.length - 1];  //Get the last message
+                //if (lastMessage.sender_id === user_id) {
+                    //console.log("Last message is from the agent. No response generated.");
+                    //return;
+                //}
+                //formattedMessages = last_messages
+                //.map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
+                //.join("\n");
+            //}
 
             let people = await ChatDAO.getChatMembers(receiver);
             people = people.filter(id => id !== user_id);
@@ -259,10 +273,10 @@ const Simulation = {
             if (isTwoPersonChat) {
                 // Ensure that the last message was from the other person
                 const lastMessage = sel_messages[sel_messages.length - 1];
-                if (lastMessage.sender_id === user_id) {
-                    console.log(`User ${user_id} has sent the last message. Skipping post.`);
-                    return;
-                }
+                //if (lastMessage.sender_id === user_id) {
+                    //console.log(`User ${user_id} has sent the last message. Skipping post.`);
+                    //return;
+                //}
             }
     
             let closeness_levels = await Promise.all(
@@ -822,7 +836,9 @@ const Simulation = {
                     comm_id: id.ina,
                 });
             }
-        } catch (error) {
+
+        } 
+        catch (error) {
             console.error("Error adding new channel", error);
         }
     },
