@@ -194,6 +194,7 @@ const SingleMessage = ({ message, isCurrentUser, onReply, scrollToMessage, chatI
           borderTopLeftRadius: isCurrentUser ? "15px" : "0px",
           borderTopRightRadius: isCurrentUser ? "0px" : "15px",
           position: "relative",
+          textAlign: isCurrentUser ? "right" : "left"
         }}
       >
         {/* Reply Section */}
@@ -214,7 +215,7 @@ const SingleMessage = ({ message, isCurrentUser, onReply, scrollToMessage, chatI
         )}
 
         {/* Message Content */}
-        <div style={{ fontSize: "16px", lineHeight: "1.5" }}>
+        <div style={{ fontSize: "14px", lineHeight: "1.5" }}>
           {message.text}
         </div>
 

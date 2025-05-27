@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import NFPage from "./pages/NF-Main";
 import NCPage from "./pages/NC-Main";
@@ -7,9 +7,8 @@ import UserPage from "./pages/UserPage";
 import ChatPage from "./pages/ChatPageOrCF-Main";
 import LogIn from "./pages/LogIn";
 import MetaphorPrompt from "./metaphor/ver4";
-import PanelLV1 from "./metaphor/components/PanelLV1";
-import PanelLV2 from "./metaphor/components/PanelLV2";
-import PanelLV3 from "./metaphor/components/PanelLV3";
+import Page2 from "./Page2";
+import Page3 from "./Page3";
 import "./App.css";
 
 function MainPage() {
@@ -24,11 +23,26 @@ function MainPage() {
   const [llmResponse, setLlmResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Load selections from localStorage when component mounts
+  useEffect(() => {
+    const savedSelections = localStorage.getItem('snsSelections');
+    if (savedSelections) {
+      try {
+        setSelections(JSON.parse(savedSelections));
+      } catch (error) {
+        console.error('Error loading selections from localStorage:', error);
+      }
+    }
+  }, []);
+
   const handleSelectionChange = (key, value) => {
-    setSelections(prev => ({
-      ...prev,
+    const newSelections = {
+      ...selections,
       [key]: value,
-    }));
+    };
+    setSelections(newSelections);
+    // Save to localStorage
+    localStorage.setItem('snsSelections', JSON.stringify(newSelections));
   };
 
   const convertSelectionsToIntegers = (selections) => {
@@ -139,7 +153,7 @@ function MainPage() {
     // LV3 Conversions
     if (selections.lv3) {
       // Ephemeral Content
-      console.log('Debug - selections.lv3:', selections.lv3);
+      //console.log('Debug - selections.lv3:', selections.lv3);
       if (selections.lv3.ephemeralContent) {
         result.ephemerality = selections.lv3.ephemeralContent.enabled ? 1 : 0;
       }
@@ -202,8 +216,6 @@ function MainPage() {
       // Create a formatted description from the form data
       const description = `In a space that feels ${formData.atmosphere}, people come together ${formData.reasonForGathering}, often connecting ${formData.connectionStyle}. They usually ${formData.durationOfParticipation}, interact through ${formData.communicationStyle}, and present themselves using ${formData.identityType}. Most people are here to ${formData.interactionGoal}, and they have the option to ${formData.participationControl}.`;
 
-      console.log("Sending to step 2:", { description, metaphorKeyword: formData.metaphorKeyword });
-
       // Step 2: Convert description to attributes
       const step2Response = await fetch("http://localhost:3001/api/llm", {
         method: "POST",
@@ -224,7 +236,7 @@ function MainPage() {
       }
 
       const step2Data = await step2Response.json();
-      console.log("Step 2 response:", step2Data);
+      console.log("Step 2 Data:", step2Data);
       
       // Step 3: Convert attributes to features
       const step3Response = await fetch("http://localhost:3001/api/llm", {
@@ -243,16 +255,17 @@ function MainPage() {
       }
 
       const step3Data = await step3Response.json();
+      console.log("Step 3 Data:", step3Data);
       setLlmResponse(step3Data.features);
       
       // Parse the LLM response and update selections
       const newSelections = {};
       parseLLMResponse(step3Data.features, newSelections);
+      console.log("New Selections after parsing:", newSelections);
       
       // Convert selections to integers and send to backend
       const integerSelections = convertSelectionsToIntegers(newSelections);
-
-      const myUserID = parseInt(localStorage.getItem("userID"), 10);
+      console.log("Integer Selections:", integerSelections);
 
       // Send to backend
       const backendResponse = await fetch("http://localhost:3001/api/features/all/add", {
@@ -260,7 +273,6 @@ function MainPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...integerSelections,
-          user_id: myUserID
         }),
       });
 
@@ -270,18 +282,23 @@ function MainPage() {
       }
 
       const backendData = await backendResponse.json();
+      
+      // Update the state after successful backend submission
+      setSelections(newSelections);
+      console.log("Setting selections state to:", newSelections);
+      
+      // Save to localStorage
+      localStorage.setItem('snsSelections', JSON.stringify(newSelections));
+      console.log("Saved to localStorage:", newSelections);
 
-      // Format attributes into bullet-pointed text
-      const formattedAttributes = formatAttributesToText(step2Data.attributes);
-      // Send metaphor data to backend
       const metaphorResponse = await fetch("http://localhost:3001/api/features/lvl/one/descriptions/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           keyword: formData.metaphorKeyword,
-          user_descr: description,
-          llm_descr: formattedAttributes,
-          user_count: newSelections.user_count
+          llm_descr: JSON.stringify(step2Data.attributes),
+          user_count: newSelections.user_count,
+          llm_final: step3Data.features,
         }),
       });
 
@@ -291,9 +308,7 @@ function MainPage() {
       }
 
       const metaphorData = await metaphorResponse.json();
-
-      // Update the state after successful backend submission
-      setSelections(newSelections);
+      console.log('Saved description:', metaphorData);
 
     } catch (error) {
       console.error("Failed to process metaphor:", error);
@@ -400,13 +415,13 @@ function MainPage() {
       const management = extractValue(lv2Content, 'Content Management');
       if (management) {
         const managementText = management.toLowerCase().trim();
-        const managementOptions = managementText.split(',').map(opt => opt.trim());
         newSelections.lv2.contentManagement = [];
         
-        if (managementOptions.includes('edit')) {
+        // Check for both edit and delete in the text
+        if (managementText.includes('edit')) {
           newSelections.lv2.contentManagement.push('edit');
         }
-        if (managementOptions.includes('delete')) {
+        if (managementText.includes('delete')) {
           newSelections.lv2.contentManagement.push('delete');
         }
       }
@@ -418,9 +433,9 @@ function MainPage() {
         newSelections.lv2.accountTypes = [];
         
         // Split by comma and handle each type
-        const types = accountText.split(',').map(type => type.trim());
+        const types = accountText.split(/[,\/]/).map(type => type.trim());
         
-        if (types.some(type => type === 'public')) {
+        if (types.some(type => type.includes('public'))) {
           newSelections.lv2.accountTypes.push('public');
         }
         if (types.some(type => type.includes('private') && type.includes('one-way'))) {
@@ -516,25 +531,31 @@ function MainPage() {
         const discoveryContent = discoveryMatch[1];
         newSelections.lv3.contentDiscovery = {};
 
-        // Parse Recommendations - now handles direct suggestions
+        // Parse Recommendations - now handles multiple suggestions
         const recommendations = extractValue(discoveryContent, 'Recommendations') || discoveryContent.trim();
         if (recommendations) {
           const recText = recommendations.toLowerCase().trim();
+          newSelections.lv3.contentDiscovery.recommendations = [];
+          
           if (recText.includes('topic') || recText.includes('topic-based')) {
-            newSelections.lv3.contentDiscovery.recommendations = ['topic-based'];
-          } else if (recText.includes('popular') || recText.includes('popularity-based')) {
-            newSelections.lv3.contentDiscovery.recommendations = ['popularity-based'];
+            newSelections.lv3.contentDiscovery.recommendations.push('topic-based');
+          }
+          if (recText.includes('popular') || recText.includes('popularity-based')) {
+            newSelections.lv3.contentDiscovery.recommendations.push('popularity-based');
           }
         }
 
-        // Parse Networking Control
+        // Parse Networking Control - now handles multiple controls
         const networking = extractValue(discoveryContent, 'Networking Control');
         if (networking) {
           const networkingText = networking.toLowerCase().trim();
+          newSelections.lv3.networkingControl = [];
+          
           if (networkingText.includes('block')) {
-            newSelections.lv3.networkingControl = ['block'];
-          } else if (networkingText.includes('mute')) {
-            newSelections.lv3.networkingControl = ['mute'];
+            newSelections.lv3.networkingControl.push('block');
+          }
+          if (networkingText.includes('mute')) {
+            newSelections.lv3.networkingControl.push('mute');
           }
         }
 
@@ -579,28 +600,19 @@ function MainPage() {
       </header>
       <main>
         <div className="metaphor-section">
-          <MetaphorPrompt onSubmit={handleMetaphorSubmit} />
+          <MetaphorPrompt onSubmit={handleMetaphorSubmit}/>
           {isLoading ? (
             <div className="loading-message">Processing your metaphor...</div>
           ) : (
             llmResponse && (
               <button
                 className="simulation-button"
-                onClick={() => handleGoToSimulation()}
+                onClick={() => navigate("/2")}
               >
-                Go to Simulation
+                Go to Next Page
               </button>
             )
           )}
-        </div>
-        <div className="llm-response">
-          <h3>Generated Response:</h3>
-          <div className="response-content">{llmResponse}</div>
-        </div>
-        <div className="panels-container">
-          <PanelLV1 selections={selections} />
-          <PanelLV2 selections={selections.lv2} />
-          <PanelLV3 selectedConnection={selections.connection} selections={selections.lv3} />
         </div>
       </main>
     </div>
@@ -618,6 +630,8 @@ function App() {
         <Route path="/user/:userId" element={<UserPage />} />
         <Route path="/dms/*" element={<ChatPage />} />
         <Route path="/login" element={<LogIn />} />
+        <Route path="/2" element={<Page2 />} />
+        <Route path="/3" element={<Page3 />} />
         <Route path="*" element={<div>Page Not Found</div>} />
       </Routes>
     </Router>

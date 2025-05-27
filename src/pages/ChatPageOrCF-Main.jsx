@@ -213,7 +213,8 @@ const ChatPage = () => {
           <>
             <ChatHeader
               currentChatUser={currentChatUser}
-              ProfilePics={chatList.find((chat) => chat.name === currentChatUser)?.image}
+              //ProfilePics={chatList.find((chat) => chat.name === currentChatUser)?.image}
+              ProfilePics={"https://picsum.photos/seed/${encodeURIComponent(currentChatUser)}/30/30"}
               onSearch={handleSearch}
             />
             <MessageList

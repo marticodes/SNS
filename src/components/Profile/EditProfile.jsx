@@ -13,6 +13,7 @@ const ProfileEdit = ({
   const [bio, setBio] = useState(initialBio || "");
   const [privateProfile, setPrivateProfile] = useState(initialPrivateProfile || 0);
   const [profileImage, setProfileImage] = useState(initialImage || "https://via.placeholder.com/150");
+  const [selectedFile, setSelectedFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [interests, setInterests] = useState([]);
   const [selectedInterests, setSelectedInterests] = useState([]);
@@ -32,8 +33,9 @@ const ProfileEdit = ({
         const response = await fetch(`http://localhost:3001/api/interests/${userId}`);
         const data = await response.json();
 
-        // Split the single string into an array of individual interests
-        const interestsArray = data[0] ? data[0].split(" & ") : []; // Handle empty response
+        // Get the last element from the array and split it into individual interests
+        const lastInterestString = data[data.length - 1] || "";
+        const interestsArray = lastInterestString ? lastInterestString.split(" & ") : [];
         setSelectedInterests(interestsArray);
       } catch (error) {
         console.error("Error fetching user interests:", error);
@@ -42,6 +44,14 @@ const ProfileEdit = ({
 
     fetchInterests();
   }, [userId]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setProfileImage(URL.createObjectURL(file));
+    }
+  };
 
   const handleConfirmChanges = async () => {
     setErrorMessage("");
@@ -53,12 +63,23 @@ const ProfileEdit = ({
         body: JSON.stringify({ user_id: userId, user_bio: bio }),
       });
 
-      // Update profile picture
-      await fetch("http://localhost:3001/api/user/update/picture", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, profile_picture: profileImage }),
-      });
+      // Update profile picture if a new file was selected
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('profile_picture', selectedFile);
+        formData.append('user_id', userId);
+
+        const response = await fetch("http://localhost:3001/api/user/update/picture", {
+          method: "POST",
+          body: formData,
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Update the profile image with the full URL
+          setProfileImage(`http://localhost:3001${data.profilePicturePath}`);
+        }
+      }
 
       // Update visibility
       await fetch("http://localhost:3001/api/user/update/visibility", {
@@ -67,14 +88,14 @@ const ProfileEdit = ({
         body: JSON.stringify({ user_id: userId, visibility: privateProfile }),
       });
 
-      // Update interests: no need to join here, backend expects a string
+      // Update interests
       await fetch("http://localhost:3001/api/interest/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, interest_name: selectedInterests.join(" & ") }), // Join interests to the string
+        body: JSON.stringify({ user_id: userId, interest_name: selectedInterests.join(" & ") }),
       });
 
-      onSave({ bio, privateProfile, profileImage, selectedInterests: selectedInterests.join(" & ") }); // join interests to the string
+      onSave({ bio, privateProfile, profileImage, selectedInterests: selectedInterests.join(" & ") });
       window.location.reload();
     } catch (error) {
       setErrorMessage("Error saving changes. Please try again.");
@@ -103,7 +124,7 @@ const ProfileEdit = ({
             <img src={profileImage} alt="Profile" className="image" />
           </div>
           <div className="profile-actions">
-            <button className="edit-button" onClick={() => fileInputRef.current.click()}>
+            <button className="edit-button" onClick={() => fileInputRef.current.click()} style={{fontSize: '13px'}}>
               Edit Image
             </button>
             <input
@@ -111,11 +132,12 @@ const ProfileEdit = ({
               ref={fileInputRef}
               style={{ display: "none" }}
               accept="image/*"
-              onChange={(e) => setProfileImage(URL.createObjectURL(e.target.files[0]))}
+              onChange={handleFileChange}
             />
             <button
               className="delete-button"
               onClick={() => setProfileImage("https://via.placeholder.com/150")}
+              style={{fontSize: '13px'}}
             >
               Delete Image
             </button>
@@ -124,7 +146,7 @@ const ProfileEdit = ({
 
         <div className="input-group">
           <label>Bio</label>
-          <textarea value={bio} onChange={(e) => setBio(e.target.value)} />
+          <textarea style={{fontSize: '12px'}} value={bio} onChange={(e) => setBio(e.target.value)} />
         </div>
 
         {[1, 2].includes(caseId) && (
@@ -139,7 +161,7 @@ const ProfileEdit = ({
           </div>
         )}
 
-        <button className="edit-interests-button" onClick={() => setShowInterestPopup(true)}>
+        <button className="edit-interests-button" onClick={() => setShowInterestPopup(true)} style={{fontSize: '13px'}}>
           Change Personal Interests
         </button>
 
@@ -173,7 +195,7 @@ const ProfileEdit = ({
 
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
-        <button className="confirm-button" onClick={handleConfirmChanges}>
+        <button className="confirm-button" onClick={handleConfirmChanges} style={{fontSize: '13px'}}>
           Confirm Changes
         </button>
       </div>

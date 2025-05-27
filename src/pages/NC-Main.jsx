@@ -91,7 +91,7 @@ const NCPage = () => {
 
   return (
     <>
-      <div style={{ position: "fixed", top: 0, left: 0, height: "100vh" }}>
+      <div style={{ position: "fixed", top: 0, left: 0, height: "100vh", zIndex: "100000"  }}>
         <NavBar caseId={2} />
       </div>
       <div

@@ -8,7 +8,7 @@ function PanelLV3({ selections }) {
           <h3>LV3</h3>
         </div>
       </div>
-
+      
       <h3>Ephemeral content</h3>
 
       <div className="options">
@@ -23,10 +23,10 @@ function PanelLV3({ selections }) {
       <div className="options">
         <h3>Content visibility control</h3>
         <label>
-          <input type="checkbox" checked={selections?.ephemeralContent?.visibilityControl?.includes('public')} disabled={true}/> Public
+          <input type="checkbox" checked={selections?.visibilityControl?.includes('public')} disabled={true}/> Public
         </label>
         <label>
-          <input type="checkbox" checked={selections?.ephemeralContent?.visibilityControl?.includes('private')} disabled={true}/> Private
+          <input type="checkbox" checked={selections?.visibilityControl?.includes('private')} disabled={true}/> Private
         </label>
       </div>
 

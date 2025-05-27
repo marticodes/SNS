@@ -88,7 +88,7 @@ const UserList = ({ users, onUserClick}) => {
           style={{
             marginLeft: "80px", 
             marginTop: "5px",
-            marginBottom: "-5px", 
+            marginBottom: "-3px", 
             cursor: "pointer", 
           }}
           onClick={handleOpenNewChat} 
@@ -122,6 +122,8 @@ const UserList = ({ users, onUserClick}) => {
               margin: "5px 0",
               borderRadius: "3px",
               color: "#000000",
+              textAlign: "left",
+              fontSize: "13px"
             }}
             onClick={() => handleChatClick(chat)} // Call the function when the user is clicked
           >
@@ -139,10 +141,14 @@ const UserList = ({ users, onUserClick}) => {
               />
             ) : (
               <MdGroups2
-                size={30}
-                style={{
-                  marginRight: "10px",
+              size={30}
+              style={{
+                  width: "25px",     
+                  height: "25px",   
                   color: "#032F50",
+                  marginLeft: "5px",
+                  marginRight: "10px",
+                  flexShrink: 0      
                 }}
               />
             )}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
 import ProfileCard from "../components/PopUpProfileCard";
+import ReactDom from "react-dom";
 
 const userId = localStorage.getItem("userID");
 const caseNumb = parseInt(localStorage.getItem("selectedCase"), 10);
@@ -260,8 +261,8 @@ export default function NotificationPanel({ onClose }) {
     height: "100vh",
     width: "320px",
     backgroundColor: "#fff",
-    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-    zIndex: 1000000000,
+    boxShadow: "-4px 0px 8px rgba(0, 0, 0, 0.1)",
+    zIndex: 10000, 
     overflowY: "auto",
     borderLeft: "1px solid #e0e0e0",
   };
@@ -291,6 +292,7 @@ export default function NotificationPanel({ onClose }) {
 
   const headerStyle = {
     padding: "15px",
+    paddingBottom: "28px",
     borderBottom: "1px solid #e0e0e0",
     display: "flex",
     justifyContent: "space-between",
@@ -405,7 +407,7 @@ export default function NotificationPanel({ onClose }) {
   return (
     <div style={panelStyle}>
       <div style={headerStyle}>
-        <h2 style={{ margin: 0, fontSize: "16px", color: "#262626" }}>Notifications</h2>
+        <h2 style={{ margin: 0, fontSize: "20px", color: "#262626" }}>Notifications</h2>
         <IoMdClose style={{ fontSize: "20px", color: "black" }} onClick={onClose} />
       </div>
 

@@ -18,18 +18,19 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
-        borderRight: "0.1px solid #ddd",
+        borderRight: "3px solid #5555",
       }}
     >
       {/* Header */}
       <h4
         style={{
-          padding: "15px",
+          padding: "23px",
           margin: "0",
-          borderBottom: "0.1px solid #ddd",
-          fontSize: "17.2px",
+          borderBottom: "1px solid #ddd",
+          fontSize: "18px",
           fontWeight: "bold",
           backgroundColor: "#fff",
+          textAlign: "left"
         }}
       >
         Communities
@@ -53,9 +54,8 @@ const UserList = ({ users, onUserClick, ProfilePics }) => {
             onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
             onMouseOut={(e) => (e.currentTarget.style.backgroundColor = selectedUser === user ? "#d0e6ff" : "transparent")}
           >
-            {/* Display user profile picture */}
             <img
-              src={ProfilePics[user] || "https://via.placeholder.com/30"}
+              src={ProfilePics[user] || `https://picsum.photos/seed/${encodeURIComponent(user)}/30/30`}
               alt={user}
               style={{
                 width: "30px",

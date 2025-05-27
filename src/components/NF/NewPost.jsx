@@ -9,7 +9,8 @@ import axios from "axios";
 // Styled Components
 const NewPostContainer = styled.div`
   display: flex;
-  width: 85%;
+  width: 60%;
+  margin: 0 auto;
 `;
 
 const PostDiv = styled.div`
@@ -26,13 +27,14 @@ const Title = styled.h2`
   text-align: center;
   margin-bottom: 1rem;
   color: #000000;
+  font-size: 18px;
 `;
 
 const TextArea = styled.textarea`
   width: 95%;
   height: 300px;
   padding: 1rem;
-  font-size: 1rem;
+  font-size: 14px;
   border: 1px solid #ddd;
   border-radius: 5px;
   resize: none;
@@ -57,7 +59,7 @@ const UploadLabel = styled.label`
   padding: 8px 12px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 14px;
 
   &:hover {
     background-color: #0056b3;
@@ -128,7 +130,7 @@ const Button = styled.button`
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 14px;
   background-color: ${({ cancel }) => (cancel ? "#ccc" : "#007bff")};
   color: white;
 
@@ -228,7 +230,7 @@ const NewPost = ({ user, addNewPost, fetchFeedData, ephemeral = true }) => {
         {/* Only show ephemeral checkbox if level three features indicate it's enabled */}
         {levelThreeFeatures?.ephemerality === 1 && (
           <div style={{ marginBottom: '10px', alignSelf: 'center', color: 'black' }}>
-            <label style={{ color: 'black', alignSelf: 'center' }}>
+            <label style={{ color: 'black', alignSelf: 'center', fontSize: "14px" }}>
               Post is ephemeral (24 hours)?
               <input
                 style={{ marginLeft: '10px', marginTop: '10px', color: 'white', transform: 'scale(1.3)', cursor: 'pointer' }}
@@ -240,10 +242,10 @@ const NewPost = ({ user, addNewPost, fetchFeedData, ephemeral = true }) => {
           </div>
         )}
 
-        <UploadContainer>
+        {/* <UploadContainer>
           <UploadLabel htmlFor="file-upload">Upload Images/Videos</UploadLabel>
           <FileInput id="file-upload" type="file" multiple accept="image/*,video/*" onChange={handleFileUpload} />
-        </UploadContainer>
+        </UploadContainer> */}
 
         <PreviewContainer>
           {mediaFiles.map((file, index) => (

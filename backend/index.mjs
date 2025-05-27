@@ -2,6 +2,10 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import { check, validationResult } from 'express-validator';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
@@ -48,14 +52,20 @@ const fsDAO = FeatureSelectionDAO;
 
 const SERVER_URL = 'http://localhost:3001/api';
 
+// Get the directory name
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 //init express and set up the middlewares
 const app = express();
 
 const port = 3001;
 app.use(morgan('dev'));
 app.use(express.json());
-
 app.use(cors());
+
+// Serve static files from the public directory
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 app.use(express.static('public'));
   
 app.use(session({
@@ -70,6 +80,35 @@ app.use(passport.authenticate('session'));
 app.use((req, res, next) => {
     next();
   });
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, 'public', 'uploads', 'profile');
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+      return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+  }
+});
 
 //User API
 app.get('/api/user/:id_name/:password',
@@ -206,10 +245,16 @@ app.post('/api/user/update/bio',
 );
 
 app.post('/api/user/update/picture',
+    upload.single('profile_picture'),
     async (req, res) => {
         try {
-          const set = await userDao.updateProfilePicture(req.body.user_id, req.body.profile_picture);
-          res.status(201).json({set});
+          if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+          }
+          
+          const profilePicturePath = `/uploads/profile/${req.file.filename}`;
+          const set = await userDao.updateProfilePicture(req.body.user_id, profilePicturePath);
+          res.status(201).json({ set, profilePicturePath });
         } catch (err) {
           res.status(503).json({ error: `BE: Error updating profile picture ${err}` });
         }
@@ -1250,7 +1295,8 @@ app.post('/api/features/lvl/one/descriptions/add',
         req.body.keyword,
         req.body.llm_descr,
         req.body.user_descr,
-        req.body.user_count
+        req.body.user_count,
+        req.body.llm_final
       );
       if (updated) {
         res.status(200).json({ message: "Description updated successfully" });
@@ -1324,7 +1370,7 @@ app.post("/api/llm", async (req, res) => {
   try {
     if (step === 2) {
       // Step 2: Convert Description to Key Attributes
-      console.log("Received input for step 2:", input);
+      //console.log("Received input for step 2:", input);
       const attributes = await generateKeyAttributes(input.description, input.metaphorKeyword);
       sessions.set(sessionId, { step: 2, attributes });
       return res.json({ attributes });
@@ -1384,7 +1430,7 @@ async function generateKeyAttributes(description, metaphorKeyword) {
       ],
     });
 
-    console.log("Key Attributes API Response:", completion.choices[0]?.message.content);
+    //console.log("Key Attributes API Response:", completion.choices[0]?.message.content);
 
     try {
       const jsonResponse = JSON.parse(completion.choices[0]?.message.content || "{}");
@@ -1432,13 +1478,13 @@ async function generateSocialMediaFeatures(attributes) {
           - **Reactions**: Enables users to express their opinion on content.
             - Like: A single positive acknowledgment (e.g., heart on Instagram posts).
             - Upvote/Downvote: Allows for ranking content positively or negatively (e.g., Reddit).
-            - Expanded Reactions: Offers a range of reactions such as "love," "haha," "angry," etc. (e.g., Facebook's reaction system).
+            - Expanded Reactions: Use of emojis such as "love," "haha," "angry," etc. (e.g., Facebook's reaction system).
           - **Content Management**: Outlines options for editing or removing posts.
             - Edit: Modify content after posting (e.g., X/Twitter edit feature for subscribers).
             - Delete: Permanently remove content from the platform.
           - **Account Types**: Defines privacy and accessibility. (multiple can be selected)
             - Public: Content is accessible to everyone.
-            - Private (one-way): Follower requests are required, but users don’t need mutual consent (e.g., Instagram private accounts).
+            - Private (one-way): Follower requests are required, but users don't need mutual consent (e.g., Instagram private accounts).
             - Private (mutual): Both parties must agree to connect (e.g., LinkedIn).
           - **Identity Options**: Specifies how users represent themselves.
             - Real-name: Users must use their real identity (e.g., LinkedIn).
@@ -1455,7 +1501,7 @@ async function generateSocialMediaFeatures(attributes) {
           LV3: Advanced Features & Customization
           - **Ephemeral Content**: Temporary content that disappears after a set time.
             - Enabled: Platforms like Snapchat or Instagram Stories. (just reply with Yes or No)
-          - **Content Visibility Control**: Defines audience customization options.
+          - **Content Visibility Control**: Defines audience customization options. (choose between Public or Private)
             - Public: Content is visible to all users
             - Private: Content visibility is restricted
           - **Content Discovery**: Methods of introducing users to new content.
@@ -1478,6 +1524,8 @@ async function generateSocialMediaFeatures(attributes) {
         Timeline Types: Chat-based
         Content Order: Algorithmic
         and so on...
+
+        Then at the end of the response, can you add your reasoning for the answer? Give specific reasoning for all your selections.
         
         Do not use bolded text or []`
         }

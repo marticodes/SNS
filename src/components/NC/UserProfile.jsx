@@ -33,7 +33,9 @@ const TextContainer = styled.div`
 const UserName = styled.h4`
   margin: 0;
   color: black;
-  font-weight: 400;
+  font-weight: 600;
+  text-align: left;
+  font-size: 14px;
 `;
 
 const PostDate = styled.p`
@@ -160,7 +162,7 @@ const UserProfile = ({
           {variant === "default" && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <PostDate>{postDate}</PostDate>
-              {timeleft && <span style={{ fontSize: 'smaller', fontWeight: 'bold', color: 'black', marginBottom: '2px' }}>• {timeleft}</span>}
+              {timeleft && <span style={{ fontSize: 'smaller', fontWeight: 'bold', color: '#007bff', marginBottom: '2px' }}>• {timeleft}</span>}
             </div>
           )}
         </TextContainer>

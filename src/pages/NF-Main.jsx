@@ -12,7 +12,7 @@ const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background-color: #f0f0f0;
+  background-color:rgb(255, 255, 255);
   min-height: 100vh;
   margin-left: 173px;
 `;
@@ -119,7 +119,7 @@ const NFPage = () => {
 
   return (
     <>
-      <div style={{ position: "fixed", top: 0, left: 0, height: "100vh" }}>
+      <div style={{ position: "fixed", top: 0, left: 0, height: "100vh", zIndex: "100000" }}>
         <NavBar caseId={1} />
       </div>
       <AppContainer>

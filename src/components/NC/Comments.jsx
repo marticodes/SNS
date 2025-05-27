@@ -29,7 +29,7 @@ const TextArea = styled.textarea`
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 5px;
-  font-size: 1rem;
+  font-size: 13px;
   resize: none;
   color: #000000;
   background-color: #FFFFFF;
@@ -47,7 +47,7 @@ const SendButton = styled.button`
   border-radius: 5px;
   background-color: #007bff;
   color: white;
-  font-size: 1rem;
+  font-size: 12px;
   cursor: pointer;
 
   &:hover {
@@ -72,7 +72,7 @@ const CommentContent = styled.div`
   }
 
   span {
-    font-size: 0.9rem;
+    font-size: 12px;
     color: #555;
   }
 `;
@@ -82,13 +82,14 @@ const TextContent = styled.div`
   background-color: #ffffff;
   border-radius: 5px;
   flex: 1;
+  text-align: left;
 
   p {
     margin: 0 0 5px 0;
+    font-size: 13px;
   }
 
   span {
-    font-size: 0.9rem;
     color: #555;
   }
 `;

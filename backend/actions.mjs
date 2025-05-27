@@ -19,8 +19,8 @@ function getUserIds() {
 async function ActionSimulation() {
     ////////////////Agent generation.////////////////////
     try {
-        // const userCount = await FeatureSelectionDAO.getUserCount();
-        const userCount = 10;
+        const userCount = await FeatureSelectionDAO.getUserCount();
+        //const userCount = 10;
         
         let existingUserNames = [];
         let existingUserBios = [];
@@ -40,58 +40,74 @@ async function ActionSimulation() {
     }
 
     ////////////////Relation generation.////////////////////
-    // const userCount = await FeatureSelectionDAO.getUserCount();
-    const userCount = 10;
-    const targetRelations = Math.round((userCount * (userCount - 1)) / 2 * 0.6);  // 60% of n choose 2, rounded
-    const existingRelations = new Set(); // Track existing relations
+    const userCount = await FeatureSelectionDAO.getUserCount();
+    const totalTargetRelations = Math.round((userCount * (userCount - 1)) / 2 * 0.6);  // 60% of n choose 2
     
-    while (true) {
-        try {
-            // Check current total
-            const response = await fetch('http://localhost:3001/api/relations/total');
-            const currentRelations = (await response.json()).total;
-            console.log(`Current total relations: ${currentRelations}/${targetRelations}`);
+    const bidirectionalCount = Math.round(totalTargetRelations * 0.7);  // 70% bidirectional
+    const unidirectionalCount = totalTargetRelations - bidirectionalCount;  // 30% unidirectional
+    
+    const existingRelations = new Set(); // Track existing relations to avoid duplicates
+    
+    async function createRelationEntry(u1, u2) {
+        await fetch('http://localhost:3001/api/relations/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id_1: u1,
+                user_id_2: u2,
+                relation_type: 2,
+                restricted: 0,
+                closeness: 0
+            })
+        });
+    }
+
+    console.log(`Creating ${bidirectionalCount} bidirectional and ${unidirectionalCount} unidirectional relations`);
+
+    try {
+        const userIds = await getUserIds();
+        
+        // Create bidirectional relations (70%)
+        for (let i = 0; i < bidirectionalCount; i++) {
+            let user1, user2, relationKey;
             
-            if (currentRelations >= targetRelations) {
-                console.log("Reached target relations count!");
-                break;
-            }
-
-            // Get all users
-            const userIds = await getUserIds();
+            // Find a unique pair
+            do {
+                user1 = userIds[Math.floor(Math.random() * userIds.length)];
+                user2 = userIds[Math.floor(Math.random() * userIds.length)];
+                relationKey = `${Math.min(user1, user2)}-${Math.max(user1, user2)}`;
+            } while (user1 === user2 || existingRelations.has(relationKey));
             
-            // Create 10 random relations
-            for (let i = 0; i < 10; i++) {
-                const user1 = userIds[Math.floor(Math.random() * userIds.length)];
-                let user2 = userIds[Math.floor(Math.random() * userIds.length)];
-                
-                // Keep trying until we find a new unique relation
-                const relationKey = `${Math.min(user1, user2)}-${Math.max(user1, user2)}`;
-                while (user1 === user2 || existingRelations.has(relationKey)) {
-                    user2 = userIds[Math.floor(Math.random() * userIds.length)];
-                    relationKey = `${Math.min(user1, user2)}-${Math.max(user1, user2)}`;
-                }
-                
-                existingRelations.add(relationKey);
-
-                await fetch('http://localhost:3001/api/relations/add', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id_1: user1,
-                        user_id_2: user2,
-                        relation_type: 2,
-                        restricted: 0,
-                        closeness: 0
-                    })
-                });
-                console.log(`Added relation: ${user1} -> ${user2}`);
-            }
-
-            await new Promise(resolve => setTimeout(resolve, 100));
-        } catch (error) {
-            console.error('Error:', error);
+            existingRelations.add(relationKey);
+            
+            // Create both directions
+            await createRelationEntry(user1, user2);
+            await createRelationEntry(user2, user1);
+            console.log(`Added bidirectional relation: ${user1} <-> ${user2}`);
         }
+        
+        // Create unidirectional relations (30%)
+        for (let i = 0; i < unidirectionalCount; i++) {
+            let user1, user2, relationKey;
+            
+            // Finding a unique pair
+            do {
+                user1 = userIds[Math.floor(Math.random() * userIds.length)];
+                user2 = userIds[Math.floor(Math.random() * userIds.length)];
+                relationKey = `${Math.min(user1, user2)}-${Math.max(user1, user2)}`;
+            } while (user1 === user2 || existingRelations.has(relationKey));
+            
+            existingRelations.add(relationKey);
+            
+            // Create only one direction
+            await createRelationEntry(user1, user2);
+            console.log(`Added unidirectional relation: ${user1} -> ${user2}`);
+        }
+        
+        console.log(`Relation generation complete! Created ${bidirectionalCount} bidirectional and ${unidirectionalCount} unidirectional relations.`);
+        
+    } catch (error) {
+        console.error('Error creating relations:', error);
     }
 
     ////////////////Action generation.////////////////////

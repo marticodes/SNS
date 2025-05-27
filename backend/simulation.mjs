@@ -7,6 +7,7 @@ import CommunityDAO from './dao/community_dao.mjs';
 import CMemberDAO from './dao/community_membership_dao.mjs';
 import MessageDAO from './dao/message_dao.mjs';
 import NotificationDAO from './dao/notification_dao.mjs';
+import UserInterestDAO from './dao/user_interest_dao.mjs'
 import PostDAO from './dao/post_dao.mjs';
 import ReactionDAO from './dao/reaction_dao.mjs';
 import RelationDAO from './dao/relation_dao.mjs';
@@ -303,7 +304,7 @@ const Simulation = {
                 Goals:
                 • Respond naturally and personally to the last message.
                 • Do not repeat phrases or sentiments from earlier messages.
-                • You can use common chat shortforms or slangs like wby, love, luv, ngl, lol, lmao
+                 • You can use common chat shortforms like "wby", love, luv, ngl, lol, lmao
                 • Try to keep the conversation engaging and personal. You may ask a follow-up question, express your opinion, or share a new idea.
                 • Limit your response to 1–2 short sentences, with no more than 12 words per message.
                 • Remember, build on the conversation and ask for deeper questions on the topic being discussed. You have to ensure conversation flows naturally and builds upon the core topic in the lasts messages. For example is someone is talking about food, you may give an example of a spefic food you just eating. If someone is asking what's up? You need to give a proper reply of what you did that day like attended a class on business studies.  
@@ -328,7 +329,6 @@ const Simulation = {
                 • Keep the conversation varied. Introduce new angles, switch the tone, or share a new topic.
                 • Limit your response to 1–2 short sentences, with no more than 12 words per message.
                 • Avoid using an exclamation mark unless absolutely necessary.
-                • If there is any question in the chat make sure to reply to it before replying with more questions. 
                 • Remember, build on the conversation and ask for deeper questions on the topic being discussed. You have to ensure conversation flows naturally and builds upon the core topic in the lasts messages. For example is someone is talking about food, you may give an example of a spefic food you just eating. If someone is asking what's up? You need to give a proper reply of what you did that day like attended a class on business studies.  
                 • About **10% of the time**, include a one-line off-topic quip (a meme, weekend plan, news headline, etc.) unrelated to the main thread.
                 Now, generate the next message(s) as separate bubbles.`;
@@ -376,30 +376,46 @@ const Simulation = {
                 .map((post, index) => `(${index + 1}) ${post.content}`) 
                 .join("\n"); 
             }
+            
+            const user_roles = [
+                { goal: "gain followers", role: "Influencer" },
+                { goal: "spread ideas", role: "Spreader" },
+                { goal: "seek emotional support", role: "Support-Seeker" },
+                { goal: "entertain others", role: "Entertainer" },
+                { goal: "moderate discussion", role: "Moderator" },
+                { goal: "raise awareness", role: "Activist" },
+                { goal: "connect with like-minded people", role: "Networker" },
+                { goal: "observe quietly", role: "Lurker" },
+                { goal: "write hate comments", role: "Bully" }
+            ]
 
-            const user_prompt = `You are a user on social media platforms like ${platforms.join(", ")}.
-            When you write content—comments, posts, or messages—mimic the style of these platforms in:
-            - length, tone, emoji/hashtag usage
-            - typical formality and formatting
-            Do NOT sound like a corporate announcement or a generic AI.
-            You are about to make a new post on social media. While making a post ensure that:
-            1. The theme of the post is only one and posts mimic the example platforms in length, tone, emoji/hashtag usage, typical formality and formatting. 
-            2. Make sure that your new post is signficantly different in content and context to your old posts. 
-            3. **Structure the post clearly.** Avoid adding multiple unrelated ideas in a single post.  
-            4. Make sure that the post has newlines and paragraphs to make it more readable.
-            1. Focus on one clear theme—avoid mixing multiple ideas.  
-            2. Make sure it is distinct from your previous posts in content, structure, storyline, context, and especially length.  
-            3. Do not use the same phrasings as the previous posts.
-            4. Keep it engaging while staying within three sentences and 120 - 150 characters.  
-            5. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
-            6. Check your last 3 posts if they exist. Ensure that if 2 of them are generic, the next one has extremely specific details. 
-            7. 7. **Distinctness requirement:**  
-            - **Lexical overlap** with any of your last 3 posts must be under 30% (i.e., no more than 30% of words in common).  
-            - **Semantic similarity** (cosine similarity) with any of your last 3 posts must be below 0.7.  
-            8. Avoid using an exclamation mark unless absolutely necessary.
-            9. The tone should be calm and nonchalant most of the time. 
-            The contents of some of your previous posts are:${last_posts}. 
-            Now, generate a new post that sticks to a single theme and meets all of the above criteria.`;
+            const user_interests = await UserInterestDAO.getUserInterests(user_id);
+
+            const user_prompt = `
+            You are a user on social media platforms like ${platforms.join(", ")}.
+            When writing a new post, mimic the typical style of that platform in terms of:
+            - Length (120–150 characters, max three sentences) and tone (avoid exclamation marks unless necessary)
+            - Formatting (informal, no bullet points, no bold/italic, use natural paragraph breaks)
+            - Hashtag use (use minimal, aligning to the platform’s culture, don’t overdo it)
+            Do NOT sound like a corporate announcement or a generic AI.  
+
+            The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
+            Post requirements:
+            0. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
+            1. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
+            2. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
+            3. Your post must be significantly different from your last three posts in:
+            - Content, structure, storyline, length, and phrasing
+            - Lexical overlap: below 20% shared words with past 3 posts
+            - Semantic similarity: below 0.2 cosine similarity with past 3 posts. Use a completely different sentence structure. The contents of some of your previous posts are:${last_posts}. 
+            4. Structure the post clearly with natural newlines—avoid dense blocks of text.
+            5. Keep the contents engaging and relatable.
+            6. Avoid generic tone if your last two posts were already generic—add specificity (names, places, small moments).
+            7. Do not end the post with a question.
+        
+            Now, generate a new post that sticks to a single theme and meets all of the above criteria.
+            `;
+
             const new_post = await generateResponse(system_prompt, user_prompt);
 
             const time = new Date().toISOString();
@@ -527,14 +543,66 @@ const Simulation = {
 
     async addAGStory(user_id, system_prompt){
         try {
-            const user_prompt = `You are about to make a new ephemeral post on social media. These are time-sensitive posts and will only be up for 24 hours.
-            While making an ephemeral post ensure that:
-            1. Focus on one clear theme—avoid mixing multiple ideas.  
-            2. Make it distinct from your previous posts in content, structure, storyline, context, and length.  
-            3. Do not use the same phrasings as the previous posts.
-            4. Keep it engaging while staying within three sentences. 
-            5. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
-            Now, generate a new post that sticks to a single theme.`;
+            const lvl1 = await FeatureSelectionDAO.getLvlOneFeatures();
+            //GETTING SOCIAL MEDIA TYPE. //
+            const platforms = ActionChoice.getSocialMediaType(
+              lvl1.timeline, 
+              lvl1.connection_type
+            ); 
+            const sel_posts =  await PostDAO.getAllPosts(user_id);
+            let last_posts = "";
+
+            if (!sel_posts || sel_posts.length === 0) {
+                last_posts = "You have not made any posts so far. Make your first post.";
+            }
+            else {
+                 last_posts = sel_posts
+                .slice(-3) 
+                .map((post, index) => `(${index + 1}) ${post.content}`) 
+                .join("\n"); 
+            }
+
+            const user_roles = [
+                { goal: "gain followers", role: "Influencer" },
+                { goal: "spread ideas", role: "Spreader" },
+                { goal: "seek emotional support", role: "Support-Seeker" },
+                { goal: "entertain others", role: "Entertainer" },
+                { goal: "moderate discussion", role: "Moderator" },
+                { goal: "raise awareness", role: "Activist" },
+                { goal: "connect with like-minded people", role: "Networker" },
+                { goal: "observe quietly", role: "Lurker" },
+                { goal: "write hate comments", role: "Bully" }
+            ]
+
+            const user_interests = await UserInterestDAO.getUserInterests(user_id);
+
+
+            const user_prompt = `
+            You are a user on social media platforms like ${platforms.join(", ")}.
+            You are about to make a new **ephemeral** post on social media. These are time-sensitive posts and will only be up for 24 hours.
+            When writing a new ephemeral post, mimic the typical style of that platform in terms of:
+            - Short and concise length (30~40 characters, max two sentences) 
+            - Informal, spontaneous, or unpolished tone (avoid exclamation marks unless necessary)
+            - Personal and emotionally expressive
+            - Formatting (no bullet points, no bold/italic, use natural paragraph breaks)
+            Do NOT sound like a corporate announcement or a generic AI. 
+
+            The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
+            Post requirements:
+            0. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
+            1. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
+            2. Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
+            3. Your post must be significantly different from your last three posts in:
+            - Content, structure, storyline, length, and phrasing
+            - Lexical overlap: below 20% shared words with past 3 posts
+            - Semantic similarity: below 0.2 cosine similarity with past 3 posts. Use a completely different sentence structure. The contents of some of your previous posts are:${last_posts}. 
+            4. Structure the post clearly with natural newlines—avoid dense blocks of text.
+            5. Keep the contents engaging and relatable.
+            6. Avoid generic tone if your last two posts were already generic—add specificity (names, places, small moments).
+            7. Do not end the post with a question.
+        
+            Now, generate a new post that sticks to a single theme and meets all of the above criteria.
+            `;
             const new_post = await generateResponse(system_prompt, user_prompt);
 
             const time = new Date().toISOString();
@@ -567,15 +635,70 @@ const Simulation = {
             
             let sel_comm = channels[Math.floor(Math.random() * channels.length)];
 
-            const user_prompt = `You are about to make a new ephemeral post on social media. These are time-sensitive posts and will only be up for 24 hours.
+            const lvl1 = await FeatureSelectionDAO.getLvlOneFeatures();
+            //GETTING SOCIAL MEDIA TYPE. //
+            const platforms = ActionChoice.getSocialMediaType(
+              lvl1.timeline, 
+              lvl1.connection_type
+            ); 
+            const sel_posts =  await PostDAO.getAllPosts(user_id);
+            let last_posts = "";
+
+            if (!sel_posts || sel_posts.length === 0) {
+                last_posts = "You have not made any posts so far. Make your first post.";
+            }
+            else {
+                 last_posts = sel_posts
+                .slice(-3) 
+                .map((post, index) => `(${index + 1}) ${post.content}`) 
+                .join("\n"); 
+            }
+
+            const user_roles = [
+                { goal: "gain followers", role: "Influencer" },
+                { goal: "spread ideas", role: "Spreader" },
+                { goal: "seek emotional support", role: "Support-Seeker" },
+                { goal: "entertain others", role: "Entertainer" },
+                { goal: "moderate discussion", role: "Moderator" },
+                { goal: "raise awareness", role: "Activist" },
+                { goal: "connect with like-minded people", role: "Networker" },
+                { goal: "observe quietly", role: "Lurker" },
+                { goal: "write hate comments", role: "Bully" }
+            ]
+
+            const user_interests = await UserInterestDAO.getUserInterests(user_id);
+
+
+            const user_prompt = `
+            You are about to make a new **ephemeral post** on social media. These are time-sensitive posts and will only be up for 24 hours.
             The community name is ${sel_comm.comm_name}. This is a community with likeminded people who are passionate about ${sel_comm.comm_bio}.
-            While making an ephemeral post ensure that:
-            1. Focus on one clear theme—avoid mixing multiple ideas.  
-            2. Make it distinct from your previous posts in content, structure, storyline, context, and length.  
-            3. Do not use the same phrasings as the previous posts.
-            4. Keep it engaging while staying within three sentences. 
-            5. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
-            Now, generate a new post that sticks to a single theme.`;
+
+            You are a user on social media platforms like ${platforms.join(", ")}.
+            When writing a new ephemeral post, mimic the typical style of that platform in terms of:
+            - Short and concise length (30~40 characters, max two sentences) 
+            - Informal, spontaneous, or unpolished tone (avoid exclamation marks unless necessary)
+            - Personal and emotionally expressive
+            - Formatting (no bullet points, no bold/italic, use natural paragraph breaks)
+            Do NOT sound like a corporate announcement or a generic AI. 
+
+            The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
+            Post requirements:
+            0. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
+            1. Your post must be aligned with the community topic.
+            2. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
+            3. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
+            4. Your post must be significantly different from your last three posts in:
+            - Content, structure, storyline, length, and phrasing
+            - Lexical overlap: below 20% shared words with past 3 posts
+            - Semantic similarity: below 0.2 cosine similarity with past 3 posts. Use a completely different sentence structure. The contents of some of your previous posts are:${last_posts}. 
+            5. Structure the post clearly with natural newlines—avoid dense blocks of text.
+            6. Keep the contents engaging and relatable.
+            7. Avoid generic tone if your last two posts were already generic—add specificity (names, places, small moments).
+            8. Do not end the post with a question.
+        
+            Now, generate a new post that sticks to a single theme and meets all of the above criteria.
+            `;
+            
             const new_post = await generateResponse(system_prompt, user_prompt);
 
             const time = new Date().toISOString();
@@ -770,12 +893,25 @@ const Simulation = {
     },
 
     async createAGChannel(user_id, system_prompt){
-        let user_prompt = `You are about to create a new community channel.
-        Using the provided information as a premise, generate a name for the community channel. It should mimic channels like we see on platforms like Reddit. Come up with a friendly, colloquial channel name that real people would actually use. Use a single word 50% of the time. Be straightforward and reply with just the name`;
+        const lvl1 = await FeatureSelectionDAO.getLvlOneFeatures();
+
+        //GETTING SOCIAL MEDIA TYPE. //
+        const platforms = ActionChoice.getSocialMediaType(
+            lvl1.timeline, 
+            lvl1.connection_type
+        ); 
+
+        let user_prompt = `
+        You are about to create a new community channel.
+        Generate a name for the community channel. The naming convention should mimic channels like we see on platforms like ${platforms.join(', ')}. 
+        The overall theme of the channel should mimicm the vibe of ${lvl1.llm_descr}. 
+        Come up with a channel name that real people would actually use. Be straightforward and reply with just the name.
+        `;
         let name = await generateResponse(system_prompt, user_prompt);
         
-        user_prompt = `You just created a channel ${name}. Now create a bio for this channel. It should mimic channels like we see on platforms like Reddit.
-        The bio should be a one-liner that describes the purpose of the channel.`;
+        user_prompt = `You just created a channel ${name}. Now create a bio for this channel. 
+        The bio should be a one-liner that describes the purpose of the channel. The bio sentence style should mimic channels like we see on platforms like ${platforms.join(', ')} whichever is similar to our context.
+        Please do not use emojis in bio.`;
         let bio = await generateResponse(system_prompt, user_prompt);
 
         let current = await CommunityDAO.getAllCommunityBios();
@@ -861,29 +997,69 @@ const Simulation = {
             console.log(`User ${user_id} has already posted 3 times in community ${sel_comm.comm_name}. Skipping post.`);
             return;  // Exit
         }
+
+        const lvl1 = await FeatureSelectionDAO.getLvlOneFeatures();
+        //GETTING SOCIAL MEDIA TYPE. //
+        const platforms = ActionChoice.getSocialMediaType(
+            lvl1.timeline, 
+            lvl1.connection_type
+        ); 
+        const sel_posts =  await PostDAO.getAllPosts(user_id);
+        let last_posts = "";
+
+        if (!sel_posts || sel_posts.length === 0) {
+            last_posts = "You have not made any posts so far. Make your first post.";
+        }
+        else {
+            last_posts = sel_posts
+            .slice(-3) 
+            .map((post, index) => `(${index + 1}) ${post.content}`) 
+            .join("\n"); 
+        }
+
+        const user_roles = [
+            { goal: "gain followers", role: "Influencer" },
+            { goal: "spread ideas", role: "Spreader" },
+            { goal: "seek emotional support", role: "Support-Seeker" },
+            { goal: "entertain others", role: "Entertainer" },
+            { goal: "moderate discussion", role: "Moderator" },
+            { goal: "raise awareness", role: "Activist" },
+            { goal: "connect with like-minded people", role: "Networker" },
+            { goal: "observe quietly", role: "Lurker" },
+            { goal: "write hate comments", role: "Bully" }
+        ]
+
+        const user_interests = await UserInterestDAO.getUserInterests(user_id);
+
+        
         const user_prompt = `You are about to make a new post in a community. 
             The community name is ${sel_comm.comm_name}. This is a community with likeminded people who are passionate about ${sel_comm.comm_bio}.
-            While making a post ensure that:
+
+            You are a user on social media platforms like ${platforms.join(', ')}.
+            When writing a new post, mimic the typical style of that platform in terms of:
+            - Length (120–150 characters, max three sentences) and tone (avoid exclamation marks unless necessary)
+            - Formatting (informal, no bullet points, no bold/italic, use natural paragraph breaks)
+            - Hashtag use (use minimal, aligning to the platform’s culture, don’t overdo it)
+            Do NOT sound like a corporate announcement or a generic AI.. 
+
+            The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
+            Post requirements:
+            0. Do NOT start the sentence with "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
             1. Your post must be aligned with the community topic.
-            2. Focus on one clear theme—avoid mixing multiple ideas.  
-            4. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
-            5. Important: Mimic how community posts are on platforms like Reddit.  
-            Do NOT sound like a corporate announcement or a generic AI.
-            The theme of the post is only one and posts mimic the example platforms in length, tone, emoji/hashtag usage, typical formality and formatting. The tone should be calm and nonchalant most of the time. 
-            2. Make sure that your new post is signficantly different in content and context to your old posts. 
-            3. **Structure the post clearly.** Avoid adding multiple unrelated ideas in a single post.  
-            4. Make sure that the post has newlines and paragraphs to make it more readable.
-            1. Focus on one clear theme—avoid mixing multiple ideas.  
-            2. Make sure it is distinct from your previous posts in content, structure, storyline, context, and especially length.  
-            3. Do not use the same phrasings as the previous posts.
-            4. Keep it engaging while staying within three sentences and 120 - 150 characters.  
-            5. Do not use bullet points, boldened or italicized text, greetings, headings, or end with a question. 
-            6. Check your last 3 posts if they exist. Ensure that if 2 of them are generic, the next one has extremely specific details. 
-            7. 7. **Distinctness requirement:**  
-            - **Lexical overlap** with any of your last 3 posts must be under 30% (i.e., no more than 30% of words in common).  
-            - **Semantic similarity** (cosine similarity) with any of your last 3 posts must be below 0.7.  
-            8. Avoid using exclamation mark unless absolutely necessary. 
-            Now, generate a new post that sticks to a single theme.`;
+            2. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
+            3. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
+            4. Your post must be significantly different from your last three posts in:
+            - Content, structure, storyline, length, and phrasing
+            - Lexical overlap: below 20% shared words with past 3 posts
+            - Semantic similarity: below 0.2 cosine similarity with past 3 posts. Use a completely different sentence structure. The contents of some of your previous posts are:${last_posts}. 
+            5. Structure the post clearly with natural newlines—avoid dense blocks of text.
+            6. Keep the contents engaging and relatable.
+            7. Avoid generic tone if your last two posts were already generic—add specificity (names, places, small moments).
+            8. Do not end the post with a question.
+        
+            Now, generate a new post that sticks to a single theme and meets all of the above criteria.
+            `;
+
             const new_post = await generateResponse(system_prompt, user_prompt);
 
             const time = new Date().toISOString();
@@ -1081,7 +1257,7 @@ const Simulation = {
                 comm_id: comm_id,
             });
         } catch (error) {
-            console.error("Error adding new channel", error);
+            console.error("Error joining new channel", error);
         }
     },
     
@@ -1106,28 +1282,28 @@ const Simulation = {
       
           const systemPrompt = "You are an AI that generates random social media user profiles in JSON format.";
           const userPrompt = `
-      Generate a random social media user profile in JSON format. The user need's to be someone who is likely to send a message into the following group chat however the profile and related attriibutes should be independant of the chat.Using the following group chat context lightly shape the user profile.:
-      Group Chat Name: ${chatName}
-      Group Chat Description: ${chatDescription}
-      
-      The JSON object must include the following keys:
-      - "id_name": A unique identifier starting with "ID_".
-      - "user_name": A plausible first name for example "stephenc01" or "cutepotato" or "msq1313". 
-      - "email": A plausible email address.
-      - "password": A sample strong password.
-      - "user_bio": A brief description about the user.
-      - "profile_picture": A URL using "https://i.pravatar.cc/120?u=" with a random query parameter.
-      - "posting_trait": A random floating-point number between 0 and 1 with two decimal places.
-      - "commenting_trait": A random floating-point number between 0.5 and 1 with two decimal places.
-      - "reacting_trait": A random floating-point number between 0.5 and 1 with two decimal places.
-      - "messaging_trait": A random floating-point number between 0 and 1 with two decimal places.
-      - "updating_trait": A random floating-point number between 0 and 0.5 with two decimal places.
-      - "comm_trait": A random floating-point number between 0 and 1 with two decimal places.
-      - "notification_trait": A random floating-point number between 0 and 1 with two decimal places.
-      - "interests":  An array of at least three interests chosen from the following list: ["Animals", "Art & Design", "Automobiles", "DIY & Crafting", "Education", "Fashion", "Finance", "Fitness", "Food", "Gaming", "History & Culture", "Lifestyle", "Literature", "Movies", "Music", "Nature", "Personal Development", "Photography", "Psychology", "Religion", "Social", "Sports", "Technology", "Travel", "Wellness"].
-      - "persona_name": A plausible persona fitting the profile you create.
-      - "social_group_name": A plausible social group name fitting the profile you create.
-      Return only the JSON object.
+            Generate a random social media user profile in JSON format. The user need's to be someone who is likely to send a message into the following group chat however the profile and related attriibutes should be independant of the chat.Using the following group chat context lightly shape the user profile.:
+            Group Chat Name: ${chatName}
+            Group Chat Description: ${chatDescription}
+            
+            The JSON object must include the following keys:
+            - "id_name": A unique identifier starting with "ID_".
+            - "user_name": A plausible first name.
+            - "email": A plausible email address.
+            - "password": A sample strong password.
+            - "user_bio": A brief description about the user.
+            - "profile_picture": A URL using "https://i.pravatar.cc/120?u=" with a random query parameter.
+            - "posting_trait": A random floating-point number between 0 and 1 with two decimal places.
+            - "commenting_trait": A random floating-point number between 0.5 and 1 with two decimal places.
+            - "reacting_trait": A random floating-point number between 0.5 and 1 with two decimal places.
+            - "messaging_trait": A random floating-point number between 0 and 1 with two decimal places.
+            - "updating_trait": A random floating-point number between 0 and 0.5 with two decimal places.
+            - "comm_trait": A random floating-point number between 0 and 1 with two decimal places.
+            - "notification_trait": A random floating-point number between 0 and 1 with two decimal places.
+            - "interests":  An array of at least three interests chosen from the following list: ["Animals", "Art & Design", "Automobiles", "DIY & Crafting", "Education", "Fashion", "Finance", "Fitness", "Food", "Gaming", "History & Culture", "Lifestyle", "Literature", "Movies", "Music", "Nature", "Personal Development", "Photography", "Psychology", "Religion", "Social", "Sports", "Technology", "Travel", "Wellness"].
+            - "persona_name": A plausible persona fitting the profile you create.
+            - "social_group_name": A plausible social group name fitting the profile you create.
+            Return only the JSON object.
           `;
       
           const apiResponse = await generateResponse(systemPrompt, userPrompt);
@@ -1230,7 +1406,7 @@ const Simulation = {
             The user has the goal of "${goalRole.goal}" and plays the role of "${goalRole.role}".
             Create a personality that embodies these metaphorical characteristics:
             LLM Description: ${descriptions.llm_descr}
-            IMPORTANT: The username should be generated independently of the metaphorical description, following only the identity style requirements.`;
+            IMPORTANT: The username should be generated related to the metaphorical description, following only the identity style requirements.`;
 
             // Create the user prompt for profile generation
             const userPrompt = `
@@ -1238,7 +1414,7 @@ const Simulation = {
 
             USERNAME REQUIREMENTS:
             - Strictly follow this identity style: ${identity_prompt}
-            - CRUCIAL: The username MUST be completely independent of the metaphorical theme ('${descriptions.keyword}'). It should NOT reflect the metaphor in any way.
+            - CRUCIAL: The username MUST be related to the metaphorical theme '${descriptions.keyword}' if the identity type is psedononymous. Please follow the universal style of username used in general social media.
             - The username must follow standard social media conventions.
             - Examples of username include "cutepotato" or "stephenhere" or "Ella_21" or "NataliAdamss_"
             ${existingUserNames.length > 0 ? `
@@ -1248,7 +1424,7 @@ const Simulation = {
             Generate a JSON object with these required fields:
             {
                 "id_name": "A unique identifier starting with 'ID_'",
-                "user_name": "A username strictly adhering to the USERNAME REQUIREMENTS above. It MUST NOT be related to the metaphorical theme in any way.",
+                "user_name": "A username strictly adhering to the USERNAME REQUIREMENTS above.",
                 "email": "A thematic email address, can be related to the metaphor or username strategy",
                 "password": "A strong password",
                 "user_bio": "A concise (1-3 sentences, approx 150 chars) and engaging social media bio. This bio should NOT weave in the metaphorical theme of '${descriptions.keyword} or metaphor.' ${existingUserBios.length > 0 ? `It MUST be distinct from these existing bios: ${existingUserBios.map(bio => `"${bio}"`).join('; ')}. ` : ''}No emojis.",
@@ -1262,7 +1438,7 @@ const Simulation = {
                 "notification_trait": "Float between 0-1",
                 "interests": ["At least 3 interests from the predefined list"],
                 "persona_name": "A name derived from the metaphor. Make sure it captures the user's personality completely and mimics how a real human being on such a social media would come across as.",
-                "social_group_name": "A group name aligned with the metaphor. Make sure it ranges in tone, length and nuance."
+                "social_group_name": "A group name aligned with the metaphor.  Make sure it ranges in tone, length and nuance."
             }
 
             Ensure the personality traits and interests align with the metaphorical description.
@@ -1277,7 +1453,7 @@ const Simulation = {
             }
 
             let agentData;
-            try {
+        try {
                 agentData = JSON.parse(cleanResponse);
             } catch (e) {
                 console.error("Failed to parse API response:", e, "Response:", cleanResponse);

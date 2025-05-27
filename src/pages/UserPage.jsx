@@ -70,7 +70,7 @@ const UserPage = () => {
     user_bio: "",
     profile_picture: "",
     isPrivate: 0,
-    relationship: "Not Found",
+    relationship: "Loading...",
   });
   const [followersCount, setFollowersCount] = useState(0); // State for followers count
   const [followingCount, setFollowingCount] = useState(0); // State for following count
@@ -103,12 +103,14 @@ const UserPage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-
         const response = await fetch(`http://localhost:3001/api/user/${userId}`);
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
         const data = await response.json();
+
+        // Fetch relationship status immediately after getting user data
+        const relationshipStatus = await getRelationshipStatus(myUserId, userId);
 
         setUser({
           user_name: data.user_name,
@@ -116,34 +118,21 @@ const UserPage = () => {
           user_id: data.id_name,
           user_bio: data.user_bio,
           isPrivate: data.visibility,
-          relationship: "Not Found",
+          relationship: relationshipStatus,
         });
 
         setLoading(false);
       } catch (error) {
         console.error("Error fetching user data:", error);
+        setUser(prev => ({ ...prev, relationship: "Error" }));
         setLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [userId]);
-
-  useEffect(() => {
-    const fetchStatus = async () => {
-      const status = await getRelationshipStatus(myUserId, userId);
-      setUser((prevUser) => ({ ...prevUser, relationship: status }));
-    };
-  
     if (userId) {
-      fetchStatus();
+      fetchUserData();
     }
-  }, [myUserId, userId]); 
-
-  const updateRelationshipStatus = async () => {
-    const status = await getRelationshipStatus(myUserId, userId);
-    setUser((prevUser) => ({ ...prevUser, relationship: status }));
-  };
+  }, [userId, myUserId]); // Added myUserId as a dependency
 
   useEffect(() => {
     // Fetch the follower count and following count
@@ -189,7 +178,6 @@ const UserPage = () => {
             isPrivate={user.isPrivate}
             relationship={user.relationship}
             isMyProfile={myUserId === userId}
-            updateRelationshipStatus={updateRelationshipStatus}
           />
 
           {/* User's Posts */}
