@@ -628,7 +628,7 @@ function App() {
         <Route path="/case/2/*" element={<NCPage />} />
         <Route path="/case/4" element={<CGPage />} />
         <Route path="/user/:userId" element={<UserPage />} />
-        <Route path="/dms/:chatId" element={<ChatPage />} />
+        <Route path="/dms/:chatId?" element={<ChatPage />} />
         <Route path="/login" element={<LogIn />} />
         <Route path="/2" element={<Page2 />} />
         <Route path="/3" element={<Page3 />} />
