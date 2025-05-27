@@ -35,24 +35,49 @@ const CGPage = () => {
   }
   );
 
-  useEffect(() => {
-    const fetchCommunities = async () => {
-      try {
-        const res = await fetch(`http://localhost:3001/api/channels/${userId}/`);
-        const commIds = await res.json();
-        const commDetails = await Promise.all(
-          commIds.map(async (id) => {
-            const infoRes = await fetch(`http://localhost:3001/api/channels/info/${id}/`);
-            return infoRes.json();
-          })
-        );
-        setCommunities(commDetails);
-      } catch (error) {
-        console.error("Error fetching communities:", error);
-      }
-    };
-    fetchCommunities();
-  }, [userId]);
+    useEffect(() => {
+      const fetchCommunities = async () => {
+        try {
+          const res = await fetch(`http://localhost:3001/api/channels/${userId}/`);
+          const commIds = await res.json();
+          
+          const commDetails = await Promise.all(
+            commIds.map(async (id) => {
+              try {
+                const infoRes = await fetch(`http://localhost:3001/api/channels/info/${id}/`);
+                const communityInfo = await infoRes.json();
+                
+                const postCountRes = await fetch(`http://localhost:3001/api/communities/post-count/${id}/`);
+                const postCountData = await postCountRes.json();
+                
+                return {
+                  ...communityInfo,
+                  post_count: postCountData.post_count
+                };
+              } catch (error) {
+                console.error(`Error fetching data for community ${id}:`, error);
+                return null;
+              }
+            })
+          );
+          
+          const validCommunities = commDetails.filter(community => {
+            if (!community) return false;
+            
+            console.log(`Community ${community.comm_name}: ${community.post_count} posts`);
+            
+            return community.post_count >= 10;
+          });
+          
+          console.log("Communities with 10+ posts:", validCommunities);
+          setCommunities(validCommunities);
+          
+        } catch (error) {
+          console.error("Error fetching communities:", error);
+        }
+      };
+      fetchCommunities();
+    }, [userId]);
 
   useEffect(() => {
     if (currentCommunity) {

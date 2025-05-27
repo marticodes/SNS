@@ -154,6 +154,23 @@ const CommunityDAO = {
         });
     },
 
+    // New method to get post count for a specific community
+    async getCommunityPostCount(comm_id) {
+        return new Promise((resolve, reject) => {
+            try {
+                const sql = 'SELECT COUNT(*) as post_count FROM Post WHERE comm_id = ?';
+                db.get(sql, [comm_id], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(row.post_count);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
 };
 
 export default CommunityDAO;

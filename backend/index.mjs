@@ -1107,6 +1107,18 @@ app.get('/api/channels/info/:comm_id/',
       }
 );
 
+// New API endpoint to get post count for a specific community
+app.get('/api/communities/post-count/:comm_id/',
+    async (req, res) => {
+        try {
+          const postCount = await communityDao.getCommunityPostCount(req.params.comm_id);
+          res.status(200).json({ comm_id: req.params.comm_id, post_count: postCount });
+        } catch (err) {
+          res.status(500).json({ error: `BE: Error getting community post count ${err}` });
+        }
+      }
+);
+
 //Notification API
 
 app.post('/api/notifs/add',
