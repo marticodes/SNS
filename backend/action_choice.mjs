@@ -169,7 +169,9 @@ const ActionChoice = {
     selectActionFromFiltered(filtered) {
         const boosted = filtered.map(a => ({
             ...a,
-            weight: a.action === "Join channel" ? Math.min(a.weight * 2, 1) : a.weight
+            weight: a.action === "Join channel" ? Math.min(a.weight * 2, 1) :
+                    (a.action === "Add comment on post" || a.action === "Add comment on comment") ? Math.min(a.weight * 2, 1) :
+                    a.weight
         }));
 
         const totalWeight = boosted.reduce((sum, a) => sum + a.weight, 0);
