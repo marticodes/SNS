@@ -205,7 +205,7 @@ const NewPost = ({ user, ephemeral = true, community_id }) => {
 
       setTimeout(() => {
         setShowSuccessPopup(false);
-        navigate("/case/2"); 
+        navigate(`/case/2/${community_id}`); 
       }, 2000); 
     } catch (error) {
       console.error("❌ Error posting:", error.message);

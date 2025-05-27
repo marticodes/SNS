@@ -20,6 +20,8 @@ const Feed = ({ postss, user, commentType = "nested", isProfilePage = false, com
   const searchedWord = localStorage.getItem("SearchedWord");
 
   useEffect(() => {
+    //console.log("Posts received in Feed:", postss);
+    //console.log("Posts array length:", postss?.length);
     setPosts(postss);
   }, [postss]);
 
@@ -58,13 +60,22 @@ const Feed = ({ postss, user, commentType = "nested", isProfilePage = false, com
         Try creating your first post to share something with your friends.
       </p>
     </div>
+  ) : communityId ? (
+    <div style={{ textAlign: "center", marginTop: "20px" }}>
+      <h1 style={{ color: "black", fontSize: "20px" }}>
+        No posts in this community yet!
+      </h1>
+      <p style={{ color: "black", fontSize: "14px" }}>
+        Be the first to create a post in this community!
+      </p>
+    </div>
   ) : (
     <div style={{ textAlign: "center", marginTop: "20px" }}>
       <h1 style={{ color: "black", fontSize: "20px" }}>
         Select a community to see posts!
       </h1>
       <p style={{ color: "black", fontSize: "14px" }}>
-        If you clicked into a community and there is no post, try another one!
+        Click on a community from the list to view its posts.
       </p>
     </div>
   );
@@ -79,21 +90,7 @@ const Feed = ({ postss, user, commentType = "nested", isProfilePage = false, com
           </button>
         </div>
       )}
-
-      {posts.length === 0 ? (
-        searchedWord ? (
-          <div style={{ textAlign: "center", marginTop: "20px" }}>
-            <h1 style={{ color: "black", fontSize: "20px" }}>
-              Hm...we couldn’t find any results for "{searchedWord}".
-            </h1>
-            <p style={{ color: "black", fontSize: "14px" }}>
-              Double-check your spelling or try different keywords.
-            </p>
-          </div>
-        ) : (
-          noPostsMessage
-        )
-      ) : (
+      {posts && posts.length > 0 ? (
         posts.map((post) => (
           <FeedDiv key={post.post_id}>
             <Post
@@ -105,6 +102,17 @@ const Feed = ({ postss, user, commentType = "nested", isProfilePage = false, com
             />
           </FeedDiv>
         ))
+      ) : searchedWord ? (
+        <div style={{ textAlign: "center", marginTop: "20px" }}>
+          <h1 style={{ color: "black", fontSize: "20px" }}>
+            Hm...we couldn't find any results for "{searchedWord}".
+          </h1>
+          <p style={{ color: "black", fontSize: "14px" }}>
+            Double-check your spelling or try different keywords.
+          </p>
+        </div>
+      ) : (
+        noPostsMessage
       )}
     </>
   );

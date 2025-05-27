@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import NavBar from "../components/NavBar/Small"; 
 import styled from "styled-components";
 import FeedMain from "../components/NC/FeedMain.jsx";
@@ -20,6 +20,7 @@ const AppContainer = styled.div`
 
 const NCPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const userID = parseInt(localStorage.getItem("userID"), 10);
 
   const [userInfo, setUserInfo] = useState(null);
@@ -65,7 +66,10 @@ const NCPage = () => {
   }, [userID, navigate]);
 
   const fetchFeed = useCallback(async (communityId) => {
-    if (!communityId) return;
+    if (!communityId) {
+      console.log("No community ID provided for feed fetch");
+      return;
+    }
 
     try {
       console.log(`📡 Fetching feed for community ID: ${communityId}`);
@@ -74,18 +78,49 @@ const NCPage = () => {
         throw new Error(`Failed to fetch feed: ${response.statusText}`);
       }
       const feedData = await response.json();
+      console.log("Feed data received:", feedData);
       setPosts(feedData);
-      console.log("✅ Feed Updated:", feedData);
     } catch (error) {
       console.error("❌ Error fetching feed:", error);
       setPosts([]);
     }
   }, []);
 
+  // Get community ID from URL
+  const getCommIdFromUrl = () => {
+    const pathParts = location.pathname.split('/');
+    const commIdIndex = pathParts.indexOf('2') + 1;
+    return pathParts[commIdIndex];
+  };
+
+  // Set initial community based on URL parameter
+  useEffect(() => {
+    const urlCommId = getCommIdFromUrl();
+    //console.log("URL commId from path:", urlCommId);
+    //console.log("Available communities:", communities);
+    
+    if (urlCommId && communities.length > 0) {
+      //console.log("Setting initial community from URL:", urlCommId);
+      const initialCommunity = communities.find(c => c.comm_id === parseInt(urlCommId));
+      if (initialCommunity) {
+        //console.log("Found initial community:", initialCommunity);
+        setCurrentCommunity(initialCommunity);
+      } else {
+        //console.log("No community found for ID:", urlCommId);
+      }
+    } else {
+      //console.log("No commId in URL or communities not loaded yet");
+    }
+  }, [location.pathname, communities]);
+
   // Fetch feed whenever a new community is selected
   useEffect(() => {
+    //console.log("Current community changed:", currentCommunity);
     if (currentCommunity) {
+      //console.log("Fetching feed for community:", currentCommunity.comm_id);
       fetchFeed(currentCommunity.comm_id);
+    } else {
+      //console.log("No current community selected");
     }
   }, [currentCommunity, fetchFeed]);
 
@@ -110,8 +145,11 @@ const NCPage = () => {
           users={communities.map((c) => c.comm_name)}
           onUserClick={(name) => {
             const selectedCommunity = communities.find((c) => c.comm_name === name);
-            if (selectedCommunity && selectedCommunity.comm_id !== currentCommunity?.comm_id) {
-              setCurrentCommunity(selectedCommunity); // This will trigger useEffect
+            console.log("Selected community:", selectedCommunity);
+            if (selectedCommunity) {
+              console.log("Setting new community:", selectedCommunity.comm_id);
+              setCurrentCommunity(selectedCommunity);
+              navigate(`/case/2/${selectedCommunity.comm_id}`);
             }
           }}
           ProfilePics={Object.fromEntries(communities.map((c) => [c.comm_name, c.comm_image]))}
@@ -119,24 +157,24 @@ const NCPage = () => {
       </div>
       <AppContainer>
         <Routes>
-          <Route path="/" element={<FeedMain user={userInfo} posts={posts} community_id={currentCommunity ? currentCommunity.comm_id : null}/>} />
-          <Route
-            path="new-post"
-            element={
-              <NewPost
-                user={userInfo}
-                community_id={currentCommunity ? currentCommunity.comm_id : null}
-              />
-            }
-          />
-          <Route
-            path="edit-post/:postId"
-            element={
-              <EditPost
-                user={userInfo}
-              />
-            }
-          />
+          <Route path="/:commId" element={
+            <FeedMain 
+              user={userInfo} 
+              posts={posts} 
+              community_id={currentCommunity?.comm_id}
+              showSelectMessage={!currentCommunity}
+            />
+          } />
+          <Route path="/" element={
+            <FeedMain 
+              user={userInfo} 
+              posts={posts} 
+              community_id={currentCommunity?.comm_id}
+              showSelectMessage={!currentCommunity}
+            />
+          } />
+          <Route path="/new-post" element={<NewPost user={userInfo} community_id={currentCommunity?.comm_id} />} />
+          <Route path="/edit-post/:postId" element={<EditPost user={userInfo} />} />
         </Routes>
       </AppContainer>
     </>
