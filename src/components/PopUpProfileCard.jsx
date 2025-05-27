@@ -25,7 +25,7 @@ const ProfileCard = ({ idname, username, id, userPic, bio }) => {
 
         const newChatData = await newChatResponse.json();
         if (newChatResponse.ok && newChatData?.ina) {
-          navigate(`/dms/${newChatData.ina}`);
+          navigate(`/dms/${newChatData}`);
         } else {
           console.error("Failed to create chat:", newChatData);
         }
