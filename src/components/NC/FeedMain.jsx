@@ -53,10 +53,11 @@ const FeedMain = ({ user, posts, community_id }) => {
 
   // Reset posts when navigating to the home page
   useEffect(() => {
-    if (location.pathname === "/case/2") {
-      setFilteredPosts(posts); 
-    }
-  }, [location.pathname, posts]);
+    //console.log("FeedMain - Received posts:", posts);
+    //console.log("FeedMain - Posts length:", posts?.length);
+    //console.log("FeedMain - Community ID:", community_id);
+    setFilteredPosts(posts || []);
+  }, [posts, community_id]);
 
   const handleSearch = async (searchQuery) => {
     try {
