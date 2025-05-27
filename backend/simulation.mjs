@@ -216,6 +216,10 @@ const Simulation = {
         }
     },
     async insertAGMessage(user_id, system_prompt, receiver = null) {
+        if (user_id === 1) {
+            console.log("Skipping simulation for real user (ID = 1)");
+            return;
+          }
         try {
             if(!receiver){
                 receiver = await selectChatFromInbox(user_id);
@@ -229,23 +233,37 @@ const Simulation = {
             let last_messages = "";
             let formattedMessages = "";
 
+            //if (!sel_messages || sel_messages.length === 0) {
+             //   formattedMessages = "No messages";
+            //}
             if (!sel_messages || sel_messages.length === 0) {
                 formattedMessages = "No messages";
-            }
-            
-            else last_messages = sel_messages.slice(-5); 
-            // console.log(last_messages);
-            
-            if(sel_messages.length > 0){
-                const lastMessage = last_messages[last_messages.length - 1]; // Get the last message
-                if (lastMessage.sender_id === user_id) {
-                    console.log("Last message is from the agent. No response generated.");
-                    return;
-                }
+              } else {
+                last_messages = sel_messages.slice(-5);
                 formattedMessages = last_messages
-                .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
-                .join("\n");
-            }
+                  .map(msg => `(${msg.sender_id}): "${msg.content}"`)
+                  .join("\n");
+          
+                // Skip if the very last message was already from this agent
+                const lastMessage = last_messages[last_messages.length - 1];
+                if (lastMessage.sender_id === user_id) {
+                  console.log("Last message is from the agent. No response generated.");
+                  return;
+                }
+              }
+            //else last_messages = sel_messages.slice(-5); 
+            //console.log(last_messages);
+            
+            //if(sel_messages.length > 0){
+                //const lastMessage = last_messages[last_messages.length - 1];  //Get the last message
+                //if (lastMessage.sender_id === user_id) {
+                    //console.log("Last message is from the agent. No response generated.");
+                    //return;
+                //}
+                //formattedMessages = last_messages
+                //.map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
+                //.join("\n");
+            //}
 
             let people = await ChatDAO.getChatMembers(receiver);
             people = people.filter(id => id !== user_id);
@@ -256,10 +274,10 @@ const Simulation = {
             if (isTwoPersonChat) {
                 // Ensure that the last message was from the other person
                 const lastMessage = sel_messages[sel_messages.length - 1];
-                if (lastMessage.sender_id === user_id) {
-                    console.log(`User ${user_id} has sent the last message. Skipping post.`);
-                    return;
-                }
+                //if (lastMessage.sender_id === user_id) {
+                    //console.log(`User ${user_id} has sent the last message. Skipping post.`);
+                    //return;
+                //}
             }
     
             let closeness_levels = await Promise.all(
@@ -291,6 +309,7 @@ const Simulation = {
                 • Limit your response to 1–2 short sentences, with no more than 12 words per message.
                 • Remember, build on the conversation and ask for deeper questions on the topic being discussed. You have to ensure conversation flows naturally and builds upon the core topic in the lasts messages. For example is someone is talking about food, you may give an example of a spefic food you just eating. If someone is asking what's up? You need to give a proper reply of what you did that day like attended a class on business studies.  
                 • About **10% of the time**, include a one-line off-topic quip (a meme, weekend plan, news headline, etc.) unrelated to the main thread.
+                • If there is any question in the chat make sure to reply to it before replying with more questions. 
                 Now, generate the next message as a single bubble.`
     
                 :
@@ -320,7 +339,7 @@ const Simulation = {
             let firstSentence = rawResponse.split(/(?<=[.?!])\s+/)[0] || rawResponse;
             const words = firstSentence.trim().split(/\s+/).slice(0, 12);
             const shortMessage = words.join(' ');
-    
+
             const time = new Date().toISOString();
             await makeAPIRequest("http://localhost:3001/api/messages/add", "POST", {
                 chat_id: receiver,
@@ -337,203 +356,6 @@ const Simulation = {
         }
     },
     
-    // async insertAGMessage(user_id, system_prompt, receiver = null) {
-    //     try {
-    //         if(!receiver){
-    //             receiver = await selectChatFromInbox(user_id);
-    //             if (receiver == null) {
-    //                 console.log("No chatrooms found");
-    //                 return;
-    //             }
-    //         }
-    //         const sel_messages =  await MessageDAO.getMessagesByChatId(receiver);
-
-    //         let last_messages = "";
-    //         let formattedMessages = "";
-
-    //         if (!sel_messages || sel_messages.length === 0) {
-    //             formattedMessages = "No messages";
-    //         }
-            
-    //         else last_messages = sel_messages.slice(-5); 
-    //         // console.log(last_messages);
-            
-    //         if(sel_messages.length > 0){
-    //             const lastMessage = last_messages[last_messages.length - 1]; // Get the last message
-    //             if (lastMessage.sender_id === user_id) {
-    //                 console.log("Last message is from the agent. No response generated.");
-    //                 return;
-    //             }
-    //             formattedMessages = last_messages
-    //             .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
-    //             .join("\n");
-    //         }
-
-    //         let people = await ChatDAO.getChatMembers(receiver);
-    //         people = people.filter(id => id !== user_id);
-
-    //         let closeness_levels = await Promise.all(
-    //             people.map(async (person) => {
-    //                 let closeness = await RelationDAO.getCloseness(user_id, person);
-    //                 return closeness;
-    //             })
-    //         );
-    //         let social_groups = await SocialGroupDao.getGroupsByIds(people);
-
-    //         // const user_prompt = `There is a conversation happening in the chatroom.
-    //         // The last messages in the chatroom were: "${formattedMessages}"
-    //         // The messages provided will give you context. Your user_id is ${user_id}. 
-    //         // Please message naturally and be mindful of which messages are sent by you and which are sent by the other members.
-    //         // If there is a conversation that is already happening, respond to it instead of starting a new question.
-    //         // Excluding you, there are "${people.length}" other people in the chatroom.
-    //         // Your closeness levels to the people in the chatroom on a scale of 1 to 10 are "${closeness_levels}". 
-    //         // You belong to "${social_groups}" soial groups together.
-    //         // Rules:
-    //         // 1. Limit each message to 1 sentence. Break down the sentence further into multiple texts so it is realistic. (Vary within this range). 
-    //         // 2. DO NOT redundantly repeat or reiterate your partner's words.
-    //         // 3. Choose and reply to the core part of a message than responding to every line.
-    //         // 4. Make it distinct from the previous messages in phrasings, structure, and length. 
-    //         // 5. There is no need to speak in full sentences every time. 
-    //         // Using the provided information as a premise to adopt a tone and style, generate a message to contribute to the ongoing conversation or start a new conversation as you see fit.`;
-    //         const user_prompt = `
-    //         There is an ongoing group chat. The last messages were:
-    //         "${formattedMessages}"
-            
-    //         Context:
-    //         • Your user_id is ${user_id}.
-    //         • There are ${people.length} other people here.
-    //         • Your closeness levels to them (1–10) are: ${closeness_levels}.
-    //         • You share these social groups: ${social_groups}.
-            
-    //         Goals:
-    //         • Reply naturally to the core of the last message, or start a new thread if it feels right.
-    //         • Do NOT repeat your partners’ exact words.
-    //         • Use one or two short sentences with at most 5 - 12 words per message bubble.
-    //         • Vary your emoji frequency and slang level according to your persona’s voice profile.
-    //         • If you write more than one sentence, split them into separate messages.
-    //         • If the last three messages have a similar gist, start a new topic. 
-    //         • After each bubble, simulate a typing delay of **10–90 seconds** before sending the next.
-    //         • About **10% of the time**, include a one-line off-topic quip (a meme, weekend plan, news headline, etc.) unrelated to the main thread.
-            
-    //         Now generate the next message(s) as separate bubbles.`;
-    //       const rawResponse = await generateResponse(system_prompt, user_prompt);
-      
-    //       // Take only the first sentence
-    //       let firstSentence = rawResponse.split(/(?<=[.?!])\s+/)[0] || rawResponse;
-    //       // Limit to max 8 words
-    //       const words = firstSentence.trim().split(/\s+/).slice(0, 12);
-    //       const shortMessage = words.join(' ');
-      
-    //       const time = new Date().toISOString();
-    //       await makeAPIRequest("http://localhost:3001/api/messages/add", "POST", {
-    //         chat_id: receiver,
-    //         sender_id: user_id,
-    //         reply_id: null,
-    //         content: shortMessage,
-    //         media_type: 0,
-    //         media_url: null,
-    //         timestamp: time,
-    //       });
-    //     } catch (error) {
-    //         console.error("Error adding comment:", error);
-    //     }
-    // },
-    // async insertAGMessage(user_id, system_prompt, receiver=null){
-
-    //     try {
-    //         if(!receiver){
-    //             receiver = await selectChatFromInbox(user_id);
-    //             if (receiver == null) {
-    //                 console.log("No chatrooms found");
-    //                 return;
-    //             }
-    //         }
-    //         const sel_messages =  await MessageDAO.getMessagesByChatId(receiver);
-
-    //         let last_messages = "";
-    //         let formattedMessages = "";
-
-    //         if (!sel_messages || sel_messages.length === 0) {
-    //             formattedMessages = "No messages";
-    //         }
-            
-    //         else last_messages = sel_messages.slice(-5); 
-    //         // console.log(last_messages);
-            
-    //         if(sel_messages.length > 0){
-    //             const lastMessage = last_messages[last_messages.length - 1]; // Get the last message
-    //             if (lastMessage.sender_id === user_id) {
-    //                 console.log("Last message is from the agent. No response generated.");
-    //                 return;
-    //             }
-    //             formattedMessages = last_messages
-    //             .map(msg => `(${msg.sender_id}): "${msg.content}"`) // Format each message
-    //             .join("\n");
-    //         }
-
-    //         let people = await ChatDAO.getChatMembers(receiver);
-    //         people = people.filter(id => id !== user_id);
-
-    //         let closeness_levels = await Promise.all(
-    //             people.map(async (person) => {
-    //                 let closeness = await RelationDAO.getCloseness(user_id, person);
-    //                 return closeness;
-    //             })
-    //         );
-    //         let social_groups = await SocialGroupDao.getGroupsByIds(people);
-
-    //         // const user_prompt = `There is a conversation happening in the chatroom.
-    //         // The last messages in the chatroom were: "${formattedMessages}"
-    //         // The messages provided will give you context. Your user_id is ${user_id}. 
-    //         // Please message naturally and be mindful of which messages are sent by you and which are sent by the other members.
-    //         // If there is a conversation that is already happening, respond to it instead of starting a new question.
-    //         // Excluding you, there are "${people.length}" other people in the chatroom.
-    //         // Your closeness levels to the people in the chatroom on a scale of 1 to 10 are "${closeness_levels}". 
-    //         // You belong to "${social_groups}" soial groups together.
-    //         // Rules:
-    //         // 1. Limit each message to 1 sentence. Break down the sentence further into multiple texts so it is realistic. (Vary within this range). 
-    //         // 2. DO NOT redundantly repeat or reiterate your partner's words.
-    //         // 3. Choose and reply to the core part of a message than responding to every line.
-    //         // 4. Make it distinct from the previous messages in phrasings, structure, and length. 
-    //         // 5. There is no need to speak in full sentences every time. 
-    //         // Using the provided information as a premise to adopt a tone and style, generate a message to contribute to the ongoing conversation or start a new conversation as you see fit.`;
-    //         const user_prompt = `
-    //         There is an ongoing group chat. The last messages were:
-    //         "${formattedMessages}"
-            
-    //         Context:
-    //         • Your user_id is ${user_id}.
-    //         • There are ${people.length} other people here.
-    //         • Your closeness levels to them (1–10) are: ${closeness_levels}.
-    //         • You share these social groups: ${social_groups}.
-            
-    //         Goals:
-    //         • Reply naturally to the core of the last message, or start a new thread if it feels right.
-    //         • Do NOT repeat your partners’ exact words.
-    //         • Use one or two short sentences with at most 5 - 8 words per message bubble.
-    //         • Vary your emoji frequency and slang level according to your persona’s voice profile.
-    //         • If you write more than one sentence, split them into separate messages.
-    //         • After each bubble, simulate a typing delay of **10–90 seconds** before sending the next.
-    //         • About **10% of the time**, include a one-line off-topic quip (a meme, weekend plan, news headline, etc.) unrelated to the main thread.
-            
-    //         Now generate the next message(s) as separate bubbles.`;
-    //         const message = await generateResponse(system_prompt, user_prompt);
-
-    //         const time = new Date().toISOString();
-    //         await makeAPIRequest("http://localhost:3001/api/messages/add", "POST", {
-    //             chat_id: receiver,
-    //             sender_id: user_id,
-    //             reply_id: null,
-    //             content: message,
-    //             media_type:0,
-    //             media_url: null,
-    //             timestamp: time,
-    //         });
-    //     } catch (error) {
-    //         console.error("Error adding message:", error);
-    //     }
-    // },
-
     async generatePost(user_id, system_prompt) {
         try {
             const lvl1 = await FeatureSelectionDAO.getLvlOneFeatures();
@@ -977,7 +799,7 @@ const Simulation = {
             console.error("Error deleting relation:", error);
         }
     },
-
+      
     async insertDM(user_id, system_prompt){
         let frens = await RelationDAO.getUsersByRelation(user_id, 2);
         if (!frens || frens.length === 0) {
@@ -1013,6 +835,7 @@ const Simulation = {
         Simulation.insertAGMessage(user_id, system_prompt, chat_id);
     },
 
+      
     async insertGroupChat(user_id, system_prompt){
         let frens = await RelationDAO.getUsersByRelation(user_id, 2);
         if (!frens || frens.length === 0) {
@@ -1149,7 +972,9 @@ const Simulation = {
                     comm_id: id.ina,
                 });
             }
-        } catch (error) {
+
+        } 
+        catch (error) {
             console.error("Error adding new channel", error);
         }
     },
@@ -1591,6 +1416,7 @@ const Simulation = {
             - Strictly follow this identity style: ${identity_prompt}
             - CRUCIAL: The username MUST be related to the metaphorical theme '${descriptions.keyword}' if the identity type is psedononymous. Please follow the universal style of username used in general social media.
             - The username must follow standard social media conventions.
+            - Examples of username include "cutepotato" or "stephenhere" or "Ella_21" or "NataliAdamss_"
             ${existingUserNames.length > 0 ? `
             - ABSOLUTELY ESSENTIAL: The username MUST be different from these existing names:
               ${existingUserNames.join(', ')}` : ''}
