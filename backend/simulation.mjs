@@ -221,6 +221,11 @@ const Simulation = {
             return;
           }
         try {
+            if (user_id === 1) {
+                console.log("Skipping simulation for real user (ID = 1)");
+                return;
+              }
+              
             if(!receiver){
                 receiver = await selectChatFromInbox(user_id);
                 if (receiver == null) {
@@ -304,7 +309,7 @@ const Simulation = {
                 Goals:
                 • Respond naturally and personally to the last message.
                 • Do not repeat phrases or sentiments from earlier messages.
-                 • You can use common chat shortforms like "wby", love, luv, ngl, lol, lmao
+                • You can use common chat shortforms or slangs like wby, love, luv, ngl, lol, lmao
                 • Try to keep the conversation engaging and personal. You may ask a follow-up question, express your opinion, or share a new idea.
                 • Limit your response to 1–2 short sentences, with no more than 12 words per message.
                 • Remember, build on the conversation and ask for deeper questions on the topic being discussed. You have to ensure conversation flows naturally and builds upon the core topic in the lasts messages. For example is someone is talking about food, you may give an example of a spefic food you just eating. If someone is asking what's up? You need to give a proper reply of what you did that day like attended a class on business studies.  
@@ -331,6 +336,7 @@ const Simulation = {
                 • Avoid using an exclamation mark unless absolutely necessary.
                 • Remember, build on the conversation and ask for deeper questions on the topic being discussed. You have to ensure conversation flows naturally and builds upon the core topic in the lasts messages. For example is someone is talking about food, you may give an example of a spefic food you just eating. If someone is asking what's up? You need to give a proper reply of what you did that day like attended a class on business studies.  
                 • About **10% of the time**, include a one-line off-topic quip (a meme, weekend plan, news headline, etc.) unrelated to the main thread.
+                • If there is any question in the chat make sure to reply to it before replying with more questions. 
                 Now, generate the next message(s) as separate bubbles.`;
     
             const rawResponse = await generateResponse(system_prompt, user_prompt);
