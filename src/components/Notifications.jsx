@@ -134,7 +134,7 @@ export default function NotificationPanel({ onClose }) {
 
   const handleUserClick = (user) => {
     if (caseNumb === 1 || caseNumb === 2) {
-      navigate(`/user`); // Navigate to user profile page
+      navigate(`/user/${user}`); // Navigate to user profile page with user ID
     } else if (caseNumb === 3 || caseNumb === 4) {
       setSelectedUser(user); // Update state to show ProfileCard
     }
@@ -334,7 +334,7 @@ export default function NotificationPanel({ onClose }) {
     switch (notification.notif_type) {
       case 0:
         return (
-          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
+          <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
             <p style={textStyle}>
               <strong>{senderName}</strong> reacted to your post.
             </p>
@@ -343,7 +343,7 @@ export default function NotificationPanel({ onClose }) {
         );
       case 1:
         return (
-          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
+          <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
             <p style={textStyle}>
               <strong>{notification.user}</strong> liked your post.
             </p>
@@ -352,7 +352,7 @@ export default function NotificationPanel({ onClose }) {
         );
       case 2:
         return (
-          <div style={{ cursor: "pointer" }} onClick={() => handlePostClick(notification.postId)}>
+          <div style={{ cursor: "pointer" }} onClick={() => handleUserClick(notification.user)}>
             <p style={textStyle}>
               <strong>{senderName}</strong> commented on your post.
             </p>
