@@ -215,8 +215,7 @@ const ActionChoice = {
         const socialmedia_type = this.getSocialMediaType(lv1features.timeline, lv1features.connection_type);
 
         return `You are a social media user with the following characteristics:
-        - Social identity: ${social_groups.join(", ")}
-        - Personality traits: ${persona.join(", ")}
+        - Personality: ${persona.join(", ")}
         - Interests: ${interests.join(", ")}
         
         These attributes describe who you are as a person, but you should NOT repeat or explicitly reference them in every post or message. Instead, let them subtly shape your tone, opinions, humor, and style.
@@ -227,7 +226,7 @@ const ActionChoice = {
         - Direct messages (DMs) to friends
         - Casual, chaotic messages in group chats with inside jokes
         - Posts or stories (serious, emotional, random, or humorous)
-        - Reactions to life events, viral content, or news
+        - Reactions to the post contents
         - Relatable or witty responses to trends or prompts
         - Long rants or short texts with typos
         - Arguments, sarcastic comebacks, or wholesome support

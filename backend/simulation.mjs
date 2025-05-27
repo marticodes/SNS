@@ -304,7 +304,6 @@ const Simulation = {
                 • Your user_id is ${user_id}.
                 • There is 1 other person in the chat.
                 • Your closeness level to the other person (1–10) is: ${closeness_levels}.
-                • You share these social groups: ${social_groups}.
     
                 Goals:
                 • Respond naturally and personally to the last message.
@@ -326,7 +325,6 @@ const Simulation = {
                 • Your user_id is ${user_id}.
                 • There are ${people.length} other people in the chat.
                 • Your closeness levels to them (1–10) are: ${closeness_levels}.
-                • You share these social groups: ${social_groups}.
     
                 Goals:
                 • Respond naturally, but keep in mind that this is a group conversation. You may reference others, introduce new topics, or ask general questions.
@@ -876,7 +874,6 @@ const Simulation = {
             let social_groups = await SocialGroupDao.getGroupsByIds(sel_fren);
             const user_prompt = `You are about to create a group chat with "${sel_fren.length}" people. 
             Your closeness levels to the people on a scale of 1 to 10 are "${closeness_levels}". 
-            You belong to "${social_groups}" soial groups together. 
             Come up with a friendly, colloquial chat name that real people would actually use—think “Friday Hang” “Movie Night,” or “Study sesh.” Don’t sound like a title card; make it feel like something friends would key in.
             Using the provided information as a premise, generate a name for the group chat. The name should be a single word 50 % of the time. Be straightforward and reply with just the name`;
             
@@ -1411,8 +1408,7 @@ const Simulation = {
             const systemPrompt = `You are an AI that generates social media user profiles based on metaphorical descriptions. 
             The user has the goal of "${goalRole.goal}" and plays the role of "${goalRole.role}".
             Create a personality that embodies these metaphorical characteristics:
-            LLM Description: ${descriptions.llm_descr}
-            IMPORTANT: The username should be generated related to the metaphorical description, following only the identity style requirements.`;
+            LLM Description: ${descriptions.llm_descr}`;
 
             // Create the user prompt for profile generation
             const userPrompt = `
@@ -1420,9 +1416,8 @@ const Simulation = {
 
             USERNAME REQUIREMENTS:
             - Strictly follow this identity style: ${identity_prompt}
-            - CRUCIAL: The username MUST be related to the metaphorical theme '${descriptions.keyword}' if the identity type is psedononymous. Please follow the universal style of username used in general social media.
-            - The username must follow standard social media conventions.
-            - Examples of username include "cutepotato" or "stephenhere" or "Ella_21" or "NataliAdamss_"
+            - CRUCIAL: If the identity type is psedononymous, the username MUST be somehow related to the metaphorical theme '${descriptions.keyword}. It doesn't need to include the metaphor keyword itself.'.
+            - Please follow the universal and standard naming convention used in general social media.
             ${existingUserNames.length > 0 ? `
             - ABSOLUTELY ESSENTIAL: The username MUST be different from these existing names:
               ${existingUserNames.join(', ')}` : ''}
@@ -1433,7 +1428,7 @@ const Simulation = {
                 "user_name": "A username strictly adhering to the USERNAME REQUIREMENTS above.",
                 "email": "A thematic email address, can be related to the metaphor or username strategy",
                 "password": "A strong password",
-                "user_bio": "A concise (1-3 sentences, approx 150 chars) and engaging social media bio. This bio should NOT weave in the metaphorical theme of '${descriptions.keyword} or metaphor.' ${existingUserBios.length > 0 ? `It MUST be distinct from these existing bios: ${existingUserBios.map(bio => `"${bio}"`).join('; ')}. ` : ''}No emojis.",
+                "user_bio": "A concise (1–3 sentences, approx. 150 characters), engaging social media bio that reflects the general writing style of typical social media bios. This bio should relate to ${descriptions.llm_descr["ContentOrientation"]} content and reflect the vibe of ${descriptions.llm_descr["Atmosphere"]}, where users are gathered around the ${descriptions.llm_descr["GatheringType"]} theme. This bio should NOT weave in the metaphorical theme of '${descriptions.keyword} or metaphor.' ${existingUserBios.length > 0 ? `It MUST be distinct from these existing bios: ${existingUserBios.map(bio => `"${bio}"`).join('; ')}. ` : ''}No emojis.",
                 "profile_picture": "A URL using https://i.pravatar.cc/120?u= with a random parameter",
                 "posting_trait": "Float between 0-1",
                 "commenting_trait": "Float between 0.5-1",
@@ -1442,8 +1437,8 @@ const Simulation = {
                 "updating_trait": "Float between 0-1",
                 "comm_trait": "Float between 0-1",
                 "notification_trait": "Float between 0-1",
-                "interests": ["At least 3 interests from the predefined list"],
-                "persona_name": "A name derived from the metaphor. Make sure it captures the user's personality completely and mimics how a real human being on such a social media would come across as.",
+                "interests": ["At least 3 interests from the predefined list that align with ${descriptions.llm_descr["ContentOrientation"]} contents"],
+                "persona_name": "Name the user's personality type that appears from ${descriptions.llm_descr["ActorType"]} in ${descriptions.llm_descr["ConnectingEnvironment"]} social connecting environment. Should NOT be making the real name.",
                 "social_group_name": "A group name aligned with the metaphor.  Make sure it ranges in tone, length and nuance."
             }
 
