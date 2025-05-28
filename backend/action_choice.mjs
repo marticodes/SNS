@@ -187,7 +187,7 @@ const ActionChoice = {
             },
             '1-2': {
                 type: 'Feed-based + Group-based',
-                examples: ['Reddit', 'Facebook Groups', 'Nextdoor']
+                examples: ['Reddit', 'Facebook Groups']
             },
             '2-1': {
                 type: 'Chat-based + Networked',

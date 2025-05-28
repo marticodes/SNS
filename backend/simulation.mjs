@@ -24,7 +24,6 @@ import FeedDAO from "./dao/feed_dao.mjs";
 import FeatureSelectionDAO from "./dao/feature_selection_dao.mjs";
 import ActionChoice from './action_choice.mjs';
 
-
 const natural = await import("natural");
 const { TfIdf } = natural.default; 
 
@@ -363,6 +362,8 @@ const Simulation = {
     async generatePost(user_id, system_prompt) {
         try {
             const lvl1 = await FeatureSelectionDAO.getLvlOneFeatures();
+            const descr = await FeatureSelectionDAO.getLvlOneDescriptions();
+
             //GETTING SOCIAL MEDIA TYPE. //
             const platforms = ActionChoice.getSocialMediaType(
               lvl1.timeline, 
@@ -393,6 +394,58 @@ const Simulation = {
                 { goal: "write hate comments", role: "Bully" }
             ]
 
+            const tone = [
+                {
+                  "tone": "Comedic / casual",
+                  "explanation": "Light, humorous, often includes slang, jokes, or memes."
+                },
+                {
+                  "tone": "Reflective / emotional",
+                  "explanation": "Personal, introspective, or vulnerable. Often includes storytelling or feelings."
+                },
+                {
+                  "tone": "Hype / short & punchy",
+                  "explanation": "Excited, energetic, attention-grabbing — often for announcements or reactions."
+                },
+                {
+                  "tone": "Informative / explanatory",
+                  "explanation": "Clear and direct, often used to share tips, how-tos, or break down concepts."
+                },
+                {
+                  "tone": "Critical / thoughtful",
+                  "explanation": "Analytical, opinionated, or evaluative — used for commentary or reviews."
+                },
+                {
+                  "tone": "Cynical / dry",
+                  "explanation": "Ironic, skeptical, or sarcastic; leans toward humorous pessimism."
+                },
+                {
+                  "tone": "Satirical / absurdist",
+                  "explanation": "Exaggerated or surreal humor, often mocking social norms or trends."
+                },
+                {
+                  "tone": "Conversational / anecdotal",
+                  "explanation": "Informal, like talking to a friend. Often includes personal stories or observations."
+                },
+                {
+                  "tone": "Motivational / inspirational",
+                  "explanation": "Uplifting, encouraging, sometimes paired with quotes or affirmations."
+                },
+                {
+                  "tone": "Ranty / venting",
+                  "explanation": "Unfiltered, emotionally charged — expressing frustration or calling something out."
+                },
+                {
+                  "tone": "Relatable / self-deprecating",
+                  "explanation": "Highlights common experiences or flaws in a humorous or empathetic way."
+                },
+                {
+                  "tone": "Promotional / transactional",
+                  "explanation": "Focused on selling, promoting, or calling users to action (e.g., “link in bio”)."
+                }
+              ]
+              
+
             const user_interests = await UserInterestDAO.getUserInterests(user_id);
 
             const user_prompt = `
@@ -403,10 +456,9 @@ const Simulation = {
             - Hashtag use (use minimal, aligning to the platform’s culture, don’t overdo it)
             Do NOT sound like a corporate announcement or a generic AI.  
 
-            The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
-            Post requirements:
-            0. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
-            1. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
+            POST CONTENT REQUIREMENTS: 
+            0. The post content MUST reflect topics related to ${descr.llm_descr.ContentOrientation} that may arise from interactions among ${descr.llm_descr.ActorType}.           
+            1. Select a tone from the list (${tone}) that best matches the style of ${descr.llm_descr.CommunicationFlow}
             2. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
             3. Your post must be significantly different from your last three posts in:
             - Content, structure, storyline, length, and phrasing
@@ -416,6 +468,7 @@ const Simulation = {
             5. Keep the contents engaging and relatable.
             6. Avoid generic tone if your last two posts were already generic—add specificity (names, places, small moments).
             7. Do not end the post with a question.
+            8. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
         
             Now, generate a new post that sticks to a single theme and meets all of the above criteria.
             `;
@@ -548,6 +601,8 @@ const Simulation = {
     async addAGStory(user_id, system_prompt){
         try {
             const lvl1 = await FeatureSelectionDAO.getLvlOneFeatures();
+            const descr = await FeatureSelectionDAO.getLvlOneDescriptions();
+
             //GETTING SOCIAL MEDIA TYPE. //
             const platforms = ActionChoice.getSocialMediaType(
               lvl1.timeline, 
@@ -578,6 +633,57 @@ const Simulation = {
                 { goal: "write hate comments", role: "Bully" }
             ]
 
+            const tone = [
+                {
+                  "tone": "Comedic / casual",
+                  "explanation": "Light, humorous, often includes slang, jokes, or memes."
+                },
+                {
+                  "tone": "Reflective / emotional",
+                  "explanation": "Personal, introspective, or vulnerable. Often includes storytelling or feelings."
+                },
+                {
+                  "tone": "Hype / short & punchy",
+                  "explanation": "Excited, energetic, attention-grabbing — often for announcements or reactions."
+                },
+                {
+                  "tone": "Informative / explanatory",
+                  "explanation": "Clear and direct, often used to share tips, how-tos, or break down concepts."
+                },
+                {
+                  "tone": "Critical / thoughtful",
+                  "explanation": "Analytical, opinionated, or evaluative — used for commentary or reviews."
+                },
+                {
+                  "tone": "Cynical / dry",
+                  "explanation": "Ironic, skeptical, or sarcastic; leans toward humorous pessimism."
+                },
+                {
+                  "tone": "Satirical / absurdist",
+                  "explanation": "Exaggerated or surreal humor, often mocking social norms or trends."
+                },
+                {
+                  "tone": "Conversational / anecdotal",
+                  "explanation": "Informal, like talking to a friend. Often includes personal stories or observations."
+                },
+                {
+                  "tone": "Motivational / inspirational",
+                  "explanation": "Uplifting, encouraging, sometimes paired with quotes or affirmations."
+                },
+                {
+                  "tone": "Ranty / venting",
+                  "explanation": "Unfiltered, emotionally charged — expressing frustration or calling something out."
+                },
+                {
+                  "tone": "Relatable / self-deprecating",
+                  "explanation": "Highlights common experiences or flaws in a humorous or empathetic way."
+                },
+                {
+                  "tone": "Promotional / transactional",
+                  "explanation": "Focused on selling, promoting, or calling users to action (e.g., “link in bio”)."
+                }
+              ]
+
             const user_interests = await UserInterestDAO.getUserInterests(user_id);
 
 
@@ -591,11 +697,10 @@ const Simulation = {
             - Formatting (no bullet points, no bold/italic, use natural paragraph breaks)
             Do NOT sound like a corporate announcement or a generic AI. 
 
-            The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
-            Post requirements:
-            0. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
-            1. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
-            2. Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
+            POST CONTENT REQUIREMENTS: 
+            0. The post content MUST reflect topics related to content orientation in ${descr.lvl1.llm_descr} that may arise from interactions among actor type in ${descr.lvl1.llm_descr}.           
+            1. Select a tone from the list (${tone}) that best matches the style of ${descr.llm_descr.CommunicationFlow}
+            2. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
             3. Your post must be significantly different from your last three posts in:
             - Content, structure, storyline, length, and phrasing
             - Lexical overlap: below 20% shared words with past 3 posts
@@ -604,6 +709,7 @@ const Simulation = {
             5. Keep the contents engaging and relatable.
             6. Avoid generic tone if your last two posts were already generic—add specificity (names, places, small moments).
             7. Do not end the post with a question.
+            8. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
         
             Now, generate a new post that sticks to a single theme and meets all of the above criteria.
             `;
@@ -640,6 +746,8 @@ const Simulation = {
             let sel_comm = channels[Math.floor(Math.random() * channels.length)];
 
             const lvl1 = await FeatureSelectionDAO.getLvlOneFeatures();
+            const descr = await FeatureSelectionDAO.getLvlOneDescriptions();
+
             //GETTING SOCIAL MEDIA TYPE. //
             const platforms = ActionChoice.getSocialMediaType(
               lvl1.timeline, 
@@ -670,6 +778,57 @@ const Simulation = {
                 { goal: "write hate comments", role: "Bully" }
             ]
 
+            const tone = [
+                {
+                  "tone": "Comedic / casual",
+                  "explanation": "Light, humorous, often includes slang, jokes, or memes."
+                },
+                {
+                  "tone": "Reflective / emotional",
+                  "explanation": "Personal, introspective, or vulnerable. Often includes storytelling or feelings."
+                },
+                {
+                  "tone": "Hype / short & punchy",
+                  "explanation": "Excited, energetic, attention-grabbing — often for announcements or reactions."
+                },
+                {
+                  "tone": "Informative / explanatory",
+                  "explanation": "Clear and direct, often used to share tips, how-tos, or break down concepts."
+                },
+                {
+                  "tone": "Critical / thoughtful",
+                  "explanation": "Analytical, opinionated, or evaluative — used for commentary or reviews."
+                },
+                {
+                  "tone": "Cynical / dry",
+                  "explanation": "Ironic, skeptical, or sarcastic; leans toward humorous pessimism."
+                },
+                {
+                  "tone": "Satirical / absurdist",
+                  "explanation": "Exaggerated or surreal humor, often mocking social norms or trends."
+                },
+                {
+                  "tone": "Conversational / anecdotal",
+                  "explanation": "Informal, like talking to a friend. Often includes personal stories or observations."
+                },
+                {
+                  "tone": "Motivational / inspirational",
+                  "explanation": "Uplifting, encouraging, sometimes paired with quotes or affirmations."
+                },
+                {
+                  "tone": "Ranty / venting",
+                  "explanation": "Unfiltered, emotionally charged — expressing frustration or calling something out."
+                },
+                {
+                  "tone": "Relatable / self-deprecating",
+                  "explanation": "Highlights common experiences or flaws in a humorous or empathetic way."
+                },
+                {
+                  "tone": "Promotional / transactional",
+                  "explanation": "Focused on selling, promoting, or calling users to action (e.g., “link in bio”)."
+                }
+              ]
+
             const user_interests = await UserInterestDAO.getUserInterests(user_id);
 
 
@@ -685,20 +844,21 @@ const Simulation = {
             - Formatting (no bullet points, no bold/italic, use natural paragraph breaks)
             Do NOT sound like a corporate announcement or a generic AI. 
 
-            The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
-            Post requirements:
-            0. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
+            POST CONTENT REQUIREMENTS: 
+            0. The post content MUST reflect topics related to ${descr.llm_descr.ContentOrientation} that may arise from interactions among ${descr.llm_descr.ActorType}.           
             1. Your post must be aligned with the community topic.
-            2. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
-            3. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
-            4. Your post must be significantly different from your last three posts in:
+            2. Select a tone from the list (${tone}) that best matches the style of ${descr.llm_descr.CommunicationFlow}
+            3. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
+            4. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
+            5. Your post must be significantly different from your last three posts in:
             - Content, structure, storyline, length, and phrasing
             - Lexical overlap: below 20% shared words with past 3 posts
             - Semantic similarity: below 0.2 cosine similarity with past 3 posts. Use a completely different sentence structure. The contents of some of your previous posts are:${last_posts}. 
-            5. Structure the post clearly with natural newlines—avoid dense blocks of text.
-            6. Keep the contents engaging and relatable.
-            7. Avoid generic tone if your last two posts were already generic—add specificity (names, places, small moments).
-            8. Do not end the post with a question.
+            6. Structure the post clearly with natural newlines—avoid dense blocks of text.
+            7. Keep the contents engaging and relatable.
+            8. Avoid generic tone if your last two posts were already generic—add specificity (names, places, small moments).
+            9. Do not end the post with a question.
+            10. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
         
             Now, generate a new post that sticks to a single theme and meets all of the above criteria.
             `;
@@ -897,6 +1057,7 @@ const Simulation = {
 
     async createAGChannel(user_id, system_prompt){
         const lvl1 = await FeatureSelectionDAO.getLvlOneFeatures();
+        const descr =  await FeatureSelectionDAO.getLvlOneDescriptions();
 
         //GETTING SOCIAL MEDIA TYPE. //
         const platforms = ActionChoice.getSocialMediaType(
@@ -905,15 +1066,22 @@ const Simulation = {
         ); 
 
         let user_prompt = `
-        You are about to create a new community channel.
-        Generate a name for the community channel. The naming convention should mimic channels like we see on platforms like ${platforms.join(', ')}. 
-        The overall theme of the channel should mimicm the vibe of ${lvl1.llm_descr}. 
-        Come up with a channel name that real people would actually use. Be straightforward and reply with just the name.
+        You are about to create a new community channel. 
+        Generate a name for the community channel. 
+        The naming style should follow the naming conventions of channels that appear on platforms like ${platforms.join(', ')}. 
+        The overall theme of the channel should represent the contents related to focus on ${descr.llm_descr.ContentOrientation}. 
+        The users participating in this channel are ${descr.llm_descr.ActorType}. 
+        Come up with a channel name that social media would actually have. 
+        Be specific and don't use vague words that aren't frequently used in real social media. 
+        Be straightforward and reply with just the name.
         `;
+        
         let name = await generateResponse(system_prompt, user_prompt);
         
         user_prompt = `You just created a channel ${name}. Now create a bio for this channel. 
-        The bio should be a one-liner that describes the purpose of the channel. The bio sentence style should mimic channels like we see on platforms like ${platforms.join(', ')} whichever is similar to our context.
+        The bio should be a one-liner that describes the purpose of the channel. The bio sentence style should mimic channels like we see on platforms like ${platforms.join(', ')}.
+        Please generate social media bio that reflects the tone of ${descr.llm_descr.Atmosphere}, where the ontents in this channel focuses on ${descr.llm_descr.ContentOrientation}.
+        The communications in this channel appears like ${descr.llm_descr.CommunicationFlow}.
         Please do not use emojis in bio.`;
         let bio = await generateResponse(system_prompt, user_prompt);
 
@@ -1002,6 +1170,8 @@ const Simulation = {
         }
 
         const lvl1 = await FeatureSelectionDAO.getLvlOneFeatures();
+        const descr = await FeatureSelectionDAO.getLvlOneDescriptions();
+
         //GETTING SOCIAL MEDIA TYPE. //
         const platforms = ActionChoice.getSocialMediaType(
             lvl1.timeline, 
@@ -1032,6 +1202,57 @@ const Simulation = {
             { goal: "write hate comments", role: "Bully" }
         ]
 
+        const tone = [
+            {
+              "tone": "Comedic / casual",
+              "explanation": "Light, humorous, often includes slang, jokes, or memes."
+            },
+            {
+              "tone": "Reflective / emotional",
+              "explanation": "Personal, introspective, or vulnerable. Often includes storytelling or feelings."
+            },
+            {
+              "tone": "Hype / short & punchy",
+              "explanation": "Excited, energetic, attention-grabbing — often for announcements or reactions."
+            },
+            {
+              "tone": "Informative / explanatory",
+              "explanation": "Clear and direct, often used to share tips, how-tos, or break down concepts."
+            },
+            {
+              "tone": "Critical / thoughtful",
+              "explanation": "Analytical, opinionated, or evaluative — used for commentary or reviews."
+            },
+            {
+              "tone": "Cynical / dry",
+              "explanation": "Ironic, skeptical, or sarcastic; leans toward humorous pessimism."
+            },
+            {
+              "tone": "Satirical / absurdist",
+              "explanation": "Exaggerated or surreal humor, often mocking social norms or trends."
+            },
+            {
+              "tone": "Conversational / anecdotal",
+              "explanation": "Informal, like talking to a friend. Often includes personal stories or observations."
+            },
+            {
+              "tone": "Motivational / inspirational",
+              "explanation": "Uplifting, encouraging, sometimes paired with quotes or affirmations."
+            },
+            {
+              "tone": "Ranty / venting",
+              "explanation": "Unfiltered, emotionally charged — expressing frustration or calling something out."
+            },
+            {
+              "tone": "Relatable / self-deprecating",
+              "explanation": "Highlights common experiences or flaws in a humorous or empathetic way."
+            },
+            {
+              "tone": "Promotional / transactional",
+              "explanation": "Focused on selling, promoting, or calling users to action (e.g., “link in bio”)."
+            }
+          ]
+
         const user_interests = await UserInterestDAO.getUserInterests(user_id);
 
         
@@ -1043,22 +1264,23 @@ const Simulation = {
             - Length (120–150 characters, max three sentences) and tone (avoid exclamation marks unless necessary)
             - Formatting (informal, no bullet points, no bold/italic, use natural paragraph breaks)
             - Hashtag use (use minimal, aligning to the platform’s culture, don’t overdo it)
-            Do NOT sound like a corporate announcement or a generic AI.. 
+            Do NOT sound like a corporate announcement or a generic AI.
 
-            The generated post and interactions should follow the social media vibe of the following: ${lvl1.llm_descr}
-            Post requirements:
-            0. Do NOT start the sentence with "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
-            1. Your post must be aligned with the community topic.
-            2. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
-            3. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
-            4. Your post must be significantly different from your last three posts in:
+            POST CONTENT REQUIREMENTS: 
+            0. The post content MUST reflect topics related to ${descr.llm_descr.ContentOrientation} that may arise from interactions among ${descr.llm_descr.ActorType}.           
+            1. Your post must be aligned with the community topic.            
+            2. Select a tone from the list (${tone}) that best matches the style of ${descr.llm_descr.CommunicationFlow}
+            3. Pick one theme among the user iterests: ${user_interests}. Focus on one clear theme. Do not mix unrelated ideas.
+            4. "Pick one user goal from ${user_roles} and generate a post based on the behavior associated with that goal.
+            5. Your post must be significantly different from your last three posts in:
             - Content, structure, storyline, length, and phrasing
             - Lexical overlap: below 20% shared words with past 3 posts
             - Semantic similarity: below 0.2 cosine similarity with past 3 posts. Use a completely different sentence structure. The contents of some of your previous posts are:${last_posts}. 
-            5. Structure the post clearly with natural newlines—avoid dense blocks of text.
-            6. Keep the contents engaging and relatable.
-            7. Avoid generic tone if your last two posts were already generic—add specificity (names, places, small moments).
-            8. Do not end the post with a question.
+            6. Structure the post clearly with natural newlines—avoid dense blocks of text.
+            7. Keep the contents engaging and relatable.
+            8. Avoid generic tone if your last two posts were already generic—add specificity (names, places, small moments).
+            9. Do not end the post with a question.
+            10. Do NOT start the sentence with words like "JUST", "FINALLY", "FOUND", "HAD", "CURRENTLY", "CAME ACORSS".
         
             Now, generate a new post that sticks to a single theme and meets all of the above criteria.
             `;
@@ -1388,6 +1610,7 @@ const Simulation = {
             const goalRole = goalRoles[Math.floor(Math.random() * goalRoles.length)];
 
             const descriptions = await FeatureSelectionDAO.getLvlOneDescriptions();
+            const llm_descr = descriptions.llm_descr
 
             /////////////////// Identity Prompt ///////////////////
             const identity_style = await FeatureSelectionDAO.getLvlTwoIdentity();
@@ -1408,7 +1631,7 @@ const Simulation = {
             const systemPrompt = `You are an AI that generates social media user profiles based on metaphorical descriptions. 
             The user has the goal of "${goalRole.goal}" and plays the role of "${goalRole.role}".
             Create a personality that embodies these metaphorical characteristics:
-            LLM Description: ${descriptions.llm_descr}`;
+            LLM Description: ${llm_descr}`;
 
             // Create the user prompt for profile generation
             const userPrompt = `
@@ -1428,7 +1651,7 @@ const Simulation = {
                 "user_name": "A username strictly adhering to the USERNAME REQUIREMENTS above.",
                 "email": "A thematic email address, can be related to the metaphor or username strategy",
                 "password": "A strong password",
-                "user_bio": "A concise (1–3 sentences, approx. 150 characters), engaging social media bio that reflects the general writing style of typical social media bios. This bio should relate to ${descriptions.llm_descr["ContentOrientation"]} content and reflect the vibe of ${descriptions.llm_descr["Atmosphere"]}, where users are gathered around the ${descriptions.llm_descr["GatheringType"]} theme. This bio should NOT weave in the metaphorical theme of '${descriptions.keyword} or metaphor.' ${existingUserBios.length > 0 ? `It MUST be distinct from these existing bios: ${existingUserBios.map(bio => `"${bio}"`).join('; ')}. ` : ''}No emojis.",
+                "user_bio": "A concise (1–3 sentences, approx. 150 characters), engaging social media bio that reflects the general writing style of typical social media bios. This bio should relate to ${llm_descr.ContentOrientation} content and reflect the vibe of ${llm_descr.Atmosphere}, where users are gathered around the ${llm_descr.GatheringType} theme. This bio should NOT weave in the metaphorical theme of '${descriptions.keyword} or metaphor.' ${existingUserBios.length > 0 ? `It MUST be distinct from these existing bios: ${existingUserBios.map(bio => `"${bio}"`).join('; ')}. ` : ''}No emojis.",
                 "profile_picture": "A URL using https://i.pravatar.cc/120?u= with a random parameter",
                 "posting_trait": "Float between 0-1",
                 "commenting_trait": "Float between 0.5-1",
@@ -1437,8 +1660,8 @@ const Simulation = {
                 "updating_trait": "Float between 0-1",
                 "comm_trait": "Float between 0-1",
                 "notification_trait": "Float between 0-1",
-                "interests": ["At least 3 interests from the predefined list that align with ${descriptions.llm_descr["ContentOrientation"]} contents"],
-                "persona_name": "Name the user's personality type that appears from ${descriptions.llm_descr["ActorType"]} in ${descriptions.llm_descr["ConnectingEnvironment"]} social connecting environment. Should NOT be making the real name.",
+                "interests": ["At least 3 interests from the predefined list that align with ${llm_descr.ContentOrientation} contents"],
+                "persona_name": "Name the user's personality type that appears from ${llm_descr.ActorType} in ${llm_descr.ConnectingEnvironment} social connecting environment. Should NOT be making the real name.",
                 "social_group_name": "A group name aligned with the metaphor.  Make sure it ranges in tone, length and nuance."
             }
 
