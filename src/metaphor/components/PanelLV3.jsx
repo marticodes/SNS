@@ -61,16 +61,6 @@ function PanelLV3({ selections }) {
           <input type="radio" name="privacySettings" checked={selections?.privacySettings === 'show-all'} disabled={true}/> Show all (e.g., Instagram)
         </label>
       </div>
-
-      <div className="options">
-        <h3>Community feature</h3>
-        <label>
-          <input type="radio" name="communityFeature" checked={selections?.communityFeature === 'open-groups'} disabled={true}/> Open groups (e.g., Instagram)
-        </label>
-        <label>
-          <input type="radio" name="communityFeature" checked={selections?.communityFeature === 'closed-groups'} disabled={true}/> Closed groups (e.g., Facebook)
-        </label>
-      </div>
     </div>
   );
 }
