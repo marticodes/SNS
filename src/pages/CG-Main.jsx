@@ -66,10 +66,10 @@ const CGPage = () => {
             
             console.log(`Community ${community.comm_name}: ${community.post_count} posts`);
             
-            return community.post_count >= 10;
+            return community.post_count >= 3;
           });
           
-          console.log("Communities with 10+ posts:", validCommunities);
+          console.log("Communities with 3+ posts:", validCommunities);
           setCommunities(validCommunities);
           
         } catch (error) {
