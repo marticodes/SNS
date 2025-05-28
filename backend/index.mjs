@@ -1526,9 +1526,6 @@ async function generateSocialMediaFeatures(attributes) {
           - **Privacy Settings**: Configures boundaries for interactions.
             - Invited Content Only: Access is limited to invited users (e.g., Slack).
             - Show All: Content is publicly visible to anyone (e.g., Instagram).
-          - **Community Features**: Defines group participation dynamics. (select this feature only if group-type is selected in level one)
-            - Open Groups: Anyone can join (e.g., Instagram hashtags, Reddit communities).
-            - Closed Groups: Membership is by approval or invitation only (e.g., Facebook Groups).
           
         The answer structure should look like something like this:
         

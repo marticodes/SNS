@@ -607,7 +607,7 @@ function MainPage() {
             llmResponse && (
               <button
                 className="simulation-button"
-                onClick={() => navigate("/2")}
+                onClick={() => navigate("/3")}
               >
                 Go to Next Page
               </button>
