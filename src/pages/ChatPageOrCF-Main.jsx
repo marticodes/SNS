@@ -20,25 +20,28 @@ const ChatPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [chatList, setchatList] = useState([]);
+  const [isGroup, setIsGroup] = useState(0);
   
-  console.log("Initial chatId from URL:", chatId);
+
 
   // Initialize chat when chatId changes
   useEffect(() => {
     const initializeChat = async () => {
-      if (!chatId) return;
+      if (!chatId) {
+        console.log("No chatId provided in URL");
+        return;
+      }
       
-      console.log("Initializing chat with ID:", chatId);
       setCurrentChatId(chatId);
 
       try {
         // Step 1: Fetch chat info
         const chatResponse = await fetch(`http://localhost:3001/api/chat/${chatId}`);
         if (!chatResponse.ok) {
+          console.error("Failed to fetch chat info:", chatResponse.status);
           throw new Error(`Failed to fetch chat info: ${chatResponse.status}`);
         }
         const chatInfo = await chatResponse.json();
-        console.log("Chat info received:", chatInfo);
 
         if (!chatInfo) {
           throw new Error("No chat info received");
@@ -57,7 +60,6 @@ const ChatPage = () => {
             throw new Error(`Failed to fetch user info: ${userResponse.status}`);
           }
           const userData = await userResponse.json();
-          console.log("User data received:", userData);
           
           if (!userData || !userData.user_name) {
             throw new Error("Invalid user data received");
@@ -76,9 +78,6 @@ const ChatPage = () => {
           const groupNames = await Promise.all(
             groupData.map(async (member) => {
               const userResponse = await fetch(`http://localhost:3001/api/user/${member}`);
-              if (!userResponse.ok) {
-                throw new Error(`Failed to fetch group member info: ${userResponse.status}`);
-              }
               const userData = await userResponse.json();
               return userData.user_name;
             })
@@ -100,26 +99,31 @@ const ChatPage = () => {
 
   // Add debug logging for state changes
   useEffect(() => {
-    console.log("State update - currentChatUser:", currentChatUser);
-    console.log("State update - currentChatId:", currentChatId);
+    //console.log("State update - currentChatUser:", currentChatUser);
+    //console.log("State update - currentChatId:", currentChatId);
   }, [currentChatUser, currentChatId]);
 
   useEffect(() => {
     const fetchChats = () => {
+      console.log('Fetching chats for user:', userId);
       fetch(`http://localhost:3001/api/chats/all/${userId}`)
         .then((response) => response.json())
         .then(async (chats) => {
+          console.log('Raw chats data:', chats);
           const updatedChatList = await Promise.all(
             chats.map(async (chat) => {
+              console.log('Processing chat:', chat);
               let displayName;
               let chatimg;
               if (chat.group_chat === 0) {
                 const otherUserId = parseInt(chat.user_id_1, 10) === userId ? parseInt(chat.user_id_2, 10) : chat.user_id_1;
+                console.log('Direct message - other user ID:', otherUserId);
                 const userResponse = await fetch(`http://localhost:3001/api/user/${otherUserId}`);
                 const userData = await userResponse.json();
                 displayName = userData.user_name;
                 chatimg = userData.profile_picture;
               } else {
+                console.log('Group chat - chat ID:', chat.chat_id);
                 const groupResponse = await fetch(`http://localhost:3001/api/members/chat/${chat.chat_id}`);
                 const groupData = await groupResponse.json();
                 const groupNames = await Promise.all(
@@ -132,19 +136,23 @@ const ChatPage = () => {
                 displayName = groupNames.join(", ");
                 chatimg = null;
               }
-              return { chat_id: chat.chat_id, name: displayName, image: chatimg, group_chat: chat.group_chat };
+              const processedChat = { chat_id: chat.chat_id, name: displayName, image: chatimg, group_chat: chat.group_chat };
+              //console.log('Processed chat:', processedChat);
+              return processedChat;
             })
           );
+          //console.log('Final updated chat list:', updatedChatList);
           setchatList(updatedChatList);
+        })
+        .catch(error => {
+          console.error('Error fetching chats:', error);
         });
     };
     fetchChats();
     const intervalId = setInterval(fetchChats, 4000);
     return () => clearInterval(intervalId);
   }, [userId]);
-  
 
-  const isGroup = chatList.find(chat => chat.chat_id === currentChatId)?.group_chat || 0;
 
   useEffect(() => {
     if (currentChatId) {
@@ -224,9 +232,15 @@ const ChatPage = () => {
     setReplyTo(null);
   };
 
-  const handleUserClick = (chat) => {
+  const handleUserClick = async (chat) => {
+    // First update the local state
     setCurrentChatUser(chat.name);
     setCurrentChatId(chat.chat_id);
+    
+    // Wait for the next render cycle to ensure state is updated
+    await new Promise(resolve => setTimeout(resolve, 0));
+    
+    // Then navigate
     navigate(`/dms/${chat.chat_id}`);
   };
 
@@ -243,6 +257,29 @@ const ChatPage = () => {
     setCurrentChatUser(newChat.name);
     setCurrentChatId(newChat.id);
   };
+
+  // Update isGroup whenever chatList or currentChatId changes
+  useEffect(() => {
+    if (chatList.length > 0 && currentChatId) {
+      const foundChat = chatList.find(chat => {
+        const chatIdNum = parseInt(chat.chat_id, 10);
+        const currentChatIdNum = parseInt(currentChatId, 10);
+        console.log('Comparing chat IDs:', {
+          chatId: chatIdNum,
+          currentChatId: currentChatIdNum,
+          groupChat: chat.group_chat
+        });
+        return chatIdNum === currentChatIdNum;
+      });
+      
+      if (foundChat) {
+        console.log('Found chat:', foundChat);
+        setIsGroup(foundChat.group_chat);
+      } else {
+        console.log('No matching chat found');
+      }
+    }
+  }, [chatList, currentChatId]);
 
   return (
     <div style={{ 
