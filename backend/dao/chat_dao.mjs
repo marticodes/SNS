@@ -413,6 +413,17 @@ const ChatDAO = {
         });
     },
 
+    async getTotalNumberOfChats() {
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT COUNT(*) AS total_chats FROM Chat';
+            db.get(sql, [], (err, row) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve(row.total_chats);   
+            });
+        });
+    }
 };
 
 export default ChatDAO;

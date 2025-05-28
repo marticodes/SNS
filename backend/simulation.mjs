@@ -974,12 +974,22 @@ const Simulation = {
         let sel_fren = frens[Math.floor(Math.random() * frens.length)];
         let chat = await ChatDAO.checkExistingChat(user_id, sel_fren);
         let chat_id = "";
+        
         if (chat) {
             chat_id = chat.chat_id;
-            console.log("Chats exists");
-
+            console.log("Chat exists");
         }
         else{
+            // Check limit right before creating new chat
+            let total_users = (await UserDAO.getUserNames()).length;
+            let total_group_chats = await ChatDAO.getTotalNumberOfChats();
+            let max_group_chats = total_users * 10;
+
+            if (total_group_chats >= max_group_chats) {
+                console.log("Max chats reached. Skipping DM creation.");
+                return;
+            }
+
             console.log("No existing chat found. Creating a new one...");
             let user_info = await UserDAO.getUserInfo(sel_fren);
             try {
@@ -992,11 +1002,14 @@ const Simulation = {
                 chat_id = id.ina;
             } catch (error) {
                 console.error("Error adding new chat", error);
+                return;
             }
-        
         }
-        // console.log(chat_id);
-        Simulation.insertAGMessage(user_id, system_prompt, chat_id);
+        
+        // Only send message if we have a valid chat_id
+        if (chat_id) {
+            Simulation.insertAGMessage(user_id, system_prompt, chat_id);
+        }
     },
 
       
@@ -1006,8 +1019,17 @@ const Simulation = {
             console.error("No users found.");
             return null;
         }
-
         if (frens.length < 2) return; 
+
+        let total_users = (await UserDAO.getUserNames()).length;
+        let total_group_chats = await ChatDAO.getTotalNumberOfChats();
+
+        let max_group_chats = total_users * 10;
+
+        if (total_group_chats >= max_group_chats) {
+            console.log("Max group chats reached. Skipping group chat.");
+            return;
+        }
 
         // Limit to max 3 other participants (4 total including the user)
         let count = Math.min(Math.floor(Math.random() * (frens.length - 1)) + 2, 3);
