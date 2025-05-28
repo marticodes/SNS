@@ -9,6 +9,8 @@ function PanelLV2({ selections }) {
         </div>
       </div>
 
+      <h3>Content</h3>
+      
       <div className="options">
         <strong>Commenting</strong>
         <label>

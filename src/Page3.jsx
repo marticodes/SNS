@@ -49,8 +49,8 @@ function Page3() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>SNS Simulation</h1>
-        <h2>Selection made by the LLM:</h2>
+        <h1>Social Media Prototyping Simulation</h1>
+        <h2>Features selected by the system:</h2>
       </header>
       <div className="panels-container">
         <PanelLV1 selections={selections} />
