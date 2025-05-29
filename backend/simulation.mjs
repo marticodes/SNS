@@ -983,7 +983,7 @@ const Simulation = {
             // Check limit right before creating new chat
             let total_users = (await UserDAO.getUserNames()).length;
             let total_group_chats = await ChatDAO.getTotalNumberOfChats();
-            let max_group_chats = total_users * 10;
+            let max_group_chats = total_users * 5;
 
             if (total_group_chats >= max_group_chats) {
                 console.log("Max chats reached. Skipping DM creation.");
@@ -1024,7 +1024,7 @@ const Simulation = {
         let total_users = (await UserDAO.getUserNames()).length;
         let total_group_chats = await ChatDAO.getTotalNumberOfChats();
 
-        let max_group_chats = total_users * 10;
+        let max_group_chats = total_users * 5;
 
         if (total_group_chats >= max_group_chats) {
             console.log("Max group chats reached. Skipping group chat.");
